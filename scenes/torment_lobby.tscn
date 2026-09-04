@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cnqr0fk085rxw"]
+
+[ext_resource type="Script" uid="uid://djr8g63hw7ie5" path="res://scripts/torment_lobby.gd" id="1_byh5m"]
+
+[node name="TormentLobby" type="Node2D" unique_id=1203160100]
+script = ExtResource("1_byh5m")

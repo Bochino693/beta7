@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cuxr3481j1xal"]
+
+[ext_resource type="Script" uid="uid://csuqrd7fa826o" path="res://scripts/cup_play.gd" id="1_r4nu3"]
+
+[node name="CupPlay" type="Node2D" unique_id=482011472]
+script = ExtResource("1_r4nu3")

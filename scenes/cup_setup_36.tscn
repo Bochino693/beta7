@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cxkqgqellvchq"]
+
+[ext_resource type="Script" uid="uid://i51kiamn2yar" path="res://scripts/cup_setup_36.gd" id="1_yjxc6"]
+
+[node name="PlayerCupSelecao" type="Node2D" unique_id=1954434500]
+script = ExtResource("1_yjxc6")

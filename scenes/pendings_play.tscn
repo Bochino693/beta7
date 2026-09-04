@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bgvbbuwrh1fvp"]
+
+[ext_resource type="Script" uid="uid://bv5316jmnfpts" path="res://scripts/pending_play.gd" id="1_wrdf0"]
+
+[node name="PendingsPlay" type="Node2D" unique_id=538496141]
+script = ExtResource("1_wrdf0")

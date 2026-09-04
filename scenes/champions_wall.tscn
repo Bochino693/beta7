@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dbaw1d8j3xgt1"]
+
+[ext_resource type="Script" uid="uid://dqsikkxab0iay" path="res://scripts/champions_wall.gd" id="1_vp46f"]
+
+[node name="ChampionsWall" type="Node2D" unique_id=97553247]
+script = ExtResource("1_vp46f")
