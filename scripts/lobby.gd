@@ -14,10 +14,10 @@ extends Node2D
 # ----- CONFIG -----
 const CENA_SEGUINTE: String   = "res://scenes/cup_lobby.tscn"
 const FONTE_ORBITRON: String  = "res://fonts/orbitron-bold.ttf"
-const SFX_SELECT: String      = "res://songs/player_select.mp3"
-const SFX_CONFIRM: String     = "res://songs/game_start.mp3"
-const SFX_ERRO: String        = "res://songs/player_select.mp3"   # fallback
-const MUSICA_FUNDO: String    = "res://songs/song_fut.mp3"
+const SFX_SELECT: String      = "res://songs/player_select.wav"
+const SFX_CONFIRM: String     = "res://songs/game_start.wav"
+const SFX_ERRO: String        = "res://songs/player_select.wav"   # fallback
+const MUSICA_FUNDO: String    = "res://songs/song_fut.ogg"
 
 const MIN_LETRAS_NOME: int = 3
 const MIN_JOGADORES_REAIS: int = 1
@@ -32,7 +32,7 @@ const NUM_GRUPOS: int          = 4
 const JOGADORES_POR_GRUPO: int = 4
 const TOTAL_SLOTS: int         = NUM_GRUPOS * JOGADORES_POR_GRUPO   # 16
 
-const LETRAS_GRUPO: Array[String] = ["A", "B", "C", "D"]
+const LETRAS_GRUPO: Array = ["A", "B", "C", "D"]
 
 const PALETA: Array = [
 	{"nome": "VERMELHO", "cor": Color(1.00, 0.20, 0.20)},
@@ -42,9 +42,10 @@ const PALETA: Array = [
 ]
 
 # ----- ESTADO -----
-var nomes: Array[String]  = []
+var nomes: Array  = []
 var grupos: Array         = []
 var etapa: int            = 1
+var _maquina_livre_ms: int = 0
 var erro_indices: Array   = []    # índices de slots com nome duplicado
 
 var btn_sortear: Button = null
@@ -60,8 +61,8 @@ var audio_fundo: AudioStreamPlayer
 var sfx_select: AudioStreamPlayer
 var sfx_confirm: AudioStreamPlayer
 
-var name_edits: Array[LineEdit]   = []
-var error_labels: Array[Label]    = []
+var name_edits: Array   = []
+var error_labels: Array    = []
 var label_erro_global: Label
 
 
@@ -72,6 +73,7 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	_travar_arcade()
 	randomize()
+	_maquina_livre_ms = Time.get_ticks_msec() + 800
 
 	nomes.resize(TOTAL_SLOTS)
 	for i in range(TOTAL_SLOTS):
@@ -88,13 +90,14 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if ponteiro:
-		ponteiro.position = get_viewport().get_mouse_position()
+		# TV Box sem mouse: o ponteiro só aparece quando um mouse se mexer.
+		if not ponteiro.visible and Input.get_last_mouse_speed() != Vector2.ZERO:
+			ponteiro.visible = true
+		ponteiro.rect_position = get_viewport().get_mouse_position()
 
 
 func _travar_arcade() -> void:
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, true)
+	# (Android: a janela já é a tela cheia)
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 
@@ -113,14 +116,14 @@ func _criar_fundo() -> void:
 
 	# Fundo escuro principal
 	var bg := ColorRect.new()
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.set_anchors_preset(Control.PRESET_WIDE)
 	bg.color = Color(0.02, 0.03, 0.045, 1.0)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(bg)
 
 	# Grade neon sutil (decorativa)
 	var grid_rect := ColorRect.new()
-	grid_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	grid_rect.set_anchors_preset(Control.PRESET_WIDE)
 	grid_rect.color = Color(0.12, 0.58, 1.00, 0.03)
 	grid_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(grid_rect)
@@ -132,7 +135,7 @@ func _criar_ui_root() -> void:
 	add_child(ui_layer)
 
 	ui_root = Control.new()
-	ui_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ui_root.set_anchors_preset(Control.PRESET_WIDE)
 	ui_layer.add_child(ui_root)
 
 
@@ -143,11 +146,12 @@ func _criar_ponteiro() -> void:
 
 	ponteiro = Control.new()
 	ponteiro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ponteiro.visible = OS.get_name() != "Android"
 	ponteiro_layer.add_child(ponteiro)
 
 	var anel := Panel.new()
-	anel.size = Vector2(34, 34)
-	anel.position = Vector2(-17, -17)
+	anel.rect_size = Vector2(34, 34)
+	anel.rect_position = Vector2(-17, -17)
 	anel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(0, 0, 0, 0)
@@ -156,19 +160,19 @@ func _criar_ponteiro() -> void:
 	s.set_corner_radius_all(17)
 	s.shadow_color = Color(0.20, 1.0, 0.85, 0.55)
 	s.shadow_size = 10
-	anel.add_theme_stylebox_override("panel", s)
+	anel.add_stylebox_override("panel", s)
 	ponteiro.add_child(anel)
 
 	var dot := Panel.new()
-	dot.size = Vector2(8, 8)
-	dot.position = Vector2(-4, -4)
+	dot.rect_size = Vector2(8, 8)
+	dot.rect_position = Vector2(-4, -4)
 	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sd := StyleBoxFlat.new()
 	sd.bg_color = Color(1, 1, 1, 0.95)
 	sd.set_corner_radius_all(4)
 	sd.shadow_color = Color(0.20, 1.0, 0.85, 0.8)
 	sd.shadow_size = 6
-	dot.add_theme_stylebox_override("panel", sd)
+	dot.add_stylebox_override("panel", sd)
 	ponteiro.add_child(dot)
 
 
@@ -194,8 +198,8 @@ func _abrir_etapa_cadastro() -> void:
 	# HEADER
 	# =========================
 	var header_bg := Panel.new()
-	header_bg.size = Vector2(vp.x, 92)
-	header_bg.position = Vector2.ZERO
+	header_bg.rect_size = Vector2(vp.x, 92)
+	header_bg.rect_position = Vector2.ZERO
 	header_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var hbs := StyleBoxFlat.new()
@@ -205,78 +209,78 @@ func _abrir_etapa_cadastro() -> void:
 	hbs.border_width_bottom = 2
 	hbs.shadow_color = Color(0.25, 0.70, 1.0, 0.22)
 	hbs.shadow_size = 18
-	header_bg.add_theme_stylebox_override("panel", hbs)
+	header_bg.add_stylebox_override("panel", hbs)
 	ui_root.add_child(header_bg)
 
-	var titulo := _label("⚽  MODO COPA", 38, Color.WHITE, Color(0.25, 0.70, 1.0, 0.55))
-	titulo.position = Vector2(44, 0)
-	titulo.size = Vector2(vp.x * 0.5, 92)
-	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var titulo = _label("⚽  MODO COPA", 38, Color.white, Color(0.25, 0.70, 1.0, 0.55))
+	titulo.rect_position = Vector2(44, 0)
+	titulo.rect_size = Vector2(vp.x * 0.5, 92)
+	titulo.align = Label.ALIGN_LEFT
 	ui_root.add_child(titulo)
 
-	var badge := _label("CADASTRO POR CORES  •  16 JOGADORES", 17, Color(0.78, 0.84, 0.94))
-	badge.position = Vector2(vp.x - 520, 0)
-	badge.size = Vector2(470, 92)
-	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var badge = _label("CADASTRO POR CORES  •  16 JOGADORES", 17, Color(0.78, 0.84, 0.94))
+	badge.rect_position = Vector2(vp.x - 520, 0)
+	badge.rect_size = Vector2(470, 92)
+	badge.align = Label.ALIGN_RIGHT
 	ui_root.add_child(badge)
 
-	var sub := _label(
+	var sub = _label(
 		"Preencha 4 jogadores por cor. Depois o sorteio monta cada grupo com 1 vermelho, 1 verde, 1 azul e 1 amarelo.",
 		16,
 		Color(0.68, 0.74, 0.84)
 	)
-	sub.position = Vector2(0, 104)
-	sub.size = Vector2(vp.x, 30)
+	sub.rect_position = Vector2(0, 104)
+	sub.rect_size = Vector2(vp.x, 30)
 	ui_root.add_child(sub)
 
 	label_erro_global = _label("", 16, COR_ERRO)
-	label_erro_global.position = Vector2(0, 136)
-	label_erro_global.size = Vector2(vp.x, 28)
+	label_erro_global.rect_position = Vector2(0, 136)
+	label_erro_global.rect_size = Vector2(vp.x, 28)
 	ui_root.add_child(label_erro_global)
 
 	# =========================
 	# FORMULÁRIO 4 COLUNAS
 	# =========================
-	var form_w: float = minf(vp.x - 96.0, 1380.0)
+	var form_w: float = min(vp.x - 96.0, 1380.0)
 	var form_h: float = vp.y - 292.0
 	var form_x: float = (vp.x - form_w) / 2.0
 	var form_y: float = 178.0
 
 	var form := Control.new()
-	form.position = Vector2(form_x, form_y)
-	form.size = Vector2(form_w, form_h)
+	form.rect_position = Vector2(form_x, form_y)
+	form.rect_size = Vector2(form_w, form_h)
 	ui_root.add_child(form)
 
 	var gap: float = 22.0
 	var col_w: float = (form_w - gap * 3.0) / 4.0
 
 	for cor_i in range(PALETA.size()):
-		var painel := _criar_painel_cadastro_cor(cor_i, Vector2(col_w, form_h))
-		painel.position = Vector2(cor_i * (col_w + gap), 0)
+		var painel = _criar_painel_cadastro_cor(cor_i, Vector2(col_w, form_h))
+		painel.rect_position = Vector2(cor_i * (col_w + gap), 0)
 		form.add_child(painel)
 
 	# =========================
 	# FOOTER
 	# =========================
-	var footer_y := vp.y - 88.0
+	var footer_y = vp.y - 88.0
 
-	var dica := _label(
-		"💡 Campos vazios viram Boot automático. Nomes repetidos são bloqueados.",
+	var dica = _label(
+		"START: adiciona jogador  •  SELECT: sortear grupos  •  Campos vazios viram Boot.",
 		15,
 		Color(0.55, 0.62, 0.72)
 	)
-	dica.position = Vector2(48, footer_y + 6)
-	dica.size = Vector2(vp.x * 0.55, 36)
-	dica.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	dica.rect_position = Vector2(48, footer_y + 6)
+	dica.rect_size = Vector2(vp.x * 0.55, 36)
+	dica.align = Label.ALIGN_LEFT
 	ui_root.add_child(dica)
 
-	var btn_ok := _botao_neon(
+	var btn_ok = _botao_neon(
 		"SORTEAR GRUPOS  ▶",
 		Vector2(vp.x - 390, footer_y - 2),
 		Vector2(340, 62),
 		Color(0.24, 0.95, 0.65)
 	)
-	btn_ok.pressed.connect(_tentar_confirmar_cadastro)
+	btn_ok.connect("pressed", self, "_tentar_confirmar_cadastro")
 	ui_root.add_child(btn_ok)
 	btn_sortear = btn_ok
 	_atualizar_estado_botao_iniciar()
@@ -285,13 +289,13 @@ func _abrir_etapa_cadastro() -> void:
 
 func _criar_painel_cadastro_grupo(g: int, tam: Vector2) -> Panel:
 	var panel := Panel.new()
-	panel.size = tam
+	panel.rect_size = tam
 	_aplicar_neon(panel, COR_COPA)
 
 	# Header do grupo
 	var header_g := Panel.new()
-	header_g.position = Vector2(0, 0)
-	header_g.size = Vector2(tam.x, 46)
+	header_g.rect_position = Vector2(0, 0)
+	header_g.rect_size = Vector2(tam.x, 46)
 	header_g.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var hgs := StyleBoxFlat.new()
 	hgs.bg_color = Color(COR_COPA.r * 0.15, COR_COPA.g * 0.15, COR_COPA.b * 0.05, 0.9)
@@ -301,49 +305,49 @@ func _criar_painel_cadastro_grupo(g: int, tam: Vector2) -> Panel:
 	hgs.set_corner_radius_all(0)
 	hgs.corner_radius_top_left = 30
 	hgs.corner_radius_top_right = 30
-	header_g.add_theme_stylebox_override("panel", hgs)
+	header_g.add_stylebox_override("panel", hgs)
 	panel.add_child(header_g)
 
-	var lbl_grupo := _label("GRUPO  %s" % LETRAS_GRUPO[g], 22, COR_COPA)
-	lbl_grupo.position = Vector2(0, 0)
-	lbl_grupo.size = Vector2(tam.x, 46)
+	var lbl_grupo = _label("GRUPO  %s" % LETRAS_GRUPO[g], 22, COR_COPA)
+	lbl_grupo.rect_position = Vector2(0, 0)
+	lbl_grupo.rect_size = Vector2(tam.x, 46)
 	panel.add_child(lbl_grupo)
 
 	# 4 campos de jogador
-	var slot_h := (tam.y - 60.0) / float(JOGADORES_POR_GRUPO)
+	var slot_h = (tam.y - 60.0) / float(JOGADORES_POR_GRUPO)
 	for slot in range(JOGADORES_POR_GRUPO):
-		var idx := g * JOGADORES_POR_GRUPO + slot
-		var y_slot := 52.0 + slot * slot_h
+		var idx = g * JOGADORES_POR_GRUPO + slot
+		var y_slot = 52.0 + slot * slot_h
 
 		# Chip de cor
 		var cor_slot: Color = PALETA[slot]["cor"]
 		var chip := Panel.new()
-		chip.position = Vector2(18, y_slot + (slot_h - 30) / 2.0)
-		chip.size = Vector2(30, 30)
+		chip.rect_position = Vector2(18, y_slot + (slot_h - 30) / 2.0)
+		chip.rect_size = Vector2(30, 30)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor_slot))
+		chip.add_stylebox_override("panel", _style_chip(cor_slot))
 		panel.add_child(chip)
 
 		# LineEdit
 		var edit := LineEdit.new()
 		edit.placeholder_text = "Jogador %d" % (idx + 1)
 		edit.text = nomes[idx]
-		edit.position = Vector2(60, y_slot + (slot_h - 44) / 2.0)
-		edit.size = Vector2(tam.x - 80, 44)
+		edit.rect_position = Vector2(60, y_slot + (slot_h - 44) / 2.0)
+		edit.rect_size = Vector2(tam.x - 80, 44)
 		edit.max_length = 14
 		if fonte_orbitron:
-			edit.add_theme_font_override("font", fonte_orbitron)
-		edit.add_theme_font_size_override("font_size", 20)
+			Compat.fonte(edit, fonte_orbitron)
+		Compat.tamanho(edit, 20)
 		_estilizar_lineedit(edit, cor_slot)
-		edit.text_changed.connect(func(t): _ao_alterar_nome(idx, t))
+		edit.connect("text_changed", self, "_g3_nome_alterado", [idx])
 		panel.add_child(edit)
 		name_edits.append(edit)
 
 		# Label de erro inline (por slot)
-		var lbl_e := _label("", 12, COR_ERRO)
-		lbl_e.position = Vector2(60, y_slot + (slot_h - 44) / 2.0 + 46)
-		lbl_e.size = Vector2(tam.x - 80, 18)
-		lbl_e.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var lbl_e = _label("", 12, COR_ERRO)
+		lbl_e.rect_position = Vector2(60, y_slot + (slot_h - 44) / 2.0 + 46)
+		lbl_e.rect_size = Vector2(tam.x - 80, 18)
+		lbl_e.align = Label.ALIGN_LEFT
 		panel.add_child(lbl_e)
 		error_labels.append(lbl_e)
 
@@ -351,16 +355,16 @@ func _criar_painel_cadastro_grupo(g: int, tam: Vector2) -> Panel:
 
 
 func _ao_alterar_nome(idx: int, texto: String) -> void:
-	var maiusc := texto.to_upper()
+	var maiusc = texto.to_upper()
 	nomes[idx] = maiusc
 
 	# Mostra tudo em MAIÚSCULO sem perder a posição do cursor.
 	if idx < name_edits.size() and is_instance_valid(name_edits[idx]):
-		var edit := name_edits[idx]
+		var edit = name_edits[idx]
 		if edit.text != maiusc:
-			var caret := edit.caret_column
+			var caret = edit.caret_column
 			edit.text = maiusc
-			edit.caret_column = mini(caret, maiusc.length())
+			edit.caret_column = int(min(caret, maiusc.length()))
 
 	_validar_duplicatas_live()
 
@@ -376,7 +380,7 @@ func _validar_duplicatas_live() -> void:
 
 	for i in range(name_edits.size()):
 		if is_instance_valid(name_edits[i]):
-			var cor_index := int(i / JOGADORES_POR_GRUPO)
+			var cor_index = int(i / JOGADORES_POR_GRUPO)
 			var cor: Color = PALETA[cor_index]["cor"]
 			_estilizar_lineedit(name_edits[i], cor)
 
@@ -387,7 +391,7 @@ func _validar_duplicatas_live() -> void:
 
 	# Mínimo de letras (só para campos preenchidos).
 	for i in range(TOTAL_SLOTS):
-		var n := nomes[i].strip_edges()
+		var n = nomes[i].strip_edges()
 		if n != "" and n.length() < MIN_LETRAS_NOME:
 			tem_erro = true
 			if i < error_labels.size() and is_instance_valid(error_labels[i]):
@@ -398,7 +402,7 @@ func _validar_duplicatas_live() -> void:
 	# Nomes duplicados.
 	var mapa: Dictionary = {}
 	for i in range(TOTAL_SLOTS):
-		var nm := nomes[i].strip_edges().to_upper()
+		var nm = nomes[i].strip_edges().to_upper()
 		if nm == "":
 			continue
 		if not mapa.has(nm):
@@ -433,14 +437,14 @@ func _cadastro_ok_para_iniciar() -> bool:
 	var validos := 0
 
 	for i in range(TOTAL_SLOTS):
-		var n := nomes[i].strip_edges()
+		var n = nomes[i].strip_edges()
 		if n == "":
 			continue
 
 		if n.length() < MIN_LETRAS_NOME:
 			return false
 
-		var chave := n.to_upper()
+		var chave = n.to_upper()
 		if mapa.has(chave):
 			return false
 		mapa[chave] = true
@@ -453,7 +457,7 @@ func _atualizar_estado_botao_iniciar() -> void:
 	if not is_instance_valid(btn_sortear):
 		return
 
-	var liberar := _cadastro_ok_para_iniciar()
+	var liberar = _cadastro_ok_para_iniciar()
 	btn_sortear.disabled = not liberar
 	btn_sortear.modulate = Color(1, 1, 1, 1.0) if liberar else Color(1, 1, 1, 0.32)
 
@@ -468,8 +472,8 @@ func _estilizar_lineedit_erro(edit: LineEdit) -> void:
 	s.content_margin_right = 14
 	s.shadow_color = Color(COR_ERRO.r, COR_ERRO.g, COR_ERRO.b, 0.45)
 	s.shadow_size = 8
-	edit.add_theme_stylebox_override("normal", s)
-	edit.add_theme_stylebox_override("focus", s)
+	edit.add_stylebox_override("normal", s)
+	edit.add_stylebox_override("focus", s)
 
 
 func _tentar_confirmar_cadastro() -> void:
@@ -498,8 +502,8 @@ func _preencher_boots() -> void:
 
 	for cor_index in range(PALETA.size()):
 		for slot in range(JOGADORES_POR_GRUPO):
-			var idx := _idx_cor_slot(cor_index, slot)
-			var n := nomes[idx].strip_edges()
+			var idx = _idx_cor_slot(cor_index, slot)
+			var n = nomes[idx].strip_edges()
 
 			if n == "":
 				var nome_boot := ""
@@ -589,12 +593,12 @@ func _abrir_etapa_grupos() -> void:
 	etapa = 2
 	_limpar_ui()
 
-	var vp := get_viewport_rect().size
+	var vp = get_viewport_rect().size
 
 	# Header
 	var header_bg := Panel.new()
-	header_bg.size = Vector2(vp.x, 80)
-	header_bg.position = Vector2(0, 0)
+	header_bg.rect_size = Vector2(vp.x, 80)
+	header_bg.rect_position = Vector2(0, 0)
 	header_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var hbs := StyleBoxFlat.new()
 	hbs.bg_color = Color(0.03, 0.04, 0.06, 0.98)
@@ -603,24 +607,24 @@ func _abrir_etapa_grupos() -> void:
 	hbs.border_width_bottom = 2
 	hbs.shadow_color = Color(COR_COPA.r, COR_COPA.g, COR_COPA.b, 0.35)
 	hbs.shadow_size = 16
-	header_bg.add_theme_stylebox_override("panel", hbs)
+	header_bg.add_stylebox_override("panel", hbs)
 	ui_root.add_child(header_bg)
 
-	var titulo := _label("⚽  GRUPOS DA COPA", 36, Color.WHITE, COR_COPA)
-	titulo.position = Vector2(0, 0)
-	titulo.size = Vector2(vp.x, 80)
+	var titulo = _label("⚽  GRUPOS DA COPA", 36, Color.white, COR_COPA)
+	titulo.rect_position = Vector2(0, 0)
+	titulo.rect_size = Vector2(vp.x, 80)
 	ui_root.add_child(titulo)
 
-	var sub := _label("Sorteio concluído  •  4 grupos  •  4 jogadores por grupo", 17, Color(0.70, 0.76, 0.86))
-	sub.position = Vector2(0, 84)
-	sub.size = Vector2(vp.x, 28)
+	var sub = _label("Sorteio concluído  •  4 grupos  •  4 jogadores por grupo", 17, Color(0.70, 0.76, 0.86))
+	sub.rect_position = Vector2(0, 84)
+	sub.rect_size = Vector2(vp.x, 28)
 	ui_root.add_child(sub)
 
 	# Linha divisória
 	var linha := ColorRect.new()
 	linha.color = Color(COR_COPA.r, COR_COPA.g, COR_COPA.b, 0.25)
-	linha.size = Vector2(vp.x * 0.7, 1)
-	linha.position = Vector2(vp.x * 0.15, 116)
+	linha.rect_size = Vector2(vp.x * 0.7, 1)
+	linha.rect_position = Vector2(vp.x * 0.15, 116)
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(linha)
 
@@ -629,60 +633,65 @@ func _abrir_etapa_grupos() -> void:
 	var card_h := 300.0
 	var gap_x := 34.0
 	var gap_y := 24.0
-	var total_w := card_w * 2 + gap_x
-	var total_h := card_h * 2 + gap_y
-	var origin_x := (vp.x - total_w) / 2.0
+	var total_w = card_w * 2 + gap_x
+	var total_h = card_h * 2 + gap_y
+	var origin_x = (vp.x - total_w) / 2.0
 	var origin_y := 142.0
 
 	# Ajuste se não couber
-	var available_h := vp.y - 220.0
+	var available_h = vp.y - 220.0
 	if total_h > available_h:
-		var scale_factor := available_h / total_h
+		var scale_factor = available_h / total_h
 		card_h = card_h * scale_factor
 		gap_y = gap_y * scale_factor
 		total_h = card_h * 2 + gap_y
 
 	for g in range(NUM_GRUPOS):
-		var col := g % 2
-		var row := g / 2
-		var px := origin_x + col * (card_w + gap_x)
-		var py := origin_y + row * (card_h + gap_y)
+		var col = g % 2
+		var row = g / 2
+		var px = origin_x + col * (card_w + gap_x)
+		var py = origin_y + row * (card_h + gap_y)
 
-		var card := _criar_card_grupo_resultado(g, Vector2(card_w, card_h))
-		card.position = Vector2(px, py)
+		var card = _criar_card_grupo_resultado(g, Vector2(card_w, card_h))
+		card.rect_position = Vector2(px, py)
 		ui_root.add_child(card)
 
 		# Animação de entrada
 		card.modulate = Color(1, 1, 1, 0)
-		card.position.y += 18
-		var tw := create_tween()
+		card.rect_position.y += 18
+		var tw = create_tween()
 		tw.set_parallel(true)
 		tw.tween_interval(0.06 * g)
 		tw.tween_property(card, "modulate:a", 1.0, 0.30)
-		tw.tween_property(card, "position:y", py, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(card, Compat.prop(card, "position:y"), py, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	# Rodapé
-	var footer_y := vp.y - 84.0
+	var footer_y = vp.y - 84.0
 
-	var btn_voltar := _botao_neon("◀  EDITAR", Vector2(48, footer_y), Vector2(260, 60), Color(0.7, 0.75, 0.82))
-	btn_voltar.pressed.connect(_voltar_para_cadastro)
+	var btn_voltar = _botao_neon("◀  EDITAR", Vector2(48, footer_y), Vector2(260, 60), Color(0.7, 0.75, 0.82))
+	btn_voltar.connect("pressed", self, "_voltar_para_cadastro")
 	ui_root.add_child(btn_voltar)
 
 	# Estatística de boots
-	var total_boots := _contar_boots()
+	var total_boots = _contar_boots()
 	var lbl_stat := ""
 	if total_boots > 0:
 		lbl_stat = "🤖  %d Boot%s incluído%s" % [total_boots, "s" if total_boots > 1 else "", "s" if total_boots > 1 else ""]
 	else:
 		lbl_stat = "✅  Sem Boots — todos os slots preenchidos"
-	var lbl_boots := _label(lbl_stat, 16, COR_BOOT if total_boots > 0 else COR_OK)
-	lbl_boots.position = Vector2(0, footer_y + 10)
-	lbl_boots.size = Vector2(vp.x, 40)
+	var lbl_boots = _label(lbl_stat, 16, COR_BOOT if total_boots > 0 else COR_OK)
+	lbl_boots.rect_position = Vector2(0, footer_y + 10)
+	lbl_boots.rect_size = Vector2(vp.x, 40)
 	ui_root.add_child(lbl_boots)
 
-	var btn_ok := _botao_neon("CONFIRMAR E INICIAR  ▶", Vector2(vp.x - 380, footer_y), Vector2(340, 60), COR_OK)
-	btn_ok.pressed.connect(_salvar_e_ir)
+	var btn_ok = _botao_neon("CONFIRMAR E INICIAR  ▶", Vector2(vp.x - 380, footer_y), Vector2(340, 60), COR_OK)
+	btn_ok.connect("pressed", self, "_salvar_e_ir")
 	ui_root.add_child(btn_ok)
+
+	var dica_botoes = _label("START: confirmar e iniciar  •  SELECT: editar nomes", 14, Color(0.55, 0.62, 0.72))
+	dica_botoes.rect_position = Vector2(0, footer_y - 30)
+	dica_botoes.rect_size = Vector2(vp.x, 24)
+	ui_root.add_child(dica_botoes)
 
 
 func _contar_boots() -> int:
@@ -699,7 +708,7 @@ func _criar_card_grupo_resultado(g: int, tam: Vector2) -> Panel:
 	var jogadores: Array = dados["jogadores"]
 
 	var panel := Panel.new()
-	panel.size = tam
+	panel.rect_size = tam
 
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(0.018, 0.023, 0.033, 0.98)
@@ -709,11 +718,11 @@ func _criar_card_grupo_resultado(g: int, tam: Vector2) -> Panel:
 	s.shadow_color = Color(0.25, 0.70, 1.0, 0.18)
 	s.shadow_size = 22
 	s.shadow_offset = Vector2.ZERO
-	panel.add_theme_stylebox_override("panel", s)
+	panel.add_stylebox_override("panel", s)
 
 	var faixa := Panel.new()
-	faixa.position = Vector2.ZERO
-	faixa.size = Vector2(tam.x, 54)
+	faixa.rect_position = Vector2.ZERO
+	faixa.rect_size = Vector2(tam.x, 54)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var fs := StyleBoxFlat.new()
@@ -722,25 +731,25 @@ func _criar_card_grupo_resultado(g: int, tam: Vector2) -> Panel:
 	fs.set_corner_radius_all(0)
 	fs.corner_radius_top_left = 22
 	fs.corner_radius_top_right = 22
-	faixa.add_theme_stylebox_override("panel", fs)
+	faixa.add_stylebox_override("panel", fs)
 	panel.add_child(faixa)
 
-	var lbl_grupo := _label("GRUPO %s" % dados["grupo"], 24, Color.WHITE, Color(0.25, 0.70, 1.0, 0.45))
-	lbl_grupo.position = Vector2(0, 0)
-	lbl_grupo.size = Vector2(tam.x, 54)
+	var lbl_grupo = _label("GRUPO %s" % dados["grupo"], 24, Color.white, Color(0.25, 0.70, 1.0, 0.45))
+	lbl_grupo.rect_position = Vector2(0, 0)
+	lbl_grupo.rect_size = Vector2(tam.x, 54)
 	panel.add_child(lbl_grupo)
 
-	var slot_h := (tam.y - 66.0) / float(JOGADORES_POR_GRUPO)
+	var slot_h = (tam.y - 66.0) / float(JOGADORES_POR_GRUPO)
 
 	for slot in range(jogadores.size()):
 		var j: Dictionary = jogadores[slot]
 		var cor: Color = j["cor"]
-		var y_slot := 62.0 + slot * slot_h
+		var y_slot = 62.0 + slot * slot_h
 		var eh_boot: bool = j["boot"]
 
 		var row_bg := Panel.new()
-		row_bg.position = Vector2(14, y_slot + 4)
-		row_bg.size = Vector2(tam.x - 28, slot_h - 8)
+		row_bg.rect_position = Vector2(14, y_slot + 4)
+		row_bg.rect_size = Vector2(tam.x - 28, slot_h - 8)
 		row_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var rs := StyleBoxFlat.new()
@@ -748,30 +757,30 @@ func _criar_card_grupo_resultado(g: int, tam: Vector2) -> Panel:
 		rs.border_color = Color(cor.r, cor.g, cor.b, 0.28)
 		rs.set_border_width_all(1)
 		rs.set_corner_radius_all(14)
-		row_bg.add_theme_stylebox_override("panel", rs)
+		row_bg.add_stylebox_override("panel", rs)
 		panel.add_child(row_bg)
 
 		var chip := Panel.new()
-		chip.position = Vector2(30, y_slot + (slot_h - 24) / 2.0)
-		chip.size = Vector2(24, 24)
+		chip.rect_position = Vector2(30, y_slot + (slot_h - 24) / 2.0)
+		chip.rect_size = Vector2(24, 24)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(COR_BOOT if eh_boot else cor))
+		chip.add_stylebox_override("panel", _style_chip(COR_BOOT if eh_boot else cor))
 		panel.add_child(chip)
 
-		var nome_cor := Color(0.62, 0.68, 0.78) if eh_boot else Color.WHITE
-		var nome_lbl := _label(j["nome"], 19, nome_cor)
-		nome_lbl.position = Vector2(68, y_slot)
-		nome_lbl.size = Vector2(tam.x - 190, slot_h)
-		nome_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var nome_cor = Color(0.62, 0.68, 0.78) if eh_boot else Color.white
+		var nome_lbl = _label(j["nome"], 19, nome_cor)
+		nome_lbl.rect_position = Vector2(68, y_slot)
+		nome_lbl.rect_size = Vector2(tam.x - 190, slot_h)
+		nome_lbl.align = Label.ALIGN_LEFT
 		panel.add_child(nome_lbl)
 
-		var tag_txt := "BOT" if eh_boot else str(j["cor_nome"])
-		var tag_cor := COR_BOOT if eh_boot else cor
+		var tag_txt = "BOT" if eh_boot else str(j["cor_nome"])
+		var tag_cor = COR_BOOT if eh_boot else cor
 
-		var tag := _label(tag_txt, 12, tag_cor)
-		tag.position = Vector2(tam.x - 120, y_slot)
-		tag.size = Vector2(92, slot_h)
-		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		var tag = _label(tag_txt, 12, tag_cor)
+		tag.rect_position = Vector2(tam.x - 120, y_slot)
+		tag.rect_size = Vector2(92, slot_h)
+		tag.align = Label.ALIGN_RIGHT
 		panel.add_child(tag)
 
 	return panel
@@ -800,10 +809,10 @@ func _salvar_e_ir() -> void:
 		audio_fundo.stop()
 
 	_mostrar_tela_grupos_concluidos()
-	await get_tree().create_timer(1.6).timeout
+	yield(get_tree().create_timer(1.6), "timeout")
 
 	if ResourceLoader.exists(CENA_SEGUINTE):
-		get_tree().change_scene_to_file(CENA_SEGUINTE)
+		get_tree().change_scene(CENA_SEGUINTE)
 	else:
 		push_warning("cup_lobby.tscn não encontrada ainda: " + CENA_SEGUINTE)
 		_mostrar_aviso_pendente()
@@ -812,7 +821,7 @@ func _salvar_e_ir() -> void:
 func _salvar_grupos_copa() -> void:
 	_limpar_estado_copa_antigo_antes_de_salvar()
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		cg.configurar_copa_grupos(TOTAL_SLOTS, grupos)
@@ -831,7 +840,7 @@ func _salvar_grupos_copa() -> void:
 		print("  GRUPO %s:" % g["grupo"])
 
 		for j in g["jogadores"]:
-			var tag := " [BOT]" if bool(j["boot"]) else ""
+			var tag = " [BOT]" if bool(j["boot"]) else ""
 			print("    [%s] %s%s" % [str(j["cor_nome"]), str(j["nome"]), tag])
 
 	print("=".repeat(48))
@@ -843,14 +852,14 @@ func _mostrar_tela_grupos_concluidos() -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	var overlay := ColorRect.new()
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.set_anchors_preset(Control.PRESET_WIDE)
 	overlay.color = Color(0.0, 0.0, 0.0, 0.82)
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(overlay)
 
 	var painel := Panel.new()
-	painel.size = Vector2(900, 420)
-	painel.position = (vp - painel.size) / 2.0
+	painel.rect_size = Vector2(900, 420)
+	painel.rect_position = (vp - painel.rect_size) / 2.0
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(painel)
 
@@ -862,26 +871,26 @@ func _mostrar_tela_grupos_concluidos() -> void:
 	s.shadow_color = Color(0.24, 0.95, 0.65, 0.50)
 	s.shadow_size = 34
 	s.shadow_offset = Vector2.ZERO
-	painel.add_theme_stylebox_override("panel", s)
+	painel.add_stylebox_override("panel", s)
 
-	var titulo := _label("✅  GRUPOS CONCLUÍDOS", 38, Color.WHITE, Color(0.24, 0.95, 0.65, 0.65))
-	titulo.position = Vector2(0, 70)
-	titulo.size = Vector2(900, 58)
+	var titulo = _label("✅  GRUPOS CONCLUÍDOS", 38, Color.white, Color(0.24, 0.95, 0.65, 0.65))
+	titulo.rect_position = Vector2(0, 70)
+	titulo.rect_size = Vector2(900, 58)
 	painel.add_child(titulo)
 
-	var msg := _label(
+	var msg = _label(
 		"Os grupos foram sorteados e salvos com sucesso.\nPreparando lobby da Copa...",
 		22,
 		Color(0.78, 0.86, 0.96)
 	)
-	msg.position = Vector2(70, 152)
-	msg.size = Vector2(760, 110)
-	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.rect_position = Vector2(70, 152)
+	msg.rect_size = Vector2(760, 110)
+	msg.autowrap = true
 	painel.add_child(msg)
 
-	var detalhe := _label("4 grupos  •  4 jogadores por grupo  •  2 classificados por grupo", 17, Color(0.58, 0.66, 0.78))
-	detalhe.position = Vector2(0, 298)
-	detalhe.size = Vector2(900, 32)
+	var detalhe = _label("4 grupos  •  4 jogadores por grupo  •  2 classificados por grupo", 17, Color(0.58, 0.66, 0.78))
+	detalhe.rect_position = Vector2(0, 298)
+	detalhe.rect_size = Vector2(900, 32)
 	painel.add_child(detalhe)
 
 
@@ -889,28 +898,28 @@ func _mostrar_tela_grupos_concluidos() -> void:
 
 func _mostrar_aviso_pendente() -> void:
 	_limpar_ui()
-	var vp := get_viewport_rect().size
+	var vp = get_viewport_rect().size
 
 	var painel := Panel.new()
-	painel.size = Vector2(880, 360)
-	painel.position = (vp - painel.size) / 2.0
+	painel.rect_size = Vector2(880, 360)
+	painel.rect_position = (vp - painel.rect_size) / 2.0
 	ui_root.add_child(painel)
 	_aplicar_neon(painel, COR_OK)
 
-	var t := _label("✅  GRUPOS SALVOS COM SUCESSO!", 36, Color.WHITE, COR_OK)
-	t.position = Vector2(0, 52)
-	t.size = Vector2(880, 52)
+	var t = _label("✅  GRUPOS SALVOS COM SUCESSO!", 36, Color.white, COR_OK)
+	t.rect_position = Vector2(0, 52)
+	t.rect_size = Vector2(880, 52)
 	painel.add_child(t)
 
-	var m := _label("Crie a cena  cup_lobby.tscn  para continuar.\n(res://scenes/cup_lobby.tscn)", 20, Color(0.80, 0.88, 0.96))
-	m.position = Vector2(40, 130)
-	m.size = Vector2(800, 140)
-	m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var m = _label("Crie a cena  cup_lobby.tscn  para continuar.\n(res://scenes/cup_lobby.tscn)", 20, Color(0.80, 0.88, 0.96))
+	m.rect_position = Vector2(40, 130)
+	m.rect_size = Vector2(800, 140)
+	m.autowrap = true
 	painel.add_child(m)
 
-	var d := _label("CTRL + TAB  para sair", 16, Color(0.6, 0.65, 0.72))
-	d.position = Vector2(0, 300)
-	d.size = Vector2(880, 28)
+	var d = _label("CTRL + TAB  para sair", 16, Color(0.6, 0.65, 0.72))
+	d.rect_position = Vector2(0, 300)
+	d.rect_size = Vector2(880, 28)
 	painel.add_child(d)
 
 
@@ -919,26 +928,82 @@ func _mostrar_aviso_pendente() -> void:
 # =========================================================
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		var vp := get_viewport()
+		var vp = get_viewport()
 
-		if event.ctrl_pressed and event.keycode == KEY_TAB:
+		if event.control and event.scancode == KEY_TAB:
 			if vp: vp.set_input_as_handled()
 			_fechar_programa()
 			return
 
 		for k in [KEY_ESCAPE, KEY_META]:
-			if event.keycode == k:
+			if event.scancode == k:
 				if vp: vp.set_input_as_handled()
 				return
 
-		if event.alt_pressed and event.keycode in [KEY_F4, KEY_TAB]:
+		if event.alt and event.scancode in [KEY_F4, KEY_TAB]:
 			if vp: vp.set_input_as_handled()
 			return
 
 		if etapa == 2:
-			if event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+			if event.scancode in [KEY_ENTER, KEY_KP_ENTER]:
 				if vp: vp.set_input_as_handled()
 				_salvar_e_ir()
+
+
+# TV Box: a máquina só tem START e SELECT (Arduino). No cadastro, START põe
+# o próximo jogador com nome automático e SELECT sorteia; nos grupos, START
+# confirma e SELECT volta a editar. Com teclado, digitar continua valendo
+# (o LineEdit com foco consome as teclas antes de chegarem aqui).
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.echo:
+		return
+	var start: bool = InputMap.has_action("input_start") and event.is_action_pressed("input_start")
+	var select: bool = InputMap.has_action("input_cup") and event.is_action_pressed("input_cup")
+	if not start and not select:
+		return
+	if Time.get_ticks_msec() < _maquina_livre_ms:
+		return
+	_maquina_livre_ms = Time.get_ticks_msec() + 250
+	get_viewport().set_input_as_handled()
+	if etapa == 1:
+		if start:
+			_adicionar_jogador_automatico()
+		else:
+			_tentar_confirmar_cadastro()
+	elif etapa == 2:
+		_maquina_livre_ms = Time.get_ticks_msec() + 2500
+		if start:
+			_salvar_e_ir()
+		else:
+			_voltar_para_cadastro()
+
+
+## Próximo slot vazio, alternando as cores (vermelho 1, verde 1, azul 1,
+## amarelo 1, vermelho 2...), com o nome "PLAYER N" que ainda não existe.
+func _adicionar_jogador_automatico() -> void:
+	for slot in range(JOGADORES_POR_GRUPO):
+		for cor_i in range(PALETA.size()):
+			var idx = _idx_cor_slot(cor_i, slot)
+			if nomes[idx].strip_edges() != "":
+				continue
+			var n := 1
+			while _nome_em_uso("PLAYER %d" % n):
+				n += 1
+			var nome := "PLAYER %d" % n
+			if idx < name_edits.size() and is_instance_valid(name_edits[idx]):
+				name_edits[idx].text = nome
+			_ao_alterar_nome(idx, nome)
+			_atualizar_estado_botao_iniciar()
+			_play_select()
+			return
+	_play_select()
+
+
+func _nome_em_uso(nome: String) -> bool:
+	for j in range(TOTAL_SLOTS):
+		if nomes[j].strip_edges().to_upper() == nome:
+			return true
+	return false
 
 
 func _fechar_programa() -> void:
@@ -948,7 +1013,7 @@ func _fechar_programa() -> void:
 
 
 func _notification(what: int) -> void:
-	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
+	if what in [MainLoop.NOTIFICATION_WM_QUIT_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
 		return
 
 
@@ -970,8 +1035,8 @@ func _criar_audio() -> void:
 	add_child(audio_fundo)
 	if ResourceLoader.exists(MUSICA_FUNDO):
 		var st: AudioStream = load(MUSICA_FUNDO)
-		if st is AudioStreamMP3:
-			st.loop = true
+		if st is AudioStream:
+			Compat.laco(st, true)
 		audio_fundo.stream = st
 		audio_fundo.volume_db = -8.0
 		audio_fundo.play()
@@ -991,20 +1056,20 @@ func _play_confirm() -> void:
 # =========================================================
 # HELPERS DE UI
 # =========================================================
-func _label(txt: String, tam: int, cor: Color, sombra: Color = Color.TRANSPARENT) -> Label:
+func _label(txt: String, tam: int, cor: Color, sombra: Color = Color.transparent) -> Label:
 	var l := Label.new()
 	l.text = txt
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.align = Label.ALIGN_CENTER
+	l.valign = Label.VALIGN_CENTER
 	if fonte_orbitron:
-		l.add_theme_font_override("font", fonte_orbitron)
-	l.add_theme_font_size_override("font_size", tam)
-	l.add_theme_color_override("font_color", cor)
+		Compat.fonte(l, fonte_orbitron)
+	Compat.tamanho(l, tam)
+	l.add_color_override("font_color", cor)
 	if sombra.a > 0.0:
-		l.add_theme_color_override("font_shadow_color", sombra)
-		l.add_theme_constant_override("shadow_offset_x", 0)
-		l.add_theme_constant_override("shadow_offset_y", 0)
+		l.add_color_override("font_color_shadow", sombra)
+		l.add_constant_override("shadow_offset_x", 0)
+		l.add_constant_override("shadow_offset_y", 0)
 	return l
 
 
@@ -1017,26 +1082,26 @@ func _aplicar_neon(panel: Panel, cor: Color) -> void:
 	s.shadow_color = Color(cor.r, cor.g, cor.b, 0.55)
 	s.shadow_size = 32
 	s.shadow_offset = Vector2.ZERO
-	panel.add_theme_stylebox_override("panel", s)
+	panel.add_stylebox_override("panel", s)
 
 
 func _botao_neon(txt: String, pos: Vector2, tam: Vector2, cor: Color) -> Button:
 	var b := Button.new()
 	b.text = txt
-	b.position = pos
-	b.size = tam
-	b.custom_minimum_size = tam
+	b.rect_position = pos
+	b.rect_size = tam
+	b.rect_min_size = tam
 	if fonte_orbitron:
-		b.add_theme_font_override("font", fonte_orbitron)
-	b.add_theme_font_size_override("font_size", int(clamp(tam.y * 0.40, 16, 38)))
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_hover_color", Color.WHITE)
-	b.add_theme_color_override("font_pressed_color", cor)
-	b.add_theme_color_override("font_focus_color", Color.WHITE)
-	b.add_theme_stylebox_override("normal", _style_botao(cor, 0.28))
-	b.add_theme_stylebox_override("hover", _style_botao(cor, 0.55))
-	b.add_theme_stylebox_override("pressed", _style_botao(cor, 0.85))
-	b.add_theme_stylebox_override("focus", _style_botao(cor, 0.55))
+		Compat.fonte(b, fonte_orbitron)
+	Compat.tamanho(b, int(clamp(tam.y * 0.40, 16, 38)))
+	b.add_color_override("font_color", Color.white)
+	b.add_color_override("font_color_hover", Color.white)
+	b.add_color_override("font_color_pressed", cor)
+	b.add_color_override("font_color_focus", Color.white)
+	b.add_stylebox_override("normal", _style_botao(cor, 0.28))
+	b.add_stylebox_override("hover", _style_botao(cor, 0.55))
+	b.add_stylebox_override("pressed", _style_botao(cor, 0.85))
+	b.add_stylebox_override("focus", _style_botao(cor, 0.55))
 	return b
 
 
@@ -1083,11 +1148,11 @@ func _estilizar_lineedit(edit: LineEdit, cor: Color) -> void:
 	foco.shadow_color = Color(cor.r, cor.g, cor.b, 0.45)
 	foco.shadow_size = 8
 
-	edit.add_theme_stylebox_override("normal", normal)
-	edit.add_theme_stylebox_override("focus", foco)
-	edit.add_theme_color_override("font_color", Color.WHITE)
-	edit.add_theme_color_override("font_placeholder_color", Color(0.40, 0.45, 0.55))
-	edit.add_theme_color_override("caret_color", cor)
+	edit.add_stylebox_override("normal", normal)
+	edit.add_stylebox_override("focus", foco)
+	edit.add_color_override("font_color", Color.white)
+	edit.add_color_override("font_placeholder_color", Color(0.40, 0.45, 0.55))
+	edit.add_color_override("caret_color", cor)
 
 
 func _idx_cor_slot(cor_index: int, slot: int) -> int:
@@ -1100,7 +1165,7 @@ func _criar_painel_cadastro_cor(cor_index: int, tam: Vector2) -> Panel:
 	var cor: Color = dados_cor["cor"]
 
 	var panel := Panel.new()
-	panel.size = tam
+	panel.rect_size = tam
 
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(0.018, 0.023, 0.033, 0.97)
@@ -1110,12 +1175,12 @@ func _criar_painel_cadastro_cor(cor_index: int, tam: Vector2) -> Panel:
 	s.shadow_color = Color(cor.r, cor.g, cor.b, 0.28)
 	s.shadow_size = 20
 	s.shadow_offset = Vector2.ZERO
-	panel.add_theme_stylebox_override("panel", s)
+	panel.add_stylebox_override("panel", s)
 
 	# Faixa superior
 	var faixa := Panel.new()
-	faixa.position = Vector2.ZERO
-	faixa.size = Vector2(tam.x, 58)
+	faixa.rect_position = Vector2.ZERO
+	faixa.rect_size = Vector2(tam.x, 58)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var fs := StyleBoxFlat.new()
@@ -1125,54 +1190,54 @@ func _criar_painel_cadastro_cor(cor_index: int, tam: Vector2) -> Panel:
 	fs.set_corner_radius_all(0)
 	fs.corner_radius_top_left = 22
 	fs.corner_radius_top_right = 22
-	faixa.add_theme_stylebox_override("panel", fs)
+	faixa.add_stylebox_override("panel", fs)
 	panel.add_child(faixa)
 
-	var titulo_cor := _label(nome_cor, 23, cor, Color(cor.r, cor.g, cor.b, 0.45))
-	titulo_cor.position = Vector2(0, 0)
-	titulo_cor.size = Vector2(tam.x, 58)
+	var titulo_cor = _label(nome_cor, 23, cor, Color(cor.r, cor.g, cor.b, 0.45))
+	titulo_cor.rect_position = Vector2(0, 0)
+	titulo_cor.rect_size = Vector2(tam.x, 58)
 	panel.add_child(titulo_cor)
 
-	var slot_h := (tam.y - 82.0) / float(JOGADORES_POR_GRUPO)
+	var slot_h = (tam.y - 82.0) / float(JOGADORES_POR_GRUPO)
 
 	for slot in range(JOGADORES_POR_GRUPO):
-		var idx := _idx_cor_slot(cor_index, slot)
-		var y_slot := 74.0 + slot * slot_h
+		var idx = _idx_cor_slot(cor_index, slot)
+		var y_slot = 74.0 + slot * slot_h
 
-		var numero := _label(str(slot + 1), 16, Color.WHITE)
-		numero.position = Vector2(18, y_slot + 4)
-		numero.size = Vector2(34, 44)
+		var numero = _label(str(slot + 1), 16, Color.white)
+		numero.rect_position = Vector2(18, y_slot + 4)
+		numero.rect_size = Vector2(34, 44)
 		panel.add_child(numero)
 
 		var chip := Panel.new()
-		chip.position = Vector2(54, y_slot + 14)
-		chip.size = Vector2(18, 18)
+		chip.rect_position = Vector2(54, y_slot + 14)
+		chip.rect_size = Vector2(18, 18)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor))
+		chip.add_stylebox_override("panel", _style_chip(cor))
 		panel.add_child(chip)
 
 		var edit := LineEdit.new()
 		edit.placeholder_text = "%s %d" % [nome_cor.capitalize(), slot + 1]
 		edit.text = nomes[idx]
-		edit.position = Vector2(82, y_slot)
-		edit.size = Vector2(tam.x - 104, 46)
+		edit.rect_position = Vector2(82, y_slot)
+		edit.rect_size = Vector2(tam.x - 104, 46)
 		edit.max_length = 14
 
 		if fonte_orbitron:
-			edit.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(edit, fonte_orbitron)
 
-		edit.add_theme_font_size_override("font_size", 18)
+		Compat.tamanho(edit, 18)
 		_estilizar_lineedit(edit, cor)
 
-		edit.text_changed.connect(func(t): _ao_alterar_nome(idx, t))
+		edit.connect("text_changed", self, "_g3_nome_alterado", [idx])
 		panel.add_child(edit)
 
 		name_edits.append(edit)
 
-		var lbl_e := _label("", 12, COR_ERRO)
-		lbl_e.position = Vector2(82, y_slot + 48)
-		lbl_e.size = Vector2(tam.x - 104, 18)
-		lbl_e.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var lbl_e = _label("", 12, COR_ERRO)
+		lbl_e.rect_position = Vector2(82, y_slot + 48)
+		lbl_e.rect_size = Vector2(tam.x - 104, 18)
+		lbl_e.align = Label.ALIGN_LEFT
 		panel.add_child(lbl_e)
 
 		error_labels.append(lbl_e)
@@ -1181,7 +1246,7 @@ func _criar_painel_cadastro_cor(cor_index: int, tam: Vector2) -> Panel:
 
 
 func _limpar_estado_copa_antigo_antes_de_salvar() -> void:
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null and cg.has_method("resetar_copa"):
 		cg.resetar_copa()
@@ -1197,3 +1262,7 @@ func _limpar_estado_copa_antigo_antes_de_salvar() -> void:
 	]:
 		if get_tree().has_meta(chave):
 			get_tree().remove_meta(chave)
+
+## text_changed manda o texto primeiro; o índice vem no bind.
+func _g3_nome_alterado(t, idx) -> void:
+	_ao_alterar_nome(idx, t)

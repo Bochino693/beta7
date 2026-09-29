@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://bmvwkecuhv101"]
+[gd_scene load_steps=2 format=2]
 
-[ext_resource type="Script" uid="uid://b1wj51fntkd6v" path="res://scripts/opening.gd" id="1_pk062"]
+[ext_resource path="res://scripts/opening.gd" type="Script" id=1]
 
-[node name="Opening" type="Node2D" unique_id=1664647197]
-script = ExtResource("1_pk062")
+[node name="Opening" type="Node2D"]
+script = ExtResource( 1 )

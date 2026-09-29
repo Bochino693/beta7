@@ -40,7 +40,7 @@ func salvar_resultado_pendente(partida_index: int, ranking: Array) -> void:
 
 
 func consumir_resultado_pendente() -> Dictionary:
-	var r := resultado_copa_pendente.duplicate(true)
+	var r = resultado_copa_pendente.duplicate(true)
 	resultado_copa_pendente.clear()
 	return r
 

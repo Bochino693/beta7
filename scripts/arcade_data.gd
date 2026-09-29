@@ -23,10 +23,10 @@ func carregar() -> void:
 	modo_operacao = str(cfg.get_value("maquina", "modo_operacao", "free"))
 	if modo_operacao != "credito":
 		modo_operacao = "free"
-	creditos = maxi(0, int(cfg.get_value("maquina", "creditos", 0)))
-	partidas_total = maxi(0, int(cfg.get_value("estatisticas", "partidas_total", 0)))
-	partidas_arcade = maxi(0, int(cfg.get_value("estatisticas", "partidas_arcade", 0)))
-	partidas_copa = maxi(0, int(cfg.get_value("estatisticas", "partidas_copa", 0)))
+	creditos = int(max(0, int(cfg.get_value("maquina", "creditos", 0))))
+	partidas_total = int(max(0, int(cfg.get_value("estatisticas", "partidas_total", 0))))
+	partidas_arcade = int(max(0, int(cfg.get_value("estatisticas", "partidas_arcade", 0))))
+	partidas_copa = int(max(0, int(cfg.get_value("estatisticas", "partidas_copa", 0))))
 
 
 func salvar() -> void:
@@ -42,13 +42,13 @@ func salvar() -> void:
 func definir_modo(novo_modo: String) -> void:
 	modo_operacao = "credito" if novo_modo == "credito" else "free"
 	salvar()
-	dados_atualizados.emit()
+	emit_signal("dados_atualizados")
 
 
 func adicionar_credito(quantidade: int = 1) -> void:
-	creditos = maxi(0, creditos + quantidade)
+	creditos = int(max(0, creditos + quantidade))
 	salvar()
-	dados_atualizados.emit()
+	emit_signal("dados_atualizados")
 
 
 func pode_jogar() -> bool:
@@ -62,7 +62,7 @@ func consumir_credito() -> bool:
 		return false
 	creditos -= 1
 	salvar()
-	dados_atualizados.emit()
+	emit_signal("dados_atualizados")
 	return true
 
 
@@ -73,7 +73,7 @@ func registrar_partida(tipo: String) -> void:
 	else:
 		partidas_arcade += 1
 	salvar()
-	dados_atualizados.emit()
+	emit_signal("dados_atualizados")
 
 
 func zerar_estatisticas() -> void:
@@ -81,4 +81,4 @@ func zerar_estatisticas() -> void:
 	partidas_arcade = 0
 	partidas_copa = 0
 	salvar()
-	dados_atualizados.emit()
+	emit_signal("dados_atualizados")

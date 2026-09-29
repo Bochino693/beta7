@@ -17,7 +17,7 @@ const DB_PATH: String = "user://champions_wall.json"
 const SCHEMA_VERSION: int = 2
 
 # Tipos válidos de competição.
-const TIPOS_VALIDOS: Array[String] = ["COPA", "TORNEIO", "CAMPEONATO"]
+const TIPOS_VALIDOS: Array = ["COPA", "TORNEIO", "CAMPEONATO"]
 
 var dados: Dictionary = {
 	"schema_version": SCHEMA_VERSION,
@@ -38,11 +38,11 @@ func carregar() -> void:
 		"copas": []
 	}
 
-	if not FileAccess.file_exists(DB_PATH):
+	if not Compat.arquivo_existe(DB_PATH):
 		salvar()
 		return
 
-	var f := FileAccess.open(DB_PATH, FileAccess.READ)
+	var f = Compat.abrir_arquivo(DB_PATH, File.READ)
 
 	if f == null:
 		push_warning("ChampionsDb: não consegui abrir o banco: " + DB_PATH)
@@ -55,7 +55,7 @@ func carregar() -> void:
 		salvar()
 		return
 
-	var parsed: Variant = JSON.parse_string(txt)
+	var parsed = Compat.json_ler(txt)
 
 	if parsed is Dictionary:
 		dados = parsed
@@ -79,13 +79,13 @@ func carregar() -> void:
 
 
 func salvar() -> void:
-	var f := FileAccess.open(DB_PATH, FileAccess.WRITE)
+	var f = Compat.abrir_arquivo(DB_PATH, File.WRITE)
 
 	if f == null:
 		push_warning("ChampionsDb: não consegui salvar banco: " + DB_PATH)
 		return
 
-	f.store_string(JSON.stringify(dados, "\t"))
+	f.store_string(JSON.print(dados, "\t"))
 	f.close()
 
 	print("ChampionsDb: banco salvo (%d competições) em %s" % [
@@ -100,11 +100,11 @@ func limpar_tudo() -> void:
 		"copas": []
 	}
 	salvar()
-	banco_atualizado.emit()
+	emit_signal("banco_atualizado")
 
 
 func criar_id_copa() -> String:
-	var d := Time.get_datetime_dict_from_system()
+	var d = Time.get_datetime_dict_from_system()
 	var tick: int = int(Time.get_ticks_msec() % 1000000)
 
 	return "CUP_%04d%02d%02d_%02d%02d%02d_%06d" % [
@@ -142,7 +142,7 @@ func registrar_copa(copa: Dictionary) -> Dictionary:
 	_ordenar_copas()
 	salvar()
 
-	banco_atualizado.emit()
+	emit_signal("banco_atualizado")
 
 	print("ChampionsDb: registrada %s [%s] • campeão: %s" % [
 		str(obj.get("titulo", "")),
@@ -159,8 +159,8 @@ func listar_copas() -> Array:
 
 
 func listar_por_tipo(tipo: String) -> Array:
-	var alvo := tipo.strip_edges().to_upper()
-	var todas := listar_copas()
+	var alvo = tipo.strip_edges().to_upper()
+	var todas = listar_copas()
 
 	if alvo == "" or alvo == "TODOS":
 		return todas
@@ -175,9 +175,9 @@ func listar_por_tipo(tipo: String) -> Array:
 
 
 func contar_por_tipo() -> Dictionary:
-	var todas := listar_copas()
+	var todas = listar_copas()
 
-	var cont := {
+	var cont = {
 		"TODOS": todas.size(),
 		"COPA": 0,
 		"TORNEIO": 0,
@@ -188,7 +188,7 @@ func contar_por_tipo() -> Dictionary:
 		if not (c is Dictionary):
 			continue
 
-		var t := str(c.get("tipo", "COPA")).to_upper()
+		var t = str(c.get("tipo", "COPA")).to_upper()
 
 		if cont.has(t):
 			cont[t] = int(cont[t]) + 1
@@ -229,7 +229,7 @@ func excluir_copa(id: String) -> bool:
 	if removeu:
 		dados["copas"] = novo
 		salvar()
-		banco_atualizado.emit()
+		emit_signal("banco_atualizado")
 
 	return removeu
 
@@ -241,7 +241,7 @@ func apagar_tudo() -> void:
 	}
 
 	salvar()
-	banco_atualizado.emit()
+	emit_signal("banco_atualizado")
 
 
 func total_copas() -> int:
@@ -281,21 +281,13 @@ func _limpar_registros_invalidos() -> void:
 func _ordenar_copas() -> void:
 	var copas: Array = dados.get("copas", [])
 
-	copas.sort_custom(func(a: Variant, b: Variant) -> bool:
-		var da: Dictionary = a if a is Dictionary else {}
-		var db: Dictionary = b if b is Dictionary else {}
-
-		var ta: float = float(da.get("finished_at_unix", 0.0))
-		var tb: float = float(db.get("finished_at_unix", 0.0))
-
-		return ta > tb
-	)
+	copas.sort_custom(self, "_ordem_1")
 
 	dados["copas"] = copas
 
 
 func _tipo_valido(tipo_raw: String) -> String:
-	var t := tipo_raw.strip_edges().to_upper()
+	var t = tipo_raw.strip_edges().to_upper()
 
 	if t in TIPOS_VALIDOS:
 		return t
@@ -314,7 +306,7 @@ func _tipo_nome(tipo: String) -> String:
 
 
 func _nome_campeao(obj: Dictionary) -> String:
-	var t3: Variant = obj.get("top3", [])
+	var t3 = obj.get("top3", [])
 
 	if t3 is Array and t3.size() > 0 and t3[0] is Dictionary:
 		return str(t3[0].get("nome", "Campeão"))
@@ -323,7 +315,7 @@ func _nome_campeao(obj: Dictionary) -> String:
 
 
 
-func _normalizar_top3(top3_var: Variant) -> Array:
+func _normalizar_top3(top3_var) -> Array:
 	var res: Array = []
 
 	if not (top3_var is Array):
@@ -354,21 +346,21 @@ func _normalizar_top3(top3_var: Variant) -> Array:
 			"player"
 		], "---")
 
-		var gols_normais := _coalesce_int(d, [
+		var gols_normais = _coalesce_int(d, [
 			"gols_normais",
 			"gols_normal",
 			"gols_tempo_normal",
 			"normal_gols"
 		])
 
-		var gols_prorrogacao := _coalesce_int(d, [
+		var gols_prorrogacao = _coalesce_int(d, [
 			"gols_prorrogacao",
 			"gols_prorro",
 			"gols_extra",
 			"prorrogacao_gols"
 		])
 
-		var penaltis_total := _coalesce_int(d, [
+		var penaltis_total = _coalesce_int(d, [
 			"penaltis_total",
 			"penaltis",
 			"penaltis_marcados",
@@ -376,7 +368,7 @@ func _normalizar_top3(top3_var: Variant) -> Array:
 			"gols_penaltis"
 		])
 
-		var gols_total := _coalesce_int(d, [
+		var gols_total = _coalesce_int(d, [
 			"gols_total",
 			"gols",
 			"score",
@@ -386,7 +378,7 @@ func _normalizar_top3(top3_var: Variant) -> Array:
 		if gols_total < 0:
 			gols_total = gols_normais + gols_prorrogacao + penaltis_total
 
-		var jogos_total := _coalesce_int(d, [
+		var jogos_total = _coalesce_int(d, [
 			"jogos_total",
 			"jogos",
 			"partidas",
@@ -395,14 +387,14 @@ func _normalizar_top3(top3_var: Variant) -> Array:
 			"matches"
 		])
 
-		var vitorias_total := _coalesce_int(d, [
+		var vitorias_total = _coalesce_int(d, [
 			"vitorias_total",
 			"vitorias",
 			"wins",
 			"partidas_vencidas"
 		])
 
-		var pontos_grupo := _coalesce_int(d, [
+		var pontos_grupo = _coalesce_int(d, [
 			"pontos_grupo",
 			"pontos",
 			"pontos_tabela",
@@ -446,7 +438,7 @@ func _normalizar_top3(top3_var: Variant) -> Array:
 
 
 func _normalizar_copa(copa: Dictionary) -> Dictionary:
-	var d := Time.get_datetime_dict_from_system()
+	var d = Time.get_datetime_dict_from_system()
 	var unix: float = Time.get_unix_time_from_system()
 
 	var obj: Dictionary = copa.duplicate(true)
@@ -457,7 +449,7 @@ func _normalizar_copa(copa: Dictionary) -> Dictionary:
 	obj["schema_version"] = SCHEMA_VERSION
 
 	# Tipo da competição: COPA / TORNEIO / CAMPEONATO.
-	var tipo := _tipo_valido(str(obj.get("tipo", "COPA")))
+	var tipo = _tipo_valido(str(obj.get("tipo", "COPA")))
 	obj["tipo"] = tipo
 	obj["tipo_nome"] = _tipo_nome(tipo)
 
@@ -487,13 +479,13 @@ func _normalizar_copa(copa: Dictionary) -> Dictionary:
 			str(obj.get("finished_at_text", ""))
 		]
 
-	var top3_ok := _normalizar_top3(obj.get("top3", []))
+	var top3_ok = _normalizar_top3(obj.get("top3", []))
 	obj["top3"] = top3_ok
 
-	var resumo_origem: Variant = obj.get("resumo", {})
+	var resumo_origem = obj.get("resumo", {})
 
 	# Compatibilidade com registros antigos que salvaram "estatisticas" em vez de "resumo".
-	if (not (resumo_origem is Dictionary) or (resumo_origem as Dictionary).is_empty()) and obj.has("estatisticas"):
+	if (not (resumo_origem is Dictionary) or (resumo_origem as Dictionary).empty()) and obj.has("estatisticas"):
 		resumo_origem = obj.get("estatisticas", {})
 
 	obj["resumo"] = _normalizar_resumo(resumo_origem, top3_ok)
@@ -504,18 +496,18 @@ func _normalizar_copa(copa: Dictionary) -> Dictionary:
 func _coalesce_int(d: Dictionary, chaves: Array, padrao: int = 0) -> int:
 	for k in chaves:
 		if d.has(k):
-			var v: Variant = d[k]
+			var v = d[k]
 
 			if typeof(v) == TYPE_INT:
 				return int(v)
 
-			if typeof(v) == TYPE_FLOAT:
+			if typeof(v) == TYPE_REAL:
 				return int(v)
 
 			if typeof(v) == TYPE_STRING:
-				var s := str(v).strip_edges()
+				var s = str(v).strip_edges()
 
-				if s.is_valid_int():
+				if s.is_valid_integer():
 					return int(s)
 
 				if s.is_valid_float():
@@ -527,13 +519,13 @@ func _coalesce_int(d: Dictionary, chaves: Array, padrao: int = 0) -> int:
 func _coalesce_str(d: Dictionary, chaves: Array, padrao: String = "-") -> String:
 	for k in chaves:
 		if d.has(k):
-			var s := str(d[k]).strip_edges()
+			var s = str(d[k]).strip_edges()
 			if s != "":
 				return s
 	return padrao
 
 
-func _normalizar_resumo(resumo_var: Variant, top3: Array) -> Dictionary:
+func _normalizar_resumo(resumo_var, top3: Array) -> Dictionary:
 	var r: Dictionary = {}
 
 	if resumo_var is Dictionary:
@@ -542,7 +534,7 @@ func _normalizar_resumo(resumo_var: Variant, top3: Array) -> Dictionary:
 	if not r.has("fase_final") or str(r.get("fase_final", "")).strip_edges() == "":
 		r["fase_final"] = "Competição encerrada"
 
-	var gols_top3_salvo := _coalesce_int(r, ["gols_top3"], -1)
+	var gols_top3_salvo = _coalesce_int(r, ["gols_top3"], -1)
 
 	if gols_top3_salvo < 0:
 		var soma := 0
@@ -563,3 +555,13 @@ func _normalizar_resumo(resumo_var: Variant, top3: Array) -> Dictionary:
 		r["jogadores_reais"] = _coalesce_int(r, ["players_reais", "jogadores", "total_jogadores"])
 
 	return r
+
+
+func _ordem_1(a, b) -> bool:
+	var da: Dictionary = a if a is Dictionary else {}
+	var db: Dictionary = b if b is Dictionary else {}
+
+	var ta: float = float(da.get("finished_at_unix", 0.0))
+	var tb: float = float(db.get("finished_at_unix", 0.0))
+
+	return ta > tb

@@ -24,15 +24,15 @@ func salvar(chave: String, dados: Dictionary) -> void:
 func carregar(chave: String) -> Dictionary:
 	if not _cache.has(chave):
 		return {}
-	var v: Variant = _desserializar(_cache[chave])
+	var v = _desserializar(_cache[chave])
 	return v if v is Dictionary else {}
 
 
 func tem(chave: String) -> bool:
 	if not _cache.has(chave):
 		return false
-	var v: Variant = _cache[chave]
-	return v is Dictionary and not (v as Dictionary).is_empty()
+	var v = _cache[chave]
+	return v is Dictionary and not (v as Dictionary).empty()
 
 
 func limpar(chave: String) -> void:
@@ -49,49 +49,49 @@ func limpar_tudo() -> void:
 # --- arquivo ---
 func _carregar_arquivo() -> void:
 	_cache = {}
-	if not FileAccess.file_exists(PATH):
+	if not Compat.arquivo_existe(PATH):
 		return
-	var f := FileAccess.open(PATH, FileAccess.READ)
+	var f = Compat.abrir_arquivo(PATH, File.READ)
 	if f == null:
 		return
-	var txt := f.get_as_text()
+	var txt = f.get_as_text()
 	f.close()
 	if txt.strip_edges() == "":
 		return
-	var parsed: Variant = JSON.parse_string(txt)
+	var parsed = Compat.json_ler(txt)
 	if parsed is Dictionary:
 		_cache = parsed
 
 
 func _gravar_arquivo() -> void:
-	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	var f = Compat.abrir_arquivo(PATH, File.WRITE)
 	if f == null:
 		push_warning("EstadoComp: não consegui gravar " + PATH)
 		return
-	f.store_string(JSON.stringify(_cache, "\t"))
+	f.store_string(JSON.print(_cache, "\t"))
 	f.close()
 
 
 # --- serialização Color/Vector2-safe (recursiva) ---
-func _serializar(v: Variant) -> Variant:
+func _serializar(v) :
 	if v is Color:
 		return {"__color__": [v.r, v.g, v.b, v.a]}
 	if v is Vector2:
 		return {"__vec2__": [v.x, v.y]}
 	if v is Dictionary:
-		var d := {}
+		var d = {}
 		for k in v.keys():
 			d[str(k)] = _serializar(v[k])
 		return d
 	if v is Array:
-		var a := []
+		var a = []
 		for it in v:
 			a.append(_serializar(it))
 		return a
 	return v
 
 
-func _desserializar(v: Variant) -> Variant:
+func _desserializar(v) :
 	if v is Dictionary:
 		if v.has("__color__") and v["__color__"] is Array and (v["__color__"] as Array).size() >= 3:
 			var c: Array = v["__color__"]
@@ -100,12 +100,12 @@ func _desserializar(v: Variant) -> Variant:
 		if v.has("__vec2__") and v["__vec2__"] is Array and (v["__vec2__"] as Array).size() >= 2:
 			var p: Array = v["__vec2__"]
 			return Vector2(float(p[0]), float(p[1]))
-		var d := {}
+		var d = {}
 		for k in v.keys():
 			d[k] = _desserializar(v[k])
 		return d
 	if v is Array:
-		var arr := []
+		var arr = []
 		for it in v:
 			arr.append(_desserializar(it))
 		return arr

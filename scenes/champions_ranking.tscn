@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://dgp72s2vlasn4"]
+[gd_scene load_steps=2 format=2]
 
-[ext_resource type="Script" uid="uid://cw3513nbdn51l" path="res://scripts/champions_ranking.gd" id="1_0drjm"]
+[ext_resource path="res://scripts/champions_ranking.gd" type="Script" id=1]
 
-[node name="ChampionsRanking" type="Node2D" unique_id=835152469]
-script = ExtResource("1_0drjm")
+[node name="ChampionsRanking" type="Node2D"]
+script = ExtResource( 1 )

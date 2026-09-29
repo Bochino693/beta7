@@ -1,0 +1,93 @@
+GOL FLASH ARENA - TV BOX S905L (ANDROID 7.1) - GODOT 3.6 - BUILD 1
+===================================================================
+
+Esta versao roda na TV Box S905L (Android 7.1, Mali-450). O Arduino Nano
+faz TUDO da maquina: 7 LEDs dos alvos, 7 sensores e os botoes START e
+SELECT. A placa Zero Delay nao e mais usada. O Nano liga na TV Box pelo
+cabo USB (o mesmo cabo de gravar o Arduino).
+
+
+1) GRAVAR O ARDUINO NANO (uma vez so, no PC)
+--------------------------------------------
+  - Abra arduino\gol_flash_arena_nano\gol_flash_arena_nano.ino na IDE do
+    Arduino.
+  - Biblioteca: Ferramentas > Gerenciar Bibliotecas > "Adafruit NeoPixel".
+  - Placa: Arduino Nano. Processador: ATmega328P (se der erro de envio,
+    use "ATmega328P (Old Bootloader)").
+  - ANTES de gravar, ajuste no comeco do arquivo:
+      #define PIXELS_POR_ALVO 16   <- numero de LEDs de CADA alvo
+  - Envie. Pelo Monitor Serial (115200) aparece READY:GOL_FLASH:1; tocando
+    um sensor aparece HIT:A ... HIT:G; apertando START aparece BTN:START:1.
+
+
+2) LIGACOES NO NANO
+-------------------
+    Alvo   LED (fio de DADO do NeoPixel)   Sensor
+     A          D2                          D9
+     B          D3                          D10
+     C          D4                          D11
+     D          D5                          D12
+     E          D6                          A0
+     F          D7                          A1
+     G          D8                          A2
+
+    START    A3
+    SELECT   A4
+    CREDITO  A5  (opcional: moedeiro ou botao de credito)
+
+  - Os LEDs ficam nos MESMOS pinos da versao do PC (D2 ate D8).
+  - Sensores e botoes: um fio no pino e o outro no GND. Nao precisa de
+    resistor (o Nano usa o pull-up interno). Sensor com modulo proprio
+    (infravermelho etc.) deve mandar o pino para o GND quando detectar.
+  - GND da fonte dos LEDs ligado no GND do Nano. Os LEDs NAO devem ser
+    alimentados pelo 5V do Nano: use a fonte 5V da maquina.
+  - Nao use D0, D1 (USB), D13 (LED da placa) nem A6/A7 (so analogico).
+
+
+3) CONTROLES NA MAQUINA
+----------------------
+  Menu:
+    SELECT ............ troca Arcade / Copa
+    START ............. confirma; na escolha de jogadores, soma jogador
+    SEGURAR SELECT .... Ranking dos campeoes
+    SEGURAR START+SELECT ... Mural de campeoes
+  Credito (pino A5):
+    toque curto ....... +1 credito (moedeiro)
+    SEGURAR 5 s ....... abre a CONFIGURACAO
+  Copa - cadastro:
+    START ............. poe o proximo jogador    SELECT ... sorteia grupos
+  Copa - grupos:
+    START ............. confirma e comeca        SELECT ... volta a editar
+  Configuracao:
+    SELECT ............ passa para o proximo botao da tela
+    START ............. aperta o botao marcado
+    Tocar um sensor ... testa o LED do alvo correspondente
+    Mostra tambem se o Arduino esta conectado (USB).
+  Sem o botao no A5: encoste um fio do A5 no GND por 5 s para abrir a
+  configuracao, ou use um teclado USB (F9).
+
+
+4) GERAR O APK E INSTALAR (sempre assim)
+----------------------------------------
+  - No PC: de dois cliques em GERAR_APK_AGORA.bat.
+    Na primeira vez ele baixa o Godot 3.6.2 e os modelos (demora).
+  - Sai em build\android\GolFlashArena-S905L.apk
+  - Copie o APK para o pendrive, coloque na TV Box e instale.
+  - Ao ligar o Arduino na TV Box pela primeira vez, o Android pergunta se
+    o Gol Flash Arena pode usar o aparelho USB: marque "Usar por padrao" e
+    OK. Depois disso nao pergunta mais.
+  - Cabo solto ou Arduino reiniciado: o jogo reconecta sozinho.
+
+
+5) O QUE MUDOU EM RELACAO A VERSAO DO PC (Godot 4.6)
+----------------------------------------------------
+  - Mesmas telas, sons, efeitos e regras (Arcade, Copa, Mural, Ranking,
+    Configuracao com creditos e contadores).
+  - Sons em WAV (efeitos curtos) e OGG (musicas); video da abertura em
+    720p leve. Tudo para rodar liso na S905L com 1 GB de RAM.
+  - O modo Torneio de 36 jogadores (que ja estava oculto) ficou fora do
+    APK, guardado em _modo_torneio_oculto.
+  - Cadastro da Copa sem teclado: START poe o proximo jogador (PLAYER 1,
+    PLAYER 2...), SELECT sorteia os grupos; na tela dos grupos START
+    confirma e SELECT volta a editar. Com teclado USB, digitar nomes
+    continua valendo. Vagas vazias viram Boot, como no original.

@@ -44,12 +44,12 @@ const CENA_CUP_LOBBY: String = "res://scenes/cup_lobby.tscn"
 const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
 
 const MUSICA_PLAY: String = "res://songs/song_fut_play.mp3"
-const SFX_PONTO: String = "res://songs/goal.mp3"
+const SFX_PONTO: String = "res://songs/goal.wav"
 const SFX_FIM_TURNO: String = "res://songs/turn_end.mp3"
-const SFX_APITO_INIT: String = "res://songs/apito_init.mp3"
-const SFX_APITO_TROCA: String = "res://songs/apito_troca.mp3"
-const SFX_APITO_FIM: String = "res://songs/apito_fim.mp3"
-const SFX_FINAL: String = "res://songs/game_start.mp3"
+const SFX_APITO_INIT: String = "res://songs/apito_init.wav"
+const SFX_APITO_TROCA: String = "res://songs/apito_troca.wav"
+const SFX_APITO_FIM: String = "res://songs/apito_fim.wav"
+const SFX_FINAL: String = "res://songs/game_start.wav"
 
 const IMAGEM_LOADING_COPA: String = "res://images/loading.png"
 # Imagem pequena/retangular para ficar atrás dos patrocinadores.
@@ -58,11 +58,11 @@ const IMAGEM_RODAPE_LOADING: String = "res://fundos/fundo_logos.png"
 
 const FATOR_PRORROGACAO: float = 0.5
 const PASTA_PATROCINADORES: String = "res://patro"
-const EXT_PATROCINADORES: Array[String] = ["png", "jpg", "jpeg", "webp"]
+const EXT_PATROCINADORES: Array = ["png", "jpg", "jpeg", "webp"]
 const PATRO_MAX_POR_LINHA: int = 8
 
 
-const PATROCINADORES_FIXOS: Array[String] = [
+const PATROCINADORES_FIXOS: Array = [
 	"res://patro/logoofi.png",
 	"res://patro/bar.png",
 	"res://patro/bud.png",
@@ -72,7 +72,7 @@ const PATROCINADORES_FIXOS: Array[String] = [
 	"res://patro/stella.png",
 ]
 
-const SFX_CAMPEAO: String = "res://songs/campeao.mp3"
+const SFX_CAMPEAO: String = "res://songs/campeao.ogg"
 
 const TEMPO_PLAYER_REAL: float = 60.0
 const TEMPO_PLAYER_BOT: float = 6.0
@@ -96,46 +96,46 @@ const BOT_INTERVALO_GOL_MIN: float = 0.45
 const BOT_INTERVALO_GOL_MAX: float = 0.95
 const BOT_PRIORIDADE_REAL: bool = true
 
-const MUSICAS_PLAYERS: Array[String] = [
-	"res://songs/player_song1.mp3",
-	"res://songs/player_song2.mp3",
-	"res://songs/player_song3.mp3",
-	"res://songs/player_song4.mp3",
-	"res://songs/player_song5.mp3",
+const MUSICAS_PLAYERS: Array = [
+	"res://songs/player_song1.ogg",
+	"res://songs/player_song2.ogg",
+	"res://songs/player_song3.ogg",
+	"res://songs/player_song4.ogg",
+	"res://songs/player_song5.ogg",
 ]
 
-const SONS_TURNO_BOM: Array[String] = [
-	"res://songs/good_player.mp3",
-	"res://songs/leleo.mp3",
-	"res://songs/torcida_1.mp3"
+const SONS_TURNO_BOM: Array = [
+	"res://songs/good_player.ogg",
+	"res://songs/leleo.ogg",
+	"res://songs/torcida_1.ogg"
 ]
 
-const SONS_SUPEROU_TURNO: Array[String] = [
-	"res://songs/supress_you.mp3",
-	"res://songs/good_player.mp3",	
-	"res://songs/torcida_1.mp3",	
-	"res://songs/torcida_2.mp3",
-	"res://songs/torcida_3.mp3"
+const SONS_SUPEROU_TURNO: Array = [
+	"res://songs/supress_you.ogg",
+	"res://songs/good_player.ogg",	
+	"res://songs/torcida_1.ogg",	
+	"res://songs/torcida_2.ogg",
+	"res://songs/torcida_3.ogg"
 ]
 
-const SONS_NAO_SUPEROU: Array[String] = [
-	"res://songs/not_supress.mp3",
+const SONS_NAO_SUPEROU: Array = [
+	"res://songs/not_supress.wav",
 	"res://songs/erro_1.mp3",
 	"res://songs/erro_2.mp3"
 ]
 
-const SOM_NOT_SUPRESS_DIRETO: String = "res://songs/not_supress.mp3"
+const SOM_NOT_SUPRESS_DIRETO: String = "res://songs/not_supress.wav"
 
 # Torcida pressiona durante o turno se o jogador estiver abaixo de alguém que já jogou.
 const REACAO_PRESSAO_ATRAS_APOS_SEGUNDOS: float = 10.0
 const REACAO_PRESSAO_ATRAS_INTERVALO_MS: float = 8500.0
 
-const SONS_SUPEROU_LIVE: Array[String] = [
+const SONS_SUPEROU_LIVE: Array = [
 	"res://songs/live_superou_1.mp3",
 	"res://songs/live_superou_2.mp3"
 ]
 
-const SONS_VAIA: Array[String] = [
+const SONS_VAIA: Array = [
 	"res://songs/vaia_1.mp3",
 	"res://songs/vaia_2.mp3"
 ]
@@ -162,7 +162,7 @@ const TEMPO_CONTAGEM_INICIAL: int = 3
 const LEDS_TOTAL: int = 7
 const LEDS_ATIVOS_MIN: int = 2
 const LEDS_ATIVOS_MAX: int = 2
-const LEDS_LETRAS: Array[String] = ["A", "B", "C", "D", "E", "F", "G"]
+const LEDS_LETRAS: Array = ["A", "B", "C", "D", "E", "F", "G"]
 
 const CICLO_LEDS_MS: float = 3000.0
 const START_DEBOUNCE_MS: float = 500.0
@@ -192,14 +192,14 @@ enum Fase { NORMAL, PRORROGACAO, PENALTIS }
 
 var fonte_orbitron: Font
 
-var _dupla_anterior: Array[int] = []
+var _dupla_anterior: Array = []
 
 var overlay_fundo_img: TextureRect = null
 var overlay_fundo_escuro: ColorRect = null
 
 var partida_copa: Dictionary = {}
 var jogadores_copa: Array = []
-var nomes_players_copa: Array[String] = []
+var nomes_players_copa: Array = []
 
 var grupo_copa_nome: String = "A"
 var rodada_copa: int = 1
@@ -208,26 +208,26 @@ var partida_copa_index: int = 0
 var total_players: int = 4
 var player_atual: int = 0
 
-var scores: Array[int] = []
-var tempos: Array[float] = []
-var terminou_player: Array[bool] = []
+var scores: Array = []
+var tempos: Array = []
+var terminou_player: Array = []
 
 # Instante em que a onda atual nasceu (controle do ciclo de 5s).
 var _ciclo_inicio_ms: float = 0.0
 
 # Placar agregado (preenchido na resolução de empates).
-var gols_normais: Array[int] = []
-var gols_prorrogacao: Array[int] = []
-var jogou_prorrogacao: Array[bool] = []
-var penaltis_marcados: Array[int] = []
-var jogou_penaltis: Array[bool] = []
+var gols_normais: Array = []
+var gols_prorrogacao: Array = []
+var jogou_prorrogacao: Array = []
+var penaltis_marcados: Array = []
+var jogou_penaltis: Array = []
 
 var fase_jogo: int = Fase.NORMAL
 var _ot_turno_acabou: bool = false
 
 # Runtime dos pênaltis.
 var _pen_aguardando: bool = false
-var _pen_alvos: Array[int] = []
+var _pen_alvos: Array = []
 var _pen_resultado: int = 0
 
 var pen_panel_root: Panel = null
@@ -248,11 +248,11 @@ var fechando_jogo: bool = false
 var _ultimo_start_ms: float = -99999.0
 var _ultimo_acerto_ms: float = 0.0
 
-var leds_ativos: Array[int] = []
+var leds_ativos: Array = []
 var cores_leds_ativos: Dictionary = {}
 var qtd_leds_alvo_atual: int = 3
 
-var cores_players: Array[Color] = [
+var cores_players: Array = [
 	Color(1.00, 0.20, 0.20),
 	Color(0.20, 0.92, 0.32),
 	Color(0.12, 0.58, 1.00),
@@ -269,10 +269,10 @@ var overlay_fundo_moldura: Panel = null
 var canvas: CanvasLayer
 var root: Control
 
-var player_panels: Array[Panel] = []
-var score_labels: Array[Label] = []
-var tempo_labels: Array[Label] = []
-var status_labels: Array[Label] = []
+var player_panels: Array = []
+var score_labels: Array = []
+var tempo_labels: Array = []
+var status_labels: Array = []
 
 var overlay_layer: CanvasLayer
 var overlay_fundo: ColorRect
@@ -302,16 +302,16 @@ var loading_pct: Label = null
 var loading_barra: ColorRect = null
 var loading_barra_w_max: float = 0.0
 var loading_frac_atual: float = 0.0
-var tween_loading_barra: Tween = null
+var tween_loading_barra: SceneTreeTween = null
 
 var volume_musica_normal: float = -7.0
 var volume_musica_duck: float = -16.0
-var tween_volume_musica: Tween = null
+var tween_volume_musica: SceneTreeTween = null
 
 var leds_hud_layer: CanvasLayer
 var leds_hud_root: Control
-var leds_botoes: Array[Panel] = []
-var leds_labels: Array[Label] = []
+var leds_botoes: Array = []
+var leds_labels: Array = []
 
 var audio_fundo: AudioStreamPlayer
 var sfx_ponto: AudioStreamPlayer
@@ -332,9 +332,9 @@ var nome_partida_copa: String = ""
 var sfx_reativo: AudioStreamPlayer
 var sfx_campeao: AudioStreamPlayer
 
-var musicas_por_player: Array[AudioStream] = []
+var musicas_por_player: Array = []
 var _ultimo_som_por_lista: Dictionary = {}
-var _historico_sons_global: Array[String] = []
+var _historico_sons_global: Array = []
 
 var _acertos_torcida: int = 0
 var _superou_adversario: Array = []
@@ -350,7 +350,7 @@ var _reativo_bloqueado_por_campeao: bool = false
 var _campeao_pendente: bool = false
 var _vitoria_antecipada_tocada: bool = false
 
-var medalhas_players: Array[Control] = []
+var medalhas_players: Array = []
 
 
 var bot_timer_gol: float = 0.0
@@ -365,6 +365,7 @@ var permite_prorrogacao_penaltis: bool = false
 # READY / PROCESS
 # ============================================================
 func _ready() -> void:
+	var _g3_estado = null
 	get_tree().auto_accept_quit = false
 	_travar_modo_arcade()
 	randomize()
@@ -372,34 +373,38 @@ func _ready() -> void:
 	_criar_tela_carregamento("CARREGANDO PARTIDA", "INICIANDO COPA...")
 	_set_progresso_carregamento(0.06, "INICIANDO COPA...", 0.2)
 
-	await get_tree().process_frame
+	yield(get_tree(), "idle_frame")
 
 	_carregar_fontes()
 	_set_progresso_carregamento(0.20, "CARREGANDO ÁUDIOS...")
 	_criar_audios()
-	await get_tree().create_timer(0.18).timeout
+	yield(get_tree().create_timer(0.18), "timeout")
 
 	_set_progresso_carregamento(0.36, "LENDO DADOS DA PARTIDA...")
 	_carregar_config_copa()
 	_inicializar_dados()
 	_sortear_musicas_players()
-	await get_tree().create_timer(0.18).timeout
+	yield(get_tree().create_timer(0.18), "timeout")
 
 	_set_progresso_carregamento(0.54, "MONTANDO ARENA...")
 	_criar_tela()
 
-	await get_tree().process_frame
-	await get_tree().create_timer(0.15).timeout
+	yield(get_tree(), "idle_frame")
+	yield(get_tree().create_timer(0.15), "timeout")
 
 	# Creep lento da barra enquanto conecta os LEDs (passo mais demorado).
 	_set_progresso_carregamento(0.92, "CONECTANDO LEDS...", 3.4)
-	await _abrir_serial_arduino()
+	_g3_estado = _abrir_serial_arduino()
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	_set_progresso_carregamento(1.0, "TUDO PRONTO!", 0.3)
-	await get_tree().create_timer(0.5).timeout
+	yield(get_tree().create_timer(0.5), "timeout")
 
 	# Só remove o loading quando TUDO já está realmente pronto.
-	await _remover_tela_carregamento()
+	_g3_estado = _remover_tela_carregamento()
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	# Modal do primeiro jogador (real aguarda START; bot inicia sozinho).
 	_mostrar_preparacao_player()
@@ -478,11 +483,11 @@ func _criar_tela_carregamento(titulo_txt: String, sub_txt: String) -> void:
 	add_child(loading_layer)
 
 	loading_root = Control.new()
-	loading_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	loading_root.set_anchors_preset(Control.PRESET_WIDE)
 	loading_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	loading_layer.add_child(loading_root)
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 
 	# Fundo com imagem completa, sem zoom.
 	_criar_fundo_imagem_loading(loading_root)
@@ -490,12 +495,12 @@ func _criar_tela_carregamento(titulo_txt: String, sub_txt: String) -> void:
 	# Rodapé automático com todos patrocinadores da pasta res://patro/
 
 	var painel := Panel.new()
-	painel.size = Vector2(minf(tela.x * 0.62, 860.0), 300)
+	painel.rect_size = Vector2(min(tela.x * 0.62, 860.0), 300)
 
 	# Sobe um pouco para não bater no rodapé dos patrocinadores.
-	painel.position = Vector2(
-		(tela.x - painel.size.x) * 0.5,
-		maxf(60.0, (tela.y - painel.size.y) * 0.5 - 44.0)
+	painel.rect_position = Vector2(
+		(tela.x - painel.rect_size.x) * 0.5,
+		max(60.0, (tela.y - painel.rect_size.y) * 0.5 - 44.0)
 	)
 
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -509,38 +514,38 @@ func _criar_tela_carregamento(titulo_txt: String, sub_txt: String) -> void:
 	st.shadow_color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.78)
 	st.shadow_size = 42
 	st.shadow_offset = Vector2.ZERO
-	painel.add_theme_stylebox_override("panel", st)
+	painel.add_stylebox_override("panel", st)
 
-	var W := painel.size.x
-	var H := painel.size.y
+	var W = painel.rect_size.x
+	var H = painel.rect_size.y
 
-	loading_label = _novo_label(titulo_txt, 36, Color.WHITE, COR_NEON)
-	loading_label.position = Vector2(30, 44)
-	loading_label.size = Vector2(W - 60, 58)
+	loading_label = _novo_label(titulo_txt, 36, Color.white, COR_NEON)
+	loading_label.rect_position = Vector2(30, 44)
+	loading_label.rect_size = Vector2(W - 60, 58)
 	painel.add_child(loading_label)
 
 	loading_sub = _novo_label(sub_txt, 19, Color(0.72, 0.84, 0.96))
-	loading_sub.position = Vector2(30, 118)
-	loading_sub.size = Vector2(W - 60, 36)
+	loading_sub.rect_position = Vector2(30, 118)
+	loading_sub.rect_size = Vector2(W - 60, 36)
 	painel.add_child(loading_sub)
 
 	loading_pct = _novo_label("0%", 30, COR_ALERTA, COR_ALERTA)
-	loading_pct.position = Vector2(0, H - 118)
-	loading_pct.size = Vector2(W, 40)
+	loading_pct.rect_position = Vector2(0, H - 118)
+	loading_pct.rect_size = Vector2(W, 40)
 	painel.add_child(loading_pct)
 
 	var barra_bg := ColorRect.new()
-	barra_bg.position = Vector2(70, H - 70)
-	barra_bg.size = Vector2(W - 140, 10)
+	barra_bg.rect_position = Vector2(70, H - 70)
+	barra_bg.rect_size = Vector2(W - 140, 10)
 	barra_bg.color = Color(1, 1, 1, 0.12)
 	barra_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra_bg)
 
-	loading_barra_w_max = barra_bg.size.x
+	loading_barra_w_max = barra_bg.rect_size.x
 
 	loading_barra = ColorRect.new()
-	loading_barra.position = barra_bg.position
-	loading_barra.size = Vector2(6, 10)
+	loading_barra.rect_position = barra_bg.rect_position
+	loading_barra.rect_size = Vector2(6, 10)
 	loading_barra.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 1.0)
 	loading_barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(loading_barra)
@@ -551,17 +556,17 @@ func _criar_tela_carregamento(titulo_txt: String, sub_txt: String) -> void:
 
 func _aplicar_frac_loading(v: float) -> void:
 	if loading_barra and is_instance_valid(loading_barra):
-		loading_barra.size.x = maxf(loading_barra_w_max * v, 6.0)
+		loading_barra.rect_size.x = max(loading_barra_w_max * v, 6.0)
 
 	if loading_pct and is_instance_valid(loading_pct):
-		loading_pct.text = "%d%%" % int(round(clampf(v, 0.0, 1.0) * 100.0))
+		loading_pct.text = "%d%%" % int(round(clamp(v, 0.0, 1.0) * 100.0))
 
 
 func _set_progresso_carregamento(p: float, texto: String, dur: float = 0.3) -> void:
 	if loading_layer == null or not is_instance_valid(loading_layer):
 		return
 
-	var alvo: float = clampf(p, 0.0, 1.0)
+	var alvo: float = clamp(p, 0.0, 1.0)
 
 	if loading_sub != null and is_instance_valid(loading_sub):
 		loading_sub.text = texto
@@ -574,7 +579,7 @@ func _set_progresso_carregamento(p: float, texto: String, dur: float = 0.3) -> v
 
 	tween_loading_barra = create_tween()
 	tween_loading_barra.tween_method(
-		_aplicar_frac_loading,
+		self, "_aplicar_frac_loading",
 		inicio,
 		alvo,
 		dur
@@ -588,9 +593,9 @@ func _remover_tela_carregamento() -> void:
 	_aplicar_frac_loading(1.0)
 
 	if loading_root != null and is_instance_valid(loading_root):
-		var t := create_tween()
+		var t = create_tween()
 		t.tween_property(loading_root, "modulate", Color(1, 1, 1, 0), 0.30)
-		await t.finished
+		yield(t, "finished")
 
 	if is_instance_valid(loading_layer):
 		loading_layer.queue_free()
@@ -612,19 +617,19 @@ func _carregar_config_copa() -> void:
 	jogadores_copa.clear()
 	nomes_players_copa.clear()
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
-		if cg.partida_copa_atual is Dictionary and not cg.partida_copa_atual.is_empty():
+		if cg.partida_copa_atual is Dictionary and not cg.partida_copa_atual.empty():
 			partida_copa = cg.partida_copa_atual.duplicate(true)
 
-	if partida_copa.is_empty() and get_tree().has_meta("partida_copa_atual"):
-		var p_meta: Variant = get_tree().get_meta("partida_copa_atual")
+	if partida_copa.empty() and get_tree().has_meta("partida_copa_atual"):
+		var p_meta = get_tree().get_meta("partida_copa_atual")
 
 		if p_meta is Dictionary:
 			partida_copa = p_meta
 
-	if partida_copa.is_empty():
+	if partida_copa.empty():
 		push_warning("CUP PLAY: nenhuma partida da Copa recebida.")
 		_criar_fallback_copa()
 		return
@@ -651,7 +656,7 @@ func _carregar_config_copa() -> void:
 	if partida_copa.has("jogadores") and partida_copa["jogadores"] is Array:
 		jogadores_copa = partida_copa["jogadores"].duplicate(true)
 
-	if jogadores_copa.is_empty():
+	if jogadores_copa.empty():
 		_criar_fallback_copa()
 		return
 
@@ -758,7 +763,7 @@ func _inicializar_dados() -> void:
 	_superou_adversario.clear()
 
 	for i in range(total_players):
-		var linha: Array[bool] = []
+		var linha: Array = []
 
 		for j in range(total_players):
 			linha.append(false)
@@ -780,35 +785,35 @@ func _inicializar_dados() -> void:
 # ============================================================
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		var vp := get_viewport()
+		var vp = get_viewport()
 
-		if event.ctrl_pressed and event.keycode == KEY_TAB:
+		if event.control and event.scancode == KEY_TAB:
 			if vp:
 				vp.set_input_as_handled()
 			_fechar_jogo_arcade()
 			return
 
-		if event.keycode == KEY_ESCAPE:
+		if event.scancode == KEY_ESCAPE:
 			if vp:
 				vp.set_input_as_handled()
 			return
 
-		if event.keycode == KEY_META:
+		if event.scancode == KEY_META:
 			if vp:
 				vp.set_input_as_handled()
 			return
 
-		if event.alt_pressed and event.keycode in [KEY_F4, KEY_TAB]:
+		if event.alt and event.scancode in [KEY_F4, KEY_TAB]:
 			if vp:
 				vp.set_input_as_handled()
 			return
 
-		if event.ctrl_pressed and event.keycode == KEY_ESCAPE:
+		if event.control and event.scancode == KEY_ESCAPE:
 			if vp:
 				vp.set_input_as_handled()
 			return
 
-		var mapa_teclas := {
+		var mapa_teclas = {
 				KEY_A: 0,
 				KEY_S: 1,
 				KEY_D: 2,
@@ -818,20 +823,20 @@ func _input(event: InputEvent) -> void:
 				KEY_J: 6
 			}
 
-		if mapa_teclas.has(event.keycode):
+		if mapa_teclas.has(event.scancode):
 			if vp:
 				vp.set_input_as_handled()
-			_processar_input_led(int(mapa_teclas[event.keycode]))
+			_processar_input_led(int(mapa_teclas[event.scancode]))
 			return
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode in [KEY_ESCAPE, KEY_META]:
+		if event.scancode in [KEY_ESCAPE, KEY_META]:
 			get_viewport().set_input_as_handled()
 			return
 
-		if event.alt_pressed and event.keycode in [KEY_F4, KEY_TAB]:
+		if event.alt and event.scancode in [KEY_F4, KEY_TAB]:
 			get_viewport().set_input_as_handled()
 			return
 
@@ -840,7 +845,7 @@ func _start_foi_pressionado() -> bool:
 	if not Input.is_action_just_pressed("input_start"):
 		return false
 
-	var agora := float(Time.get_ticks_msec())
+	var agora = float(Time.get_ticks_msec())
 
 	if agora - _ultimo_start_ms < START_DEBOUNCE_MS:
 		return false
@@ -851,7 +856,7 @@ func _start_foi_pressionado() -> bool:
 
 func _ler_inputs_leds() -> void:
 	for i in range(LEDS_TOTAL):
-		var acao := "input_led_" + LEDS_LETRAS[i].to_lower()
+		var acao = "input_led_" + LEDS_LETRAS[i].to_lower()
 
 		if Input.is_action_just_pressed(acao):
 			print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
@@ -866,11 +871,11 @@ func _criar_tela() -> void:
 	add_child(canvas)
 
 	root = Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.set_anchors_preset(Control.PRESET_WIDE)
 	canvas.add_child(root)
 
 	var fundo := ColorRect.new()
-	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.set_anchors_preset(Control.PRESET_WIDE)
 	fundo.color = Color(0.006, 0.008, 0.012, 1.0)
 	root.add_child(fundo)
 
@@ -884,11 +889,11 @@ func _criar_tela() -> void:
 
 
 func _criar_header_copa() -> void:
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 
 	var header := Panel.new()
-	header.position = Vector2.ZERO
-	header.size = Vector2(tela.x, 82)
+	header.rect_position = Vector2.ZERO
+	header.rect_size = Vector2(tela.x, 82)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(header)
 
@@ -896,28 +901,28 @@ func _criar_header_copa() -> void:
 	s.bg_color = Color(0.014, 0.018, 0.028, 0.96)
 	s.border_color = Color(1, 1, 1, 0.12)
 	s.set_border_width_all(0)
-	s.set_border_width(SIDE_BOTTOM, 2)
+	s.set_border_width(MARGIN_BOTTOM, 2)
 	s.shadow_color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.25)
 	s.shadow_size = 14
-	header.add_theme_stylebox_override("panel", s)
+	header.add_stylebox_override("panel", s)
 
-	var titulo := _novo_label(
+	var titulo = _novo_label(
 		"🏆 %s" % nome_partida_copa,
 		30,
-		Color.WHITE,
+		Color.white,
 		COR_NEON
 	)
-	titulo.position = Vector2(44, 0)
-	titulo.size = Vector2(tela.x * 0.62, 82)
-	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	titulo.rect_position = Vector2(44, 0)
+	titulo.rect_size = Vector2(tela.x * 0.62, 82)
+	titulo.align = Label.ALIGN_LEFT
 	root.add_child(titulo)
 
 	var regra_txt: String = _texto_regra_desempate_partida()
 
-	var regra := _novo_label(regra_txt, 17, COR_ALERTA)
-	regra.position = Vector2(tela.x - 610, 0)
-	regra.size = Vector2(560, 82)
-	regra.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var regra = _novo_label(regra_txt, 17, COR_ALERTA)
+	regra.rect_position = Vector2(tela.x - 610, 0)
+	regra.rect_size = Vector2(560, 82)
+	regra.align = Label.ALIGN_RIGHT
 	root.add_child(regra)
 
 
@@ -933,12 +938,12 @@ func _reconstruir_paineis() -> void:
 	status_labels.clear()
 	medalhas_players.clear()
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 	var area_top: float = 92.0
-	var tela_jogo := Vector2(tela.x, tela.y - area_top)
+	var tela_jogo = Vector2(tela.x, tela.y - area_top)
 
 	for i in range(total_players):
-		var rect := _get_rect_player_dinamico(i, total_players, tela_jogo, player_atual)
+		var rect = _get_rect_player_dinamico(i, total_players, tela_jogo, player_atual)
 		rect.position.y += area_top
 		_criar_painel_player(i, rect)
 
@@ -959,14 +964,14 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	var margem: float = 10.0
 
 	var panel := Panel.new()
-	panel.position = rect.position + Vector2(margem, margem)
-	panel.size = rect.size - Vector2(margem * 2.0, margem * 2.0)
-	panel.clip_contents = true
+	panel.rect_position = rect.position + Vector2(margem, margem)
+	panel.rect_size = rect.size - Vector2(margem * 2.0, margem * 2.0)
+	panel.rect_clip_content = true
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(panel)
 
-	var W: float = panel.size.x
-	var H: float = panel.size.y
+	var W: float = panel.rect_size.x
+	var H: float = panel.rect_size.y
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(cor.r * 0.035, cor.g * 0.035, cor.b * 0.035, 0.96)
@@ -976,29 +981,29 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	style.shadow_color = Color(cor.r, cor.g, cor.b, 0.20)
 	style.shadow_size = 10
 	style.shadow_offset = Vector2.ZERO
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_stylebox_override("panel", style)
 
 	_adicionar_fundo_imagem_card_player(panel, index, cor)
 
 	var faixa := ColorRect.new()
-	faixa.position = Vector2(22.0, maxf(H * 0.025, 12.0))
-	faixa.size = Vector2(maxf(W - 44.0, 20.0), 4.0)
+	faixa.rect_position = Vector2(22.0, max(H * 0.025, 12.0))
+	faixa.rect_size = Vector2(max(W - 44.0, 20.0), 4.0)
 	faixa.color = Color(cor.r, cor.g, cor.b, 0.38)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(faixa)
 
-	var colocacao := _novo_label(
+	var colocacao = _novo_label(
 		"",
-		int(clampf(H * 0.040, 16.0, 28.0)),
-		Color.WHITE,
+		int(clamp(H * 0.040, 16.0, 28.0)),
+		Color.white,
 		cor
 	)
-	colocacao.position = Vector2(W - 152.0, maxf(H * 0.035, 16.0))
-	colocacao.size = Vector2(128.0, 42.0)
-	colocacao.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	colocacao.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	colocacao.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	colocacao.add_theme_constant_override("outline_size", 4)
+	colocacao.rect_position = Vector2(W - 152.0, max(H * 0.035, 16.0))
+	colocacao.rect_size = Vector2(128.0, 42.0)
+	colocacao.align = Label.ALIGN_RIGHT
+	colocacao.valign = Label.VALIGN_CENTER
+	colocacao.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(colocacao, 4)
 	panel.add_child(colocacao)
 
 	medalhas_players.append(colocacao)
@@ -1008,39 +1013,39 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	if _player_eh_bot(index):
 		nome_player += " BOT"
 
-	var fs_titulo: int = int(clampf(H * 0.060, 20.0, 42.0))
-	var fs_score_titulo: int = int(clampf(H * 0.048, 18.0, 34.0))
-	var fs_score: int = int(clampf(minf(H * 0.23, W * 0.40), 52.0, 132.0))
-	var fs_tempo_titulo: int = int(clampf(H * 0.046, 16.0, 30.0))
-	var fs_tempo: int = int(clampf(H * 0.100, 34.0, 64.0))
-	var fs_status: int = int(clampf(H * 0.038, 15.0, 26.0))
+	var fs_titulo: int = int(clamp(H * 0.060, 20.0, 42.0))
+	var fs_score_titulo: int = int(clamp(H * 0.048, 18.0, 34.0))
+	var fs_score: int = int(clamp(min(H * 0.23, W * 0.40), 52.0, 132.0))
+	var fs_tempo_titulo: int = int(clamp(H * 0.046, 16.0, 30.0))
+	var fs_tempo: int = int(clamp(H * 0.100, 34.0, 64.0))
+	var fs_status: int = int(clamp(H * 0.038, 15.0, 26.0))
 
-	var titulo := _novo_label_card(nome_player, W, H * 0.090, fs_titulo, cor)
-	titulo.add_theme_color_override("font_shadow_color", cor)
+	var titulo = _novo_label_card(nome_player, W, H * 0.090, fs_titulo, cor)
+	titulo.add_color_override("font_color_shadow", cor)
 	panel.add_child(titulo)
 
-	var score_titulo := _novo_label_card("GOLS", W, H * 0.285, fs_score_titulo, Color(0.75, 0.84, 0.90))
+	var score_titulo = _novo_label_card("GOLS", W, H * 0.285, fs_score_titulo, Color(0.75, 0.84, 0.90))
 	panel.add_child(score_titulo)
 
-	var score := _novo_label_card("0", W, H * 0.455, fs_score, Color.WHITE)
-	score.add_theme_color_override("font_shadow_color", cor)
-	score.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	score.add_theme_constant_override("outline_size", 5)
+	var score = _novo_label_card("0", W, H * 0.455, fs_score, Color.white)
+	score.add_color_override("font_color_shadow", cor)
+	score.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(score, 5)
 	panel.add_child(score)
 
-	var tempo_titulo := _novo_label_card("TEMPO", W, H * 0.680, fs_tempo_titulo, Color(0.65, 0.72, 0.78))
+	var tempo_titulo = _novo_label_card("TEMPO", W, H * 0.680, fs_tempo_titulo, Color(0.65, 0.72, 0.78))
 	panel.add_child(tempo_titulo)
 
 	var tempo_inicial: int = int(_tempo_do_player(index))
-	var tempo := _novo_label_card(str(tempo_inicial), W, H * 0.790, fs_tempo, Color(1.0, 0.85, 0.08))
-	tempo.add_theme_color_override("font_shadow_color", Color(1.0, 0.4, 0.05))
-	tempo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	tempo.add_theme_constant_override("outline_size", 4)
+	var tempo = _novo_label_card(str(tempo_inicial), W, H * 0.790, fs_tempo, Color(1.0, 0.85, 0.08))
+	tempo.add_color_override("font_color_shadow", Color(1.0, 0.4, 0.05))
+	tempo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(tempo, 4)
 	panel.add_child(tempo)
 
-	var status := _novo_label_card("AGUARDANDO", W, H * 0.918, fs_status, Color(0.65, 0.70, 0.75))
-	status.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	status.add_theme_constant_override("outline_size", 3)
+	var status = _novo_label_card("AGUARDANDO", W, H * 0.918, fs_status, Color(0.65, 0.70, 0.75))
+	status.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(status, 3)
 	panel.add_child(status)
 
 	player_panels.append(panel)
@@ -1054,15 +1059,15 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 		return Rect2(Vector2.ZERO, tela)
 
 	if qtd == 2:
-		var w := tela.x / 2.0
+		var w = tela.x / 2.0
 		return Rect2(
 			Vector2(float(index) * w, 0.0),
 			Vector2(w, tela.y)
 		)
 
 	if qtd == 3:
-		var big_w := tela.x * 0.58
-		var small_w := tela.x - big_w
+		var big_w = tela.x * 0.58
+		var small_w = tela.x - big_w
 
 		if index == ativo:
 			return Rect2(
@@ -1079,17 +1084,17 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 			if j != ativo:
 				slot += 1
 
-		var h := tela.y / 2.0
+		var h = tela.y / 2.0
 
 		return Rect2(
 			Vector2(big_w, float(slot) * h),
 			Vector2(small_w, h)
 		)
 
-	var w4 := tela.x / 2.0
-	var h4 := tela.y / 2.0
-	var col := index % 2
-	var row := int(index / 2)
+	var w4 = tela.x / 2.0
+	var h4 = tela.y / 2.0
+	var col = index % 2
+	var row = int(index / 2)
 
 	return Rect2(
 		Vector2(float(col) * w4, float(row) * h4),
@@ -1113,23 +1118,23 @@ func _atualizar_hud() -> void:
 
 	for i in range(total_players):
 		if i < medalhas_players.size():
-			var lbl_colocacao := medalhas_players[i] as Label
+			var lbl_colocacao = medalhas_players[i] as Label
 
 			if lbl_colocacao != null and is_instance_valid(lbl_colocacao):
 				var pos_live: int = _posicao_ao_vivo(i)
 				var cor_pos: Color = _cor_colocacao_ao_vivo(pos_live, i)
 
 				lbl_colocacao.text = "%dº LUGAR" % pos_live
-				lbl_colocacao.add_theme_color_override("font_color", cor_pos)
+				lbl_colocacao.add_color_override("font_color", cor_pos)
 
 				if pos_live == 4:
-					lbl_colocacao.add_theme_color_override("font_outline_color", Color(1, 1, 1, 0.90))
-					lbl_colocacao.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.75))
+					lbl_colocacao.add_color_override("font_outline_modulate", Color(1, 1, 1, 0.90))
+					lbl_colocacao.add_color_override("font_color_shadow", Color(1, 1, 1, 0.75))
 				else:
-					lbl_colocacao.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-					lbl_colocacao.add_theme_color_override("font_shadow_color", cor_pos)
+					lbl_colocacao.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+					lbl_colocacao.add_color_override("font_color_shadow", cor_pos)
 
-				lbl_colocacao.add_theme_constant_override("outline_size", 4)
+				Compat.contorno(lbl_colocacao, 4)
 
 		if not is_instance_valid(player_panels[i]):
 			continue
@@ -1140,16 +1145,16 @@ func _atualizar_hud() -> void:
 		if i < tempos.size():
 			tempo_labels[i].text = str(int(ceil(tempos[i])))
 
-		var style := player_panels[i].get_theme_stylebox("panel") as StyleBoxFlat
+		var style = player_panels[i].get_stylebox("panel") as StyleBoxFlat
 
 		if style == null:
 			continue
 
-		var cor := cores_players[i]
+		var cor = cores_players[i]
 
 		if i < terminou_player.size() and terminou_player[i]:
 			status_labels[i].text = "FINALIZADO"
-			status_labels[i].add_theme_color_override("font_color", Color(0.55, 0.58, 0.62))
+			status_labels[i].add_color_override("font_color", Color(0.55, 0.58, 0.62))
 
 			style.bg_color = Color(0.018, 0.018, 0.020, 0.96)
 			style.border_color = Color(0.25, 0.25, 0.25)
@@ -1176,20 +1181,20 @@ func _atualizar_hud() -> void:
 			else:
 				status_labels[i].text = "PREPARANDO"
 
-			status_labels[i].add_theme_color_override("font_color", cor)
+			status_labels[i].add_color_override("font_color", cor)
 
-			var pulso := 0.5 + 0.5 * sin(float(Time.get_ticks_msec()) / 340.0)
+			var pulso = 0.5 + 0.5 * sin(float(Time.get_ticks_msec()) / 340.0)
 
 			style.bg_color = Color(cor.r * 0.065, cor.g * 0.065, cor.b * 0.065, 0.98)
 			style.border_color = Color(cor.r, cor.g, cor.b, 0.65 + pulso * 0.35)
 			style.shadow_color = Color(cor.r, cor.g, cor.b, 0.55 + pulso * 0.35)
 			style.shadow_size = int(26.0 + pulso * 20.0)
 
-			player_panels[i].modulate = Color.WHITE
+			player_panels[i].modulate = Color.white
 
 		else:
 			status_labels[i].text = "AGUARDANDO"
-			status_labels[i].add_theme_color_override("font_color", Color(0.45, 0.48, 0.52))
+			status_labels[i].add_color_override("font_color", Color(0.45, 0.48, 0.52))
 
 			style.bg_color = Color(cor.r * 0.025, cor.g * 0.025, cor.b * 0.025, 0.94)
 			style.border_color = Color(cor.r, cor.g, cor.b, 0.30)
@@ -1249,16 +1254,16 @@ func _criar_overlay_turno() -> void:
 	add_child(overlay_layer)
 
 	overlay_fundo = ColorRect.new()
-	overlay_fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay_fundo.set_anchors_preset(Control.PRESET_WIDE)
 	overlay_fundo.color = Color(0, 0, 0, 0.0)
 	overlay_layer.add_child(overlay_fundo)
 
 	overlay_panel = Panel.new()
-	overlay_panel.size = Vector2(820, 330)
-	overlay_panel.position = (get_viewport().get_visible_rect().size - overlay_panel.size) / 2.0
-	overlay_panel.scale = Vector2(0.94, 0.94)
+	overlay_panel.rect_size = Vector2(820, 330)
+	overlay_panel.rect_position = (get_viewport().get_visible_rect().size - overlay_panel.rect_size) / 2.0
+	overlay_panel.rect_scale = Vector2(0.94, 0.94)
 	overlay_panel.modulate = Color(1, 1, 1, 0)
-	overlay_panel.clip_contents = true
+	overlay_panel.rect_clip_content = true
 	overlay_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_layer.add_child(overlay_panel)
 
@@ -1274,54 +1279,54 @@ func _criar_overlay_turno() -> void:
 	style.shadow_color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.72)
 	style.shadow_size = 38
 	style.shadow_offset = Vector2.ZERO
-	overlay_panel.add_theme_stylebox_override("panel", style)
+	overlay_panel.add_stylebox_override("panel", style)
 
 	# Moldura interna quadrada que segura a imagem dentro da borda neon.
 	var inset: float = borda_modal
-	var tam_fundo: Vector2 = overlay_panel.size - Vector2(inset * 2.0, inset * 2.0)
+	var tam_fundo: Vector2 = overlay_panel.rect_size - Vector2(inset * 2.0, inset * 2.0)
 
 	overlay_fundo_moldura = Panel.new()
-	overlay_fundo_moldura.position = Vector2(inset, inset)
-	overlay_fundo_moldura.size = tam_fundo
-	overlay_fundo_moldura.clip_contents = true
+	overlay_fundo_moldura.rect_position = Vector2(inset, inset)
+	overlay_fundo_moldura.rect_size = tam_fundo
+	overlay_fundo_moldura.rect_clip_content = true
 	overlay_fundo_moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var moldura_st := StyleBoxFlat.new()
 	moldura_st.bg_color = Color(0.006, 0.009, 0.014, 1.0)
 	moldura_st.set_corner_radius_all(0)
-	overlay_fundo_moldura.add_theme_stylebox_override("panel", moldura_st)
+	overlay_fundo_moldura.add_stylebox_override("panel", moldura_st)
 	overlay_fundo_moldura.visible = false
 	overlay_panel.add_child(overlay_fundo_moldura)
 
 	# Imagem FULL: estica para preencher TODO o modal, sem zoom e sem cortar.
 	# (STRETCH_SCALE ignora a proporção e ocupa o retângulo inteiro.)
 	overlay_fundo_img = TextureRect.new()
-	overlay_fundo_img.position = Vector2.ZERO
-	overlay_fundo_img.size = tam_fundo
-	overlay_fundo_img.pivot_offset = tam_fundo * 0.5
-	overlay_fundo_img.scale = Vector2.ONE
-	overlay_fundo_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	overlay_fundo_img.rect_position = Vector2.ZERO
+	overlay_fundo_img.rect_size = tam_fundo
+	overlay_fundo_img.rect_pivot_offset = tam_fundo * 0.5
+	overlay_fundo_img.rect_scale = Vector2.ONE
+	overlay_fundo_img.expand = true
 	overlay_fundo_img.stretch_mode = TextureRect.STRETCH_SCALE
 	overlay_fundo_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_fundo_img.modulate = Color(0.74, 0.74, 0.74, 1.0)  # escurece p/ texto legível
 	overlay_fundo_moldura.add_child(overlay_fundo_img)
 
-	overlay_titulo = _novo_label("", 42, Color.WHITE, COR_NEON)
-	overlay_titulo.position = Vector2(0, 36)
-	overlay_titulo.size = Vector2(820, 66)
+	overlay_titulo = _novo_label("", 42, Color.white, COR_NEON)
+	overlay_titulo.rect_position = Vector2(0, 36)
+	overlay_titulo.rect_size = Vector2(820, 66)
 	overlay_panel.add_child(overlay_titulo)
 
 	overlay_numero = _novo_label("", 72, Color(1.0, 0.85, 0.08), Color(1.0, 0.35, 0.05))
-	overlay_numero.position = Vector2(0, 112)
-	overlay_numero.size = Vector2(820, 92)
+	overlay_numero.rect_position = Vector2(0, 112)
+	overlay_numero.rect_size = Vector2(820, 92)
 	overlay_panel.add_child(overlay_numero)
 
 	overlay_subtitulo = _novo_label("", 22, COR_ALERTA, COR_ALERTA)
-	overlay_subtitulo.position = Vector2(40, 230)
-	overlay_subtitulo.size = Vector2(740, 54)
-	overlay_subtitulo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	overlay_subtitulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	overlay_subtitulo.add_theme_constant_override("outline_size", 4)
+	overlay_subtitulo.rect_position = Vector2(40, 230)
+	overlay_subtitulo.rect_size = Vector2(740, 54)
+	overlay_subtitulo.autowrap = true
+	overlay_subtitulo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(overlay_subtitulo, 4)
 	overlay_panel.add_child(overlay_subtitulo)
 
 	overlay_layer.visible = false
@@ -1336,11 +1341,11 @@ func _mostrar_preparacao_player() -> void:
 
 	_tocar_musica_do_player(player_atual)
 
-	var cor := cores_players[player_atual]
-	var nome := _nome_player(player_atual)
-	var eh_bot := _player_eh_bot(player_atual)
+	var cor = cores_players[player_atual]
+	var nome = _nome_player(player_atual)
+	var eh_bot = _player_eh_bot(player_atual)
 
-	var ctx := nome_partida_copa
+	var ctx = nome_partida_copa
 	if fase_jogo == Fase.PRORROGACAO:
 		ctx = "PRORROGAÇÃO"
 
@@ -1353,9 +1358,9 @@ func _mostrar_preparacao_player() -> void:
 		overlay_numero.text = "PRONTO?"
 		overlay_subtitulo.text = "%s  •  APERTE START PARA COMEÇAR" % ctx
 
-	overlay_titulo.add_theme_color_override("font_shadow_color", cor)
-	overlay_numero.add_theme_color_override("font_color", Color.WHITE)
-	overlay_numero.add_theme_color_override("font_shadow_color", cor)
+	overlay_titulo.add_color_override("font_color_shadow", cor)
+	overlay_numero.add_color_override("font_color", Color.white)
+	overlay_numero.add_color_override("font_color_shadow", cor)
 
 	_aplicar_fundo_modal_prep(player_atual)
 	_set_overlay_cor(cor)
@@ -1376,7 +1381,7 @@ func _aplicar_fundo_modal_prep(index: int) -> void:
 	if overlay_fundo_img == null or not is_instance_valid(overlay_fundo_img):
 		return
 
-	var caminho := _caminho_fundo_prep_player(index)
+	var caminho = _caminho_fundo_prep_player(index)
 	var tem: bool = caminho != "" and ResourceLoader.exists(caminho)
 
 	if overlay_fundo_moldura and is_instance_valid(overlay_fundo_moldura):
@@ -1397,13 +1402,13 @@ func _caminho_fundo_prep_player(index: int) -> String:
 		var j: Dictionary = jogadores_copa[index]
 		var nome_cor: String = str(j.get("cor_nome", "")).strip_edges().to_upper()
 
-		if nome_cor.contains("AZUL"):
+		if Compat.contem(nome_cor, "AZUL"):
 			return FUNDO_PREP_AZUL
-		if nome_cor.contains("VERDE"):
+		if Compat.contem(nome_cor, "VERDE"):
 			return FUNDO_PREP_VERDE
-		if nome_cor.contains("VERMELHO"):
+		if Compat.contem(nome_cor, "VERMELHO"):
 			return FUNDO_PREP_VERMELHO
-		if nome_cor.contains("AMARELO"):
+		if Compat.contem(nome_cor, "AMARELO"):
 			return FUNDO_PREP_AMARELO
 
 		var cor_index: int = int(j.get("cor_index", -1))
@@ -1444,7 +1449,7 @@ func _agendar_start_automatico() -> void:
 	auto_start_token += 1
 	var meu_token: int = auto_start_token
 
-	await get_tree().create_timer(AUTO_START_DELAY_BOT).timeout
+	yield(get_tree().create_timer(AUTO_START_DELAY_BOT), "timeout")
 
 	if meu_token != auto_start_token:
 		return
@@ -1463,6 +1468,7 @@ func _agendar_start_automatico() -> void:
 
 # ─── Substitua _iniciar_contagem_turno() ─────────────────────────────────────
 func _iniciar_contagem_turno() -> void:
+	var _g3_estado = null
 	if em_contagem_inicio:
 		return
 
@@ -1473,16 +1479,19 @@ func _iniciar_contagem_turno() -> void:
 	_prep_timer_token += 1
 	_parar_piscar_leds_prep()
 
-	await _rodar_contagem_inicio()
+	_g3_estado = _rodar_contagem_inicio()
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 	_iniciar_turno_player()
 
 
 func _agendar_timeout_prep() -> void:
+	var _g3_estado = null
 	# Timer de 30 segundos para passar a vez se o player não apertar START.
 	_prep_timer_token += 1
-	var meu_token := _prep_timer_token
+	var meu_token = _prep_timer_token
 
-	await get_tree().create_timer(30.0).timeout
+	yield(get_tree().create_timer(30.0), "timeout")
 
 	# Token mudou = player apertou START ou o jogo avançou.
 	if meu_token != _prep_timer_token:
@@ -1518,13 +1527,15 @@ func _agendar_timeout_prep() -> void:
 
 	if proximo == -1:
 		# Era o último: finaliza a partida.
-		await _resolver_empates_e_finalizar()
+		_g3_estado = _resolver_empates_e_finalizar()
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 	else:
 		# Passa a vez.
 		_tocar_audio(sfx_apito_troca)
 		player_atual = proximo
 		_reconstruir_paineis()
-		await get_tree().create_timer(0.20).timeout
+		yield(get_tree().create_timer(0.20), "timeout")
 		_mostrar_preparacao_player()
 
 
@@ -1551,7 +1562,7 @@ func _piscar_leds_prep_loop(index: int) -> void:
 
 	# Mapeia para RGB puro baseado na cor dominante do player,
 	# igual às cores reais dos LEDs do jogo (sem mistura residual).
-	var cor := cores_players[index]
+	var cor = cores_players[index]
 	var r: int
 	var g: int
 	var b: int
@@ -1584,13 +1595,13 @@ func _piscar_leds_prep_loop(index: int) -> void:
 
 	_atualizar_leds_hud()
 
-	var partes: Array[String] = []
+	var partes: Array = []
 	for i in range(LEDS_TOTAL):
 		partes.append("%s=%d,%d,%d" % [LEDS_LETRAS[i], r, g, b])
-	_serial_write("SET:" + ";".join(partes))
+	_serial_write("SET:" + PoolStringArray(partes).join(";"))
 
 	# Aguarda 0.4s aceso.
-	await get_tree().create_timer(0.40).timeout
+	yield(get_tree().create_timer(0.40), "timeout")
 
 	if not _prep_piscar_ligado:
 		return
@@ -1602,7 +1613,7 @@ func _piscar_leds_prep_loop(index: int) -> void:
 	_serial_write("OFF")
 
 	# Aguarda 0.35s apagado.
-	await get_tree().create_timer(0.35).timeout
+	yield(get_tree().create_timer(0.35), "timeout")
 
 	if not _prep_piscar_ligado:
 		return
@@ -1611,16 +1622,16 @@ func _piscar_leds_prep_loop(index: int) -> void:
 	_piscar_leds_prep_loop(index)
 
 func _rodar_contagem_inicio() -> void:
-	var cor := cores_players[player_atual]
-	var nome := _nome_player(player_atual)
-	var eh_bot := _player_eh_bot(player_atual)
+	var cor = cores_players[player_atual]
+	var nome = _nome_player(player_atual)
+	var eh_bot = _player_eh_bot(player_atual)
 
 	overlay_titulo.text = "%s, PREPARE-SE" % nome
 
 	if eh_bot:
 		overlay_subtitulo.text = "BOT ENTRANDO EM CAMPO..."
 		overlay_numero.text = "GO!"
-		await get_tree().create_timer(0.45).timeout
+		yield(get_tree().create_timer(0.45), "timeout")
 		return
 
 	if fase_jogo == Fase.PRORROGACAO:
@@ -1630,30 +1641,33 @@ func _rodar_contagem_inicio() -> void:
 
 	for n in range(TEMPO_CONTAGEM_INICIAL, 0, -1):
 		overlay_numero.text = str(n)
-		overlay_numero.scale = Vector2(1.35, 1.35)
-		overlay_numero.add_theme_color_override("font_color", Color(1.0, 0.85, 0.08))
-		overlay_numero.add_theme_color_override("font_shadow_color", Color(1.0, 0.35, 0.05))
+		overlay_numero.rect_scale = Vector2(1.35, 1.35)
+		overlay_numero.add_color_override("font_color", Color(1.0, 0.85, 0.08))
+		overlay_numero.add_color_override("font_color_shadow", Color(1.0, 0.35, 0.05))
 
-		var t := create_tween()
-		t.tween_property(overlay_numero, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		var t = create_tween()
+		t.tween_property(overlay_numero, "rect_scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-		await get_tree().create_timer(0.85).timeout
+		yield(get_tree().create_timer(0.85), "timeout")
 
 	overlay_titulo.text = "VAI, %s!" % nome
 	overlay_numero.text = ""
 	overlay_subtitulo.text = "MARQUE O MÁXIMO DE GOLS"
-	overlay_titulo.add_theme_color_override("font_shadow_color", cor)
+	overlay_titulo.add_color_override("font_color_shadow", cor)
 
-	await get_tree().create_timer(0.45).timeout
+	yield(get_tree().create_timer(0.45), "timeout")
 
 
 
 func _iniciar_turno_player() -> void:
+	var _g3_estado = null
 	partida_ativa = true
 	em_contagem_inicio = false
 	aguardando_start_turno = false
 
-	await _esconder_overlay()
+	_g3_estado = _esconder_overlay()
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	leds_ativos.clear()
 	cores_leds_ativos.clear()
@@ -1662,7 +1676,7 @@ func _iniciar_turno_player() -> void:
 	_ultimo_combo_gol_ms = 0.0
 	_ultimo_combo_som_ms = 0.0
 
-	var agora := float(Time.get_ticks_msec())
+	var agora = float(Time.get_ticks_msec())
 	_ultimo_motivacional_ms = agora
 	_ultimo_acerto_ms = agora
 	_ultimo_ponto_ms = agora
@@ -1673,7 +1687,7 @@ func _iniciar_turno_player() -> void:
 
 	_tocar_audio(sfx_apito_init)
 
-	await get_tree().create_timer(0.18).timeout
+	yield(get_tree().create_timer(0.18), "timeout")
 
 	_sortear_novo_grupo_de_fileiras()
 
@@ -1693,12 +1707,12 @@ func _registrar_combo_gol_player() -> void:
 	if _player_eh_bot(player_atual):
 		return
 
-	var agora := float(Time.get_ticks_msec())
+	var agora = float(Time.get_ticks_msec())
 
 	if _ultimo_combo_gol_ms <= 0.0:
 		_combo_gols_seguidos = 1
 	else:
-		var intervalo := agora - _ultimo_combo_gol_ms
+		var intervalo = agora - _ultimo_combo_gol_ms
 
 		if intervalo <= COMBO_JANELA_MS:
 			_combo_gols_seguidos += 1
@@ -1735,26 +1749,26 @@ func _registrar_combo_gol_player() -> void:
 func _mostrar_overlay() -> void:
 	overlay_layer.visible = true
 
-	var t := create_tween()
+	var t = create_tween()
 	t.set_parallel(true)
 	t.tween_property(overlay_fundo, "color", Color(0, 0, 0, 0.64), 0.22)
-	t.tween_property(overlay_panel, "modulate", Color.WHITE, 0.22)
-	t.tween_property(overlay_panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(overlay_panel, "modulate", Color.white, 0.22)
+	t.tween_property(overlay_panel, "rect_scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _esconder_overlay() -> void:
-	var t := create_tween()
+	var t = create_tween()
 	t.set_parallel(true)
 	t.tween_property(overlay_fundo, "color", Color(0, 0, 0, 0.0), 0.18)
 	t.tween_property(overlay_panel, "modulate", Color(1, 1, 1, 0), 0.18)
-	t.tween_property(overlay_panel, "scale", Vector2(0.94, 0.94), 0.18)
+	t.tween_property(overlay_panel, "rect_scale", Vector2(0.94, 0.94), 0.18)
 
-	await t.finished
+	yield(t, "finished")
 	overlay_layer.visible = false
 
 
 func _set_overlay_cor(cor: Color) -> void:
-	var style := overlay_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	var style = overlay_panel.get_stylebox("panel") as StyleBoxFlat
 
 	if style:
 		style.border_color = cor
@@ -1765,11 +1779,11 @@ func _animar_painel_atual() -> void:
 	if player_atual < 0 or player_atual >= player_panels.size():
 		return
 
-	var panel := player_panels[player_atual]
-	panel.scale = Vector2(1.025, 1.025)
+	var panel = player_panels[player_atual]
+	panel.rect_scale = Vector2(1.025, 1.025)
 
-	var t := create_tween()
-	t.tween_property(panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var t = create_tween()
+	t.tween_property(panel, Compat.prop(panel, "scale"), Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # ============================================================
@@ -1779,12 +1793,12 @@ func _checar_ciclo_leds() -> void:
 	if not partida_ativa:
 		return
 
-	if leds_ativos.is_empty():
+	if leds_ativos.empty():
 		_sortear_novo_grupo_de_fileiras()
 		return
 
-	var agora := float(Time.get_ticks_msec())
-	var tempo_onda := agora - _ciclo_inicio_ms
+	var agora = float(Time.get_ticks_msec())
+	var tempo_onda = agora - _ciclo_inicio_ms
 
 	if tempo_onda >= CICLO_LEDS_MS:
 		print("TEMPO DA ONDA ESGOTADO EM %.1fs -> TROCOU LEDS" % (CICLO_LEDS_MS / 1000.0))
@@ -1799,11 +1813,11 @@ func _sortear_novo_grupo_de_fileiras() -> void:
 		leds_ativos.clear()
 		cores_leds_ativos.clear()
 
-		var qtd: int = clampi(randi_range(LEDS_ATIVOS_MIN, LEDS_ATIVOS_MAX), 1, LEDS_TOTAL)
+		var qtd: int = int(clamp(Compat.randi_range(LEDS_ATIVOS_MIN, LEDS_ATIVOS_MAX), 1, LEDS_TOTAL))
 		qtd_leds_alvo_atual = qtd
 
 		while leds_ativos.size() < qtd:
-			var novo := _sortear_led_disponivel()
+			var novo = _sortear_led_disponivel()
 
 			if novo < 0:
 				break
@@ -1845,7 +1859,7 @@ func _completar_leds_ativos() -> void:
 	qtd_leds_alvo_atual = clamp(qtd_leds_alvo_atual, LEDS_ATIVOS_MIN, LEDS_ATIVOS_MAX)
 
 	while leds_ativos.size() < qtd_leds_alvo_atual:
-		var novo := _sortear_led_disponivel()
+		var novo = _sortear_led_disponivel()
 
 		if novo < 0:
 			break
@@ -1884,7 +1898,7 @@ func _processar_input_led(index_led: int) -> void:
 
 		# Limpou a dupla inteira -> nasce outra na hora (sem OFF, sem piscar).
 		# Se ainda restar 1, ele FICA FIRME até ser acertado ou estourar 5s.
-		if leds_ativos.is_empty():
+		if leds_ativos.empty():
 			_sortear_novo_grupo_de_fileiras()
 		else:
 			_atualizar_leds_hud()
@@ -1913,19 +1927,19 @@ func _flash_led(index_led: int, sucesso: bool) -> void:
 	if index_led < 0 or index_led >= leds_botoes.size():
 		return
 
-	var btn := leds_botoes[index_led]
+	var btn = leds_botoes[index_led]
 
-	btn.pivot_offset = btn.size * 0.5
-	btn.scale = Vector2(1.30, 1.30)
+	btn.rect_pivot_offset = btn.rect_size * 0.5
+	btn.rect_scale = Vector2(1.30, 1.30)
 
-	var t := create_tween()
-	t.tween_property(btn, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var t = create_tween()
+	t.tween_property(btn, Compat.prop(btn, "scale"), Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	if not sucesso:
 		btn.modulate = Color(1.5, 0.45, 0.45, 1.0)
 
-		var t2 := create_tween()
-		t2.tween_property(btn, "modulate", Color.WHITE, 0.35)
+		var t2 = create_tween()
+		t2.tween_property(btn, "modulate", Color.white, 0.35)
 
 func _explosao_gol(index: int) -> void:
 	if index < 0 or index >= player_panels.size():
@@ -1934,50 +1948,50 @@ func _explosao_gol(index: int) -> void:
 	var panel: Panel = player_panels[index]
 	var cor: Color = cores_players[index]
 
-	var W: float = float(panel.size.x)
-	var H: float = float(panel.size.y)
+	var W: float = float(panel.rect_size.x)
+	var H: float = float(panel.rect_size.y)
 	var centro: Vector2 = Vector2(W, H) * 0.5
-	var ref: float = minf(W, H)
+	var ref: float = min(W, H)
 
 	var burst := Panel.new()
 	var burst_tam: float = ref * 0.18
 
-	burst.size = Vector2(burst_tam, burst_tam)
-	burst.position = centro - burst.size * 0.5
-	burst.pivot_offset = burst.size * 0.5
+	burst.rect_size = Vector2(burst_tam, burst_tam)
+	burst.rect_position = centro - burst.rect_size * 0.5
+	burst.rect_pivot_offset = burst.rect_size * 0.5
 	burst.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	burst.z_index = 78
+	Compat.z(burst, 78)
 
 	var bs := StyleBoxFlat.new()
 	bs.bg_color = Color(1, 1, 1, 0.85)
 	bs.set_corner_radius_all(int(burst_tam * 0.5))
 	bs.shadow_color = Color(cor.r, cor.g, cor.b, 0.9)
 	bs.shadow_size = int(ref * 0.06)
-	burst.add_theme_stylebox_override("panel", bs)
+	burst.add_stylebox_override("panel", bs)
 	panel.add_child(burst)
 
-	var tb := create_tween()
+	var tb = create_tween()
 	tb.set_parallel(true)
-	tb.tween_property(burst, "scale", Vector2(2.2, 2.2), 0.28).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tb.tween_property(burst, "rect_scale", Vector2(2.2, 2.2), 0.28).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tb.tween_property(burst, "modulate", Color(1, 1, 1, 0), 0.30).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tb.chain().tween_callback(burst.queue_free)
+	tb.chain().tween_callback(burst, "queue_free")
 
 	for k in range(3):
 		var ring := Panel.new()
 		var tam0: float = ref * 0.14
 
-		ring.size = Vector2(tam0, tam0)
-		ring.position = centro - ring.size * 0.5
-		ring.pivot_offset = ring.size * 0.5
+		ring.rect_size = Vector2(tam0, tam0)
+		ring.rect_position = centro - ring.rect_size * 0.5
+		ring.rect_pivot_offset = ring.rect_size * 0.5
 		ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		ring.z_index = 80
+		Compat.z(ring, 80)
 
 		var rs := StyleBoxFlat.new()
 		rs.bg_color = Color(0, 0, 0, 0)
 		rs.border_color = Color(cor.r, cor.g, cor.b, 0.95)
-		rs.set_border_width_all(maxi(int(ref * 0.012), 3))
+		rs.set_border_width_all(int(max(int(ref * 0.012), 3)))
 		rs.set_corner_radius_all(int(tam0 * 0.5))
-		ring.add_theme_stylebox_override("panel", rs)
+		ring.add_stylebox_override("panel", rs)
 		panel.add_child(ring)
 
 		var diam_final: float = ref * (0.85 + float(k) * 0.18)
@@ -1985,52 +1999,52 @@ func _explosao_gol(index: int) -> void:
 		var dur: float = 0.55 + float(k) * 0.12
 		var delay_k: float = float(k) * 0.07
 
-		var tr := create_tween()
+		var tr = create_tween()
 		tr.set_parallel(true)
-		tr.tween_property(ring, "scale", Vector2(escala_final, escala_final), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
+		tr.tween_property(ring, "rect_scale", Vector2(escala_final, escala_final), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
 		tr.tween_property(ring, "modulate", Color(1, 1, 1, 0), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
-		tr.chain().tween_callback(ring.queue_free)
+		tr.chain().tween_callback(ring, "queue_free")
 
-	var paleta: Array[Color] = [
+	var paleta: Array = [
 		Color(1.0, 0.85, 0.08),
 		Color(1.0, 0.35, 0.25),
 		cor,
-		Color.WHITE,
+		Color.white,
 		Color(0.2, 0.9, 1.0)
 	]
 
 	for i in range(24):
 		var faisca := ColorRect.new()
 
-		var s: float = clampf(ref * 0.022, 6.0, 16.0)
-		var altura: float = s * randf_range(0.45, 1.0)
+		var s: float = clamp(ref * 0.022, 6.0, 16.0)
+		var altura: float = s * rand_range(0.45, 1.0)
 
-		faisca.size = Vector2(s, altura)
-		faisca.position = centro - faisca.size * 0.5
+		faisca.rect_size = Vector2(s, altura)
+		faisca.rect_position = centro - faisca.rect_size * 0.5
 		faisca.color = paleta[int(randi() % paleta.size())]
-		faisca.pivot_offset = faisca.size * 0.5
-		faisca.rotation = randf_range(0.0, TAU)
+		faisca.rect_pivot_offset = faisca.rect_size * 0.5
+		faisca.rect_rotation = rand_range(0.0, 360.0)
 		faisca.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		faisca.z_index = 85
+		Compat.z(faisca, 85)
 		panel.add_child(faisca)
 
-		var ang: float = randf_range(0.0, TAU)
-		var dist: float = randf_range(ref * 0.20, ref * 0.42)
-		var base: Vector2 = centro - faisca.size * 0.5
+		var ang: float = rand_range(0.0, TAU)
+		var dist: float = rand_range(ref * 0.20, ref * 0.42)
+		var base: Vector2 = centro - faisca.rect_size * 0.5
 
 		var direcao: Vector2 = Vector2(cos(ang), sin(ang) - 0.55)
 		var destino: Vector2 = base + direcao * dist
-		var queda: Vector2 = destino + Vector2(0, randf_range(ref * 0.12, ref * 0.26))
-		var dur_faisca: float = randf_range(0.6, 0.95)
+		var queda: Vector2 = destino + Vector2(0, rand_range(ref * 0.12, ref * 0.26))
+		var dur_faisca: float = rand_range(0.6, 0.95)
 
-		var tmov := create_tween()
-		tmov.tween_property(faisca, "position", destino, dur_faisca * 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tmov.tween_property(faisca, "position", queda, dur_faisca * 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tmov.tween_callback(faisca.queue_free)
+		var tmov = create_tween()
+		tmov.tween_property(faisca, "rect_position", destino, dur_faisca * 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tmov.tween_property(faisca, "rect_position", queda, dur_faisca * 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tmov.tween_callback(faisca, "queue_free")
 
-		var tvis := create_tween()
+		var tvis = create_tween()
 		tvis.set_parallel(true)
-		tvis.tween_property(faisca, "rotation", faisca.rotation + randf_range(-6.0, 6.0), dur_faisca)
+		tvis.tween_property(faisca, "rect_rotation", faisca.rect_rotation + rad2deg(rand_range(-6.0, 6.0)), dur_faisca)
 		tvis.tween_property(faisca, "modulate", Color(1, 1, 1, 0), dur_faisca * 0.6).set_delay(dur_faisca * 0.4)
 	
 
@@ -2081,8 +2095,8 @@ func registrar_ponto(valor: int = 1) -> void:
 
 
 
-func _jogadores_ja_jogaram(exceto: int = -1) -> Array[int]:
-	var lista: Array[int] = []
+func _jogadores_ja_jogaram(exceto: int = -1) -> Array:
+	var lista: Array = []
 
 	for i in range(total_players):
 		if i == exceto:
@@ -2099,7 +2113,7 @@ func _melhor_score_ja_jogado(exceto: int = -1) -> int:
 
 	for i in _jogadores_ja_jogaram(exceto):
 		if i >= 0 and i < scores.size():
-			melhor = maxi(melhor, scores[i])
+			melhor = int(max(melhor, scores[i]))
 
 	return melhor
 
@@ -2150,7 +2164,7 @@ func _checar_superacao_ao_vivo(score_antes: int, score_agora: int) -> bool:
 			_superou_adversario[player_atual][j] = true
 
 			# Som de torcida boa / superação.
-			if not SONS_SUPEROU_LIVE.is_empty():
+			if not SONS_SUPEROU_LIVE.empty():
 				_tocar_som_da_lista(SONS_SUPEROU_LIVE, "superou_ao_vivo", 1.5, true)
 			else:
 				_tocar_som_da_lista(SONS_SUPEROU_TURNO, "superou_ao_vivo", 1.5, true)
@@ -2183,13 +2197,13 @@ func _tocar_som_arquivo(caminho: String, volume_db: float = 0.0, forcar: bool = 
 	if not ResourceLoader.exists(caminho):
 		return
 
-	var stream := load(caminho) as AudioStream
+	var stream = load(caminho) as AudioStream
 
 	if stream == null:
 		return
 
-	if stream is AudioStreamMP3:
-		stream.loop = false
+	if stream is AudioStream:
+		Compat.laco(stream, false)
 
 	if forcar and sfx_reativo.playing:
 		sfx_reativo.stop()
@@ -2217,7 +2231,7 @@ func _avaliar_pressao_torcida() -> void:
 	if not _esta_abaixo_de_alguem_ja_jogado(player_atual):
 		return
 
-	var agora := float(Time.get_ticks_msec())
+	var agora = float(Time.get_ticks_msec())
 
 	if agora - _ultima_pressao_ms < REACAO_PRESSAO_ATRAS_INTERVALO_MS:
 		return
@@ -2234,23 +2248,23 @@ func _avaliar_pressao_torcida() -> void:
 	_tocar_not_supress("pressao_atras")
 
 func _sortear_led_disponivel() -> int:
-	var disponiveis: Array[int] = []
+	var disponiveis: Array = []
 
 	for i in range(LEDS_TOTAL):
 		if not leds_ativos.has(i):
 			disponiveis.append(i)
 
-	if disponiveis.is_empty():
+	if disponiveis.empty():
 		return -1
 
 	return disponiveis[randi() % disponiveis.size()]
 
 
-func _rgb_aleatorio_alvo() -> Array[int]:
-	if CORES_ALVOS_RGB.is_empty():
+func _rgb_aleatorio_alvo() -> Array:
+	if CORES_ALVOS_RGB.empty():
 		return [255, 255, 255]
 
-	var index := int(randi() % CORES_ALVOS_RGB.size())
+	var index = int(randi() % CORES_ALVOS_RGB.size())
 	var rgb: Array = CORES_ALVOS_RGB[index]
 
 	return [
@@ -2260,7 +2274,7 @@ func _rgb_aleatorio_alvo() -> Array[int]:
 	]
 
 
-func _rgb_led_por_index(index_led: int) -> Array[int]:
+func _rgb_led_por_index(index_led: int) -> Array:
 	if cores_leds_ativos.has(index_led):
 		var rgb_salvo: Array = cores_leds_ativos[index_led]
 
@@ -2270,13 +2284,13 @@ func _rgb_led_por_index(index_led: int) -> Array[int]:
 			int(rgb_salvo[2])
 		]
 
-	var novo_rgb := _rgb_aleatorio_alvo()
+	var novo_rgb = _rgb_aleatorio_alvo()
 	cores_leds_ativos[index_led] = novo_rgb
 	return novo_rgb
 
 
 func _cor_led_ativo(index_led: int) -> Color:
-	var rgb := _rgb_led_por_index(index_led)
+	var rgb = _rgb_led_por_index(index_led)
 
 	return Color(
 		float(rgb[0]) / 255.0,
@@ -2287,13 +2301,13 @@ func _cor_led_ativo(index_led: int) -> Color:
 
 
 func _texto_fileiras_ativas() -> String:
-	var partes: Array[String] = []
+	var partes: Array = []
 
 	for index_led in leds_ativos:
 		if index_led >= 0 and index_led < LEDS_LETRAS.size():
 			partes.append(LEDS_LETRAS[index_led])
 
-	return ", ".join(partes)
+	return PoolStringArray(partes).join(", ")
 
 
 # ============================================================
@@ -2306,11 +2320,11 @@ func _criar_hud_leds() -> void:
 	add_child(leds_hud_layer)
 
 	leds_hud_root = Control.new()
-	leds_hud_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	leds_hud_root.set_anchors_preset(Control.PRESET_WIDE)
 	leds_hud_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	leds_hud_layer.add_child(leds_hud_root)
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 	var tam: float = 64.0
 	var gap: float = 14.0
 	var largura_total: float = (tam * float(LEDS_TOTAL)) + (gap * float(LEDS_TOTAL - 1))
@@ -2322,22 +2336,22 @@ func _criar_hud_leds() -> void:
 
 	for i in range(LEDS_TOTAL):
 		var btn := Panel.new()
-		btn.position = Vector2(start_x + float(i) * (tam + gap), y)
-		btn.size = Vector2(tam, tam)
+		btn.rect_position = Vector2(start_x + float(i) * (tam + gap), y)
+		btn.rect_size = Vector2(tam, tam)
 		leds_hud_root.add_child(btn)
 		leds_botoes.append(btn)
 
 		var lbl := Label.new()
 		lbl.text = LEDS_LETRAS[i]
-		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 32)
-		lbl.add_theme_constant_override("shadow_offset_x", 0)
-		lbl.add_theme_constant_override("shadow_offset_y", 0)
+		lbl.set_anchors_preset(Control.PRESET_WIDE)
+		lbl.align = Label.ALIGN_CENTER
+		lbl.valign = Label.VALIGN_CENTER
+		Compat.tamanho(lbl, 32)
+		lbl.add_constant_override("shadow_offset_x", 0)
+		lbl.add_constant_override("shadow_offset_y", 0)
 
 		if fonte_orbitron:
-			lbl.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(lbl, fonte_orbitron)
 
 		btn.add_child(lbl)
 		leds_labels.append(lbl)
@@ -2349,13 +2363,13 @@ func _atualizar_leds_hud() -> void:
 	if leds_hud_layer:
 		leds_hud_layer.visible = MOSTRAR_TECLAS_LED_HUD
 
-	if leds_botoes.is_empty():
+	if leds_botoes.empty():
 		return
 
 	for i in range(LEDS_TOTAL):
-		var btn := leds_botoes[i]
-		var lbl := leds_labels[i]
-		var aceso := leds_ativos.has(i)
+		var btn = leds_botoes[i]
+		var lbl = leds_labels[i]
+		var aceso = leds_ativos.has(i)
 
 		var style := StyleBoxFlat.new()
 		style.set_corner_radius_all(16)
@@ -2363,31 +2377,32 @@ func _atualizar_leds_hud() -> void:
 		style.shadow_offset = Vector2.ZERO
 
 		if aceso:
-			var cor_led := _cor_led_ativo(i)
+			var cor_led = _cor_led_ativo(i)
 
 			style.bg_color = Color(cor_led.r * 0.18, cor_led.g * 0.18, cor_led.b * 0.18, 0.96)
 			style.border_color = cor_led
 			style.shadow_color = Color(cor_led.r, cor_led.g, cor_led.b, 0.90)
 			style.shadow_size = 26
 
-			lbl.add_theme_color_override("font_color", Color.WHITE)
-			lbl.add_theme_color_override("font_shadow_color", cor_led)
+			lbl.add_color_override("font_color", Color.white)
+			lbl.add_color_override("font_color_shadow", cor_led)
 		else:
 			style.bg_color = Color(0.04, 0.05, 0.07, 0.92)
 			style.border_color = Color(0.22, 0.24, 0.28, 1.0)
 			style.shadow_color = Color(0, 0, 0, 0.3)
 			style.shadow_size = 4
 
-			lbl.add_theme_color_override("font_color", Color(0.35, 0.38, 0.42))
-			lbl.add_theme_color_override("font_shadow_color", Color.TRANSPARENT)
+			lbl.add_color_override("font_color", Color(0.35, 0.38, 0.42))
+			lbl.add_color_override("font_color_shadow", Color.transparent)
 
-		btn.add_theme_stylebox_override("panel", style)
+		btn.add_stylebox_override("panel", style)
 
 
 # ============================================================
 # FINALIZAÇÃO TURNO / PARTIDA
 # ============================================================
 func _finalizar_turno_player() -> void:
+	var _g3_estado = null
 	if player_atual < 0 or player_atual >= total_players:
 		return
 
@@ -2406,13 +2421,15 @@ func _finalizar_turno_player() -> void:
 	_atualizar_hud()
 
 	# Folga para o apito ser ouvido antes de qualquer modal subir.
-	await get_tree().create_timer(0.6).timeout
+	yield(get_tree().create_timer(0.6), "timeout")
 
 	if not _player_eh_bot(player_atual):
 		_tocar_som_fim_turno_reativo(player_atual)
-		await _esperar_som_reativo_terminar(2.6)
+		_g3_estado = _esperar_som_reativo_terminar(2.6)
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 
-	var player_finalizado := player_atual
+	var player_finalizado = player_atual
 	var proximo := -1
 
 	for i in range(total_players):
@@ -2420,10 +2437,10 @@ func _finalizar_turno_player() -> void:
 			proximo = i
 			break
 
-	var nome_finalizado := _nome_player(player_finalizado)
+	var nome_finalizado = _nome_player(player_finalizado)
 
 	if proximo == -1:
-		await _mostrar_aviso_turno(
+		_g3_estado = _mostrar_aviso_turno(
 			"TEMPO ESGOTADO",
 			"%s FINALIZOU COM %d GOLS" % [
 				nome_finalizado,
@@ -2431,16 +2448,20 @@ func _finalizar_turno_player() -> void:
 			],
 			cores_players[player_finalizado]
 		)
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 
 		# Em vez de finalizar direto, checa empate -> prorrogação -> pênaltis.
-		await _resolver_empates_e_finalizar()
+		_g3_estado = _resolver_empates_e_finalizar()
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 	else:
-		var nome_proximo := _nome_player(proximo)
+		var nome_proximo = _nome_player(proximo)
 
 		if _player_eh_bot(player_finalizado):
-			await get_tree().create_timer(0.35).timeout
+			yield(get_tree().create_timer(0.35), "timeout")
 		else:
-			await _mostrar_aviso_turno(
+			_g3_estado = _mostrar_aviso_turno(
 				"TEMPO ESGOTADO",
 				"%s FEZ %d GOLS  •  PRÓXIMO: %s" % [
 					nome_finalizado,
@@ -2449,13 +2470,15 @@ func _finalizar_turno_player() -> void:
 				],
 				cores_players[player_finalizado]
 			)
+			if _g3_estado is GDScriptFunctionState:
+				_g3_estado = yield(_g3_estado, "completed")
 
 		_tocar_audio(sfx_apito_troca)
 
 		player_atual = proximo
 		_reconstruir_paineis()
 
-		await get_tree().create_timer(0.20).timeout
+		yield(get_tree().create_timer(0.20), "timeout")
 
 		_mostrar_preparacao_player()
 
@@ -2468,21 +2491,22 @@ func _finalizar_partida() -> void:
 	_serial_write("OFF")
 	_atualizar_hud()
 
-	await get_tree().create_timer(0.25).timeout
+	yield(get_tree().create_timer(0.25), "timeout")
 
 	_finalizar_partida_copa()
 
 
 
 func _finalizar_partida_copa() -> void:
+	var _g3_estado = null
 	_serial_write("OFF")
 
 	if audio_fundo:
 		audio_fundo.stop()
 
-	var ranking := _montar_ranking_copa()
+	var ranking = _montar_ranking_copa()
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		cg.salvar_resultado_pendente(partida_copa_index, ranking)
@@ -2503,15 +2527,17 @@ func _finalizar_partida_copa() -> void:
 	print("================================")
 
 	# Mostra o modal de resultado UMA única vez.
-	await _mostrar_modal_resultado_copa(ranking)
+	_g3_estado = _mostrar_modal_resultado_copa(ranking)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	if ResourceLoader.exists(CENA_CUP_LOBBY):
 		# A tela de DESTINO (cup_lobby) é a dona do loading.
 		_serial_write("OFF")
 		_cobrir_tela_para_transicao()
-		await get_tree().process_frame
+		yield(get_tree(), "idle_frame")
 
-		get_tree().change_scene_to_file(CENA_CUP_LOBBY)
+		get_tree().change_scene(CENA_CUP_LOBBY)
 	else:
 		push_warning("cup_lobby.tscn não encontrada: " + CENA_CUP_LOBBY)
 
@@ -2543,7 +2569,7 @@ func _montar_ranking_copa() -> Array:
 
 		var total: int = normais + ot
 
-		var cor: Color = Color.WHITE
+		var cor: Color = Color.white
 		if i < cores_players.size():
 			cor = cores_players[i]
 
@@ -2566,29 +2592,7 @@ func _montar_ranking_copa() -> Array:
 		})
 
 	# Desempate em cascata: gols normais -> prorrogação -> pênaltis -> real > bot -> índice.
-	ranking.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var na: int = int(a.get("gols_normais", 0))
-		var nb: int = int(b.get("gols_normais", 0))
-		if na != nb:
-			return na > nb
-
-		var pa: int = int(a.get("gols_prorrogacao", 0))
-		var pb: int = int(b.get("gols_prorrogacao", 0))
-		if pa != pb:
-			return pa > pb
-
-		var ka: int = int(a.get("penaltis", 0))
-		var kb: int = int(b.get("penaltis", 0))
-		if ka != kb:
-			return ka > kb
-
-		var bot_a: bool = bool(a.get("boot", false))
-		var bot_b: bool = bool(b.get("boot", false))
-		if bot_a != bot_b:
-			return bot_b
-
-		return int(a.get("player_index", 0)) < int(b.get("player_index", 0))
-	)
+	ranking.sort_custom(self, "_ordem_1")
 
 	# Posição sequencial ÚNICA (já desempatada em cascata acima).
 	# É a posição usada no mata-mata, onde o critério SEMPRE decide.
@@ -2644,29 +2648,29 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 	final_layer.layer = 300
 	add_child(final_layer)
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 
 	var fundo := ColorRect.new()
-	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.set_anchors_preset(Control.PRESET_WIDE)
 	fundo.color = Color(0, 0, 0, 0.86)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	final_layer.add_child(fundo)
 
-	var cor_destaque := COR_ALERTA
+	var cor_destaque = COR_ALERTA
 	if ranking.size() > 0 and ranking[0].has("cor") and ranking[0]["cor"] is Color:
 		cor_destaque = ranking[0]["cor"]
 
 	var panel := Panel.new()
-	panel.size = Vector2(minf(tela.x * 0.74, 1020.0), minf(tela.y * 0.84, 740.0))
-	panel.position = (tela - panel.size) / 2.0
-	panel.scale = Vector2(0.94, 0.94)
+	panel.rect_size = Vector2(min(tela.x * 0.74, 1020.0), min(tela.y * 0.84, 740.0))
+	panel.rect_position = (tela - panel.rect_size) / 2.0
+	panel.rect_scale = Vector2(0.94, 0.94)
 	panel.modulate = Color(1, 1, 1, 0)
-	panel.clip_contents = true
+	panel.rect_clip_content = true
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	final_layer.add_child(panel)
 
-	var W := panel.size.x
-	var H := panel.size.y
+	var W = panel.rect_size.x
+	var H = panel.rect_size.y
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.010, 0.014, 0.020, 0.985)
@@ -2676,35 +2680,35 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 	style.shadow_color = Color(cor_destaque.r, cor_destaque.g, cor_destaque.b, 0.88)
 	style.shadow_size = 52
 	style.shadow_offset = Vector2.ZERO
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_stylebox_override("panel", style)
 
 	if ResourceLoader.exists(FUNDO_RESULT):
 		var img_fundo := TextureRect.new()
-		img_fundo.position = Vector2(4, 4)
-		img_fundo.size = Vector2(W - 8, H - 8)
+		img_fundo.rect_position = Vector2(4, 4)
+		img_fundo.rect_size = Vector2(W - 8, H - 8)
 		img_fundo.texture = load(FUNDO_RESULT)
-		img_fundo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img_fundo.expand = true
 		img_fundo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		img_fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(img_fundo)
 
 		var escuro_fundo := ColorRect.new()
-		escuro_fundo.position = Vector2(4, 4)
-		escuro_fundo.size = Vector2(W - 8, H - 8)
+		escuro_fundo.rect_position = Vector2(4, 4)
+		escuro_fundo.rect_size = Vector2(W - 8, H - 8)
 		escuro_fundo.color = Color(0.008, 0.012, 0.020, 0.80)
 		escuro_fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(escuro_fundo)
 
 		var brilho_topo := ColorRect.new()
-		brilho_topo.position = Vector2(4, 4)
-		brilho_topo.size = Vector2(W - 8, 2)
+		brilho_topo.rect_position = Vector2(4, 4)
+		brilho_topo.rect_size = Vector2(W - 8, 2)
 		brilho_topo.color = Color(cor_destaque.r, cor_destaque.g, cor_destaque.b, 0.55)
 		brilho_topo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(brilho_topo)
 
 	var faixa := ColorRect.new()
-	faixa.position = Vector2(48, 26)
-	faixa.size = Vector2(W - 96, 5)
+	faixa.rect_position = Vector2(48, 26)
+	faixa.rect_size = Vector2(W - 96, 5)
 	faixa.color = Color(cor_destaque.r, cor_destaque.g, cor_destaque.b, 0.95)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(faixa)
@@ -2722,19 +2726,19 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 	else:
 		titulo_txt = "GRUPO %s  •  RODADA %d" % [grupo_copa_nome, rodada_copa]
 
-	var lbl_titulo := _novo_label(titulo_txt, 34, Color.WHITE, cor_destaque)
-	lbl_titulo.position = Vector2(20, 38)
-	lbl_titulo.size = Vector2(W - 40, 52)
-	lbl_titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	lbl_titulo.add_theme_constant_override("outline_size", 5)
+	var lbl_titulo = _novo_label(titulo_txt, 34, Color.white, cor_destaque)
+	lbl_titulo.rect_position = Vector2(20, 38)
+	lbl_titulo.rect_size = Vector2(W - 40, 52)
+	lbl_titulo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(lbl_titulo, 5)
 	panel.add_child(lbl_titulo)
 
-	var lbl_sub := _novo_label(nome_partida_copa + "  •  RETORNANDO AO LOBBY", 15, Color(0.74, 0.82, 0.92))
-	lbl_sub.position = Vector2(30, 94)
-	lbl_sub.size = Vector2(W - 60, 26)
+	var lbl_sub = _novo_label(nome_partida_copa + "  •  RETORNANDO AO LOBBY", 15, Color(0.74, 0.82, 0.92))
+	lbl_sub.rect_position = Vector2(30, 94)
+	lbl_sub.rect_size = Vector2(W - 60, 26)
 	lbl_sub.clip_text = true
-	lbl_sub.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-	lbl_sub.add_theme_constant_override("outline_size", 3)
+	lbl_sub.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.85))
+	Compat.contorno(lbl_sub, 3)
 	panel.add_child(lbl_sub)
 
 	# ── Cabeçalho das colunas ──
@@ -2742,38 +2746,23 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 	var col_x_pos   := 50.0
 	var col_w_pos   := 64.0
 	var col_x_nome  := 124.0
-	var col_w_nome  := W * 0.34
-	var col_x_gols  := col_x_nome + col_w_nome + 8.0
-	var col_w_gols  := W * 0.18
-	var col_x_extra := col_x_gols + col_w_gols + 8.0
-	var col_w_extra := W - col_x_extra - 50.0
+	var col_w_nome = W * 0.34
+	var col_x_gols = col_x_nome + col_w_nome + 8.0
+	var col_w_gols = W * 0.18
+	var col_x_extra = col_x_gols + col_w_gols + 8.0
+	var col_w_extra = W - col_x_extra - 50.0
 
-	var eh_grupos := (fase_copa == "GRUPOS")
-	var col_extra_titulo := "PONTOS" if eh_grupos else "RESULTADO"
+	var eh_grupos = (fase_copa == "GRUPOS")
+	var col_extra_titulo = "PONTOS" if eh_grupos else "RESULTADO"
 
-	var _fazer_header := func(txt: String, x: float, w: float, alin: HorizontalAlignment) -> void:
-		var h := Label.new()
-		h.text = txt
-		h.position = Vector2(x, header_y)
-		h.size = Vector2(w, 22)
-		h.horizontal_alignment = alin
-		h.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		h.add_theme_font_size_override("font_size", 13)
-		h.add_theme_color_override("font_color", Color(0.62, 0.70, 0.80))
-		h.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.80))
-		h.add_theme_constant_override("outline_size", 2)
-		if fonte_orbitron:
-			h.add_theme_font_override("font", fonte_orbitron)
-		panel.add_child(h)
-
-	_fazer_header.call("POS", col_x_pos, col_w_pos, HORIZONTAL_ALIGNMENT_CENTER)
-	_fazer_header.call("JOGADOR", col_x_nome, col_w_nome, HORIZONTAL_ALIGNMENT_LEFT)
-	_fazer_header.call("GOLS", col_x_gols, col_w_gols, HORIZONTAL_ALIGNMENT_CENTER)
-	_fazer_header.call(col_extra_titulo, col_x_extra, col_w_extra, HORIZONTAL_ALIGNMENT_RIGHT)
+	_g3_fazer_header(panel, header_y, "POS", col_x_pos, col_w_pos, Label.ALIGN_CENTER)
+	_g3_fazer_header(panel, header_y, "JOGADOR", col_x_nome, col_w_nome, Label.ALIGN_LEFT)
+	_g3_fazer_header(panel, header_y, "GOLS", col_x_gols, col_w_gols, Label.ALIGN_CENTER)
+	_g3_fazer_header(panel, header_y, col_extra_titulo, col_x_extra, col_w_extra, Label.ALIGN_RIGHT)
 
 	var sep_h := ColorRect.new()
-	sep_h.position = Vector2(50, header_y + 25)
-	sep_h.size = Vector2(W - 100, 2)
+	sep_h.rect_position = Vector2(50, header_y + 25)
+	sep_h.rect_size = Vector2(W - 100, 2)
 	sep_h.color = Color(cor_destaque.r, cor_destaque.g, cor_destaque.b, 0.55)
 	sep_h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(sep_h)
@@ -2794,7 +2783,7 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 
 	var scores_ord: Array = grupos_pos.keys()
 	scores_ord.sort()
-	scores_ord.reverse()
+	scores_ord.invert()
 
 	var posicao_exibida: Dictionary = {}
 	var pontos_exibidos: Dictionary = {}
@@ -2883,7 +2872,7 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 
 		# ── Texto da coluna POS ──
 		var pos_txt: String
-		var usar_final := (fase_copa == "FINAL" and not disputa_terceiro_copa)
+		var usar_final = (fase_copa == "FINAL" and not disputa_terceiro_copa)
 
 		if usar_final:
 			match posicao:
@@ -2904,9 +2893,9 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 
 		# ── Painel da linha ──
 		var row := Panel.new()
-		row.position = Vector2(50, y)
-		row.size = Vector2(W - 100, linha_h)
-		row.clip_contents = true
+		row.rect_position = Vector2(50, y)
+		row.rect_size = Vector2(W - 100, linha_h)
+		row.rect_clip_content = true
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var rs := StyleBoxFlat.new()
@@ -2917,26 +2906,26 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 		rs.shadow_color = Color(linha_cor.r, linha_cor.g, linha_cor.b, 0.28 if posicao == 1 else 0.05)
 		rs.shadow_size = 14 if posicao == 1 else 4
 		rs.shadow_offset = Vector2.ZERO
-		row.add_theme_stylebox_override("panel", rs)
+		row.add_stylebox_override("panel", rs)
 		panel.add_child(row)
 
 		var acento := ColorRect.new()
-		acento.position = Vector2(0, 0)
-		acento.size = Vector2(6, linha_h)
+		acento.rect_position = Vector2(0, 0)
+		acento.rect_size = Vector2(6, linha_h)
 		acento.color = Color(linha_cor.r, linha_cor.g, linha_cor.b, 0.95)
 		acento.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(acento)
 
 		# Posição
-		var lbl_pos := _novo_label(pos_txt, 22, linha_cor)
-		lbl_pos.position = Vector2(col_x_pos - 50, 0)
-		lbl_pos.size = Vector2(col_w_pos, linha_h)
-		lbl_pos.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var lbl_pos = _novo_label(pos_txt, 22, linha_cor)
+		lbl_pos.rect_position = Vector2(col_x_pos - 50, 0)
+		lbl_pos.rect_size = Vector2(col_w_pos, linha_h)
+		lbl_pos.align = Label.ALIGN_CENTER
 		row.add_child(lbl_pos)
 
 		var div1 := ColorRect.new()
-		div1.position = Vector2(col_x_nome - 50 - 8, linha_h * 0.18)
-		div1.size = Vector2(1, linha_h * 0.64)
+		div1.rect_position = Vector2(col_x_nome - 50 - 8, linha_h * 0.18)
+		div1.rect_size = Vector2(1, linha_h * 0.64)
 		div1.color = Color(linha_cor.r, linha_cor.g, linha_cor.b, 0.18)
 		div1.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(div1)
@@ -2944,37 +2933,37 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 		# Nome
 		var lbl_nome := Label.new()
 		lbl_nome.text = nome
-		lbl_nome.position = Vector2(col_x_nome - 50, linha_h * 0.10)
-		lbl_nome.size = Vector2(col_w_nome, linha_h * 0.55)
-		lbl_nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		lbl_nome.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl_nome.rect_position = Vector2(col_x_nome - 50, linha_h * 0.10)
+		lbl_nome.rect_size = Vector2(col_w_nome, linha_h * 0.55)
+		lbl_nome.align = Label.ALIGN_LEFT
+		lbl_nome.valign = Label.VALIGN_CENTER
 		lbl_nome.clip_text = true
-		lbl_nome.add_theme_font_size_override("font_size", 21)
-		lbl_nome.add_theme_color_override("font_color", linha_cor)
-		lbl_nome.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-		lbl_nome.add_theme_constant_override("outline_size", 3)
+		Compat.tamanho(lbl_nome, 21)
+		lbl_nome.add_color_override("font_color", linha_cor)
+		lbl_nome.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.85))
+		Compat.contorno(lbl_nome, 3)
 		if fonte_orbitron:
-			lbl_nome.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(lbl_nome, fonte_orbitron)
 		row.add_child(lbl_nome)
 
-		var tipo_str := "BOT" if bool(item.get("boot", false)) else "JOGADOR"
+		var tipo_str = "BOT" if bool(item.get("boot", false)) else "JOGADOR"
 		var lbl_tipo := Label.new()
 		lbl_tipo.text = tipo_str
-		lbl_tipo.position = Vector2(col_x_nome - 50, linha_h * 0.62)
-		lbl_tipo.size = Vector2(col_w_nome, linha_h * 0.32)
-		lbl_tipo.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		lbl_tipo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl_tipo.add_theme_font_size_override("font_size", 12)
-		lbl_tipo.add_theme_color_override("font_color", Color(0.56, 0.62, 0.72))
-		lbl_tipo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.70))
-		lbl_tipo.add_theme_constant_override("outline_size", 2)
+		lbl_tipo.rect_position = Vector2(col_x_nome - 50, linha_h * 0.62)
+		lbl_tipo.rect_size = Vector2(col_w_nome, linha_h * 0.32)
+		lbl_tipo.align = Label.ALIGN_LEFT
+		lbl_tipo.valign = Label.VALIGN_CENTER
+		Compat.tamanho(lbl_tipo, 12)
+		lbl_tipo.add_color_override("font_color", Color(0.56, 0.62, 0.72))
+		lbl_tipo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.70))
+		Compat.contorno(lbl_tipo, 2)
 		if fonte_orbitron:
-			lbl_tipo.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(lbl_tipo, fonte_orbitron)
 		row.add_child(lbl_tipo)
 
 		var div2 := ColorRect.new()
-		div2.position = Vector2(col_x_gols - 50 - 8, linha_h * 0.18)
-		div2.size = Vector2(1, linha_h * 0.64)
+		div2.rect_position = Vector2(col_x_gols - 50 - 8, linha_h * 0.18)
+		div2.rect_size = Vector2(1, linha_h * 0.64)
 		div2.color = Color(linha_cor.r, linha_cor.g, linha_cor.b, 0.18)
 		div2.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(div2)
@@ -2982,35 +2971,35 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 		# Gols
 		var lbl_score_num := Label.new()
 		lbl_score_num.text = str(score)
-		lbl_score_num.position = Vector2(col_x_gols - 50, linha_h * 0.04)
-		lbl_score_num.size = Vector2(col_w_gols, linha_h * 0.60)
-		lbl_score_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl_score_num.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl_score_num.add_theme_font_size_override("font_size", 28)
-		lbl_score_num.add_theme_color_override("font_color", Color.WHITE)
-		lbl_score_num.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.90))
-		lbl_score_num.add_theme_constant_override("outline_size", 4)
+		lbl_score_num.rect_position = Vector2(col_x_gols - 50, linha_h * 0.04)
+		lbl_score_num.rect_size = Vector2(col_w_gols, linha_h * 0.60)
+		lbl_score_num.align = Label.ALIGN_CENTER
+		lbl_score_num.valign = Label.VALIGN_CENTER
+		Compat.tamanho(lbl_score_num, 28)
+		lbl_score_num.add_color_override("font_color", Color.white)
+		lbl_score_num.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.90))
+		Compat.contorno(lbl_score_num, 4)
 		if fonte_orbitron:
-			lbl_score_num.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(lbl_score_num, fonte_orbitron)
 		row.add_child(lbl_score_num)
 
 		var lbl_det := Label.new()
 		lbl_det.text = detalhe_resultado
-		lbl_det.position = Vector2(col_x_gols - 50, linha_h * 0.62)
-		lbl_det.size = Vector2(col_w_gols, linha_h * 0.34)
-		lbl_det.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl_det.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl_det.add_theme_font_size_override("font_size", 11)
-		lbl_det.add_theme_color_override("font_color", Color(0.66, 0.74, 0.84))
-		lbl_det.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.70))
-		lbl_det.add_theme_constant_override("outline_size", 2)
+		lbl_det.rect_position = Vector2(col_x_gols - 50, linha_h * 0.62)
+		lbl_det.rect_size = Vector2(col_w_gols, linha_h * 0.34)
+		lbl_det.align = Label.ALIGN_CENTER
+		lbl_det.valign = Label.VALIGN_CENTER
+		Compat.tamanho(lbl_det, 11)
+		lbl_det.add_color_override("font_color", Color(0.66, 0.74, 0.84))
+		lbl_det.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.70))
+		Compat.contorno(lbl_det, 2)
 		if fonte_orbitron:
-			lbl_det.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(lbl_det, fonte_orbitron)
 		row.add_child(lbl_det)
 
 		var div3 := ColorRect.new()
-		div3.position = Vector2(col_x_extra - 50 - 8, linha_h * 0.18)
-		div3.size = Vector2(1, linha_h * 0.64)
+		div3.rect_position = Vector2(col_x_extra - 50 - 8, linha_h * 0.18)
+		div3.rect_size = Vector2(1, linha_h * 0.64)
 		div3.color = Color(linha_cor.r, linha_cor.g, linha_cor.b, 0.18)
 		div3.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(div3)
@@ -3018,72 +3007,72 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 		# Extra (pontos ou resultado)
 		var lbl_extra := Label.new()
 		lbl_extra.text = extra_txt
-		lbl_extra.position = Vector2(col_x_extra - 50, 0)
-		lbl_extra.size = Vector2(col_w_extra, linha_h)
-		lbl_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		lbl_extra.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl_extra.rect_position = Vector2(col_x_extra - 50, 0)
+		lbl_extra.rect_size = Vector2(col_w_extra, linha_h)
+		lbl_extra.align = Label.ALIGN_RIGHT
+		lbl_extra.valign = Label.VALIGN_CENTER
 		lbl_extra.clip_text = true
-		lbl_extra.add_theme_font_size_override("font_size", 18)
-		lbl_extra.add_theme_color_override("font_color", extra_cor)
-		lbl_extra.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-		lbl_extra.add_theme_constant_override("outline_size", 3)
+		Compat.tamanho(lbl_extra, 18)
+		lbl_extra.add_color_override("font_color", extra_cor)
+		lbl_extra.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.85))
+		Compat.contorno(lbl_extra, 3)
 		if fonte_orbitron:
-			lbl_extra.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(lbl_extra, fonte_orbitron)
 		row.add_child(lbl_extra)
 
 		y += linha_h + gap_linha
 
 	# ── Separador e contador regressivo ──
 	var sep_b := ColorRect.new()
-	sep_b.position = Vector2(50, H - 86)
-	sep_b.size = Vector2(W - 100, 1)
+	sep_b.rect_position = Vector2(50, H - 86)
+	sep_b.rect_size = Vector2(W - 100, 1)
 	sep_b.color = Color(1, 1, 1, 0.10)
 	sep_b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(sep_b)
 
 	var segundos := 8
 
-	var contador := _novo_label("VOLTANDO EM %d" % segundos, 17, COR_ALERTA, COR_ALERTA)
-	contador.position = Vector2(0, H - 78)
-	contador.size = Vector2(W, 28)
-	contador.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-	contador.add_theme_constant_override("outline_size", 3)
+	var contador = _novo_label("VOLTANDO EM %d" % segundos, 17, COR_ALERTA, COR_ALERTA)
+	contador.rect_position = Vector2(0, H - 78)
+	contador.rect_size = Vector2(W, 28)
+	contador.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.85))
+	Compat.contorno(contador, 3)
 	panel.add_child(contador)
 
 	var barra_bg := ColorRect.new()
-	barra_bg.position = Vector2(90, H - 38)
-	barra_bg.size = Vector2(W - 180, 6)
+	barra_bg.rect_position = Vector2(90, H - 38)
+	barra_bg.rect_size = Vector2(W - 180, 6)
 	barra_bg.color = Color(1, 1, 1, 0.12)
 	barra_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(barra_bg)
 
 	var barra := ColorRect.new()
-	barra.position = barra_bg.position
-	barra.size = barra_bg.size
+	barra.rect_position = barra_bg.rect_position
+	barra.rect_size = barra_bg.rect_size
 	barra.color = Color(cor_destaque.r, cor_destaque.g, cor_destaque.b, 1.0)
 	barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(barra)
 
-	var entrada := create_tween()
+	var entrada = create_tween()
 	entrada.set_parallel(true)
-	entrada.tween_property(panel, "modulate", Color.WHITE, 0.22)
-	entrada.tween_property(panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	entrada.tween_property(panel, "modulate", Color.white, 0.22)
+	entrada.tween_property(panel, "rect_scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-	await entrada.finished
+	yield(entrada, "finished")
 
 	for n in range(segundos, 0, -1):
 		if is_instance_valid(contador):
 			contador.text = "VOLTANDO EM %d" % n
 		if is_instance_valid(barra):
-			barra.size.x = (W - 180) * (float(n) / float(segundos))
-		await get_tree().create_timer(1.0).timeout
+			barra.rect_size.x = (W - 180) * (float(n) / float(segundos))
+		yield(get_tree().create_timer(1.0), "timeout")
 
-	var saida := create_tween()
+	var saida = create_tween()
 	saida.set_parallel(true)
 	saida.tween_property(panel, "modulate", Color(1, 1, 1, 0), 0.20)
-	saida.tween_property(panel, "scale", Vector2(0.95, 0.95), 0.20)
+	saida.tween_property(panel, "rect_scale", Vector2(0.95, 0.95), 0.20)
 
-	await saida.finished
+	yield(saida, "finished")
 
 	if is_instance_valid(final_layer):
 		final_layer.queue_free()
@@ -3098,14 +3087,14 @@ func _mostrar_aviso_turno(titulo_texto: String, subtitulo_texto: String, cor: Co
 	add_child(layer)
 
 	var fundo := ColorRect.new()
-	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.set_anchors_preset(Control.PRESET_WIDE)
 	fundo.color = Color(0, 0, 0, 0.0)
 	layer.add_child(fundo)
 
 	var panel := Panel.new()
-	panel.size = Vector2(900, 270)
-	panel.position = (get_viewport().get_visible_rect().size - panel.size) / 2.0
-	panel.scale = Vector2(0.92, 0.92)
+	panel.rect_size = Vector2(900, 270)
+	panel.rect_position = (get_viewport().get_visible_rect().size - panel.rect_size) / 2.0
+	panel.rect_scale = Vector2(0.92, 0.92)
 	panel.modulate = Color(1, 1, 1, 0)
 	layer.add_child(panel)
 
@@ -3117,35 +3106,35 @@ func _mostrar_aviso_turno(titulo_texto: String, subtitulo_texto: String, cor: Co
 	style.shadow_color = Color(cor.r, cor.g, cor.b, 0.78)
 	style.shadow_size = 40
 	style.shadow_offset = Vector2.ZERO
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_stylebox_override("panel", style)
 
-	var titulo := _novo_label(titulo_texto, 44, Color.WHITE, cor)
-	titulo.position = Vector2(0, 44)
-	titulo.size = Vector2(900, 70)
+	var titulo = _novo_label(titulo_texto, 44, Color.white, cor)
+	titulo.rect_position = Vector2(0, 44)
+	titulo.rect_size = Vector2(900, 70)
 	panel.add_child(titulo)
 
-	var subtitulo := _novo_label(subtitulo_texto, 24, Color(0.78, 0.90, 0.95))
-	subtitulo.position = Vector2(40, 142)
-	subtitulo.size = Vector2(820, 74)
-	subtitulo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var subtitulo = _novo_label(subtitulo_texto, 24, Color(0.78, 0.90, 0.95))
+	subtitulo.rect_position = Vector2(40, 142)
+	subtitulo.rect_size = Vector2(820, 74)
+	subtitulo.autowrap = true
 	panel.add_child(subtitulo)
 
-	var t := create_tween()
+	var t = create_tween()
 	t.set_parallel(true)
 	t.tween_property(fundo, "color", Color(0, 0, 0, 0.68), 0.22)
-	t.tween_property(panel, "modulate", Color.WHITE, 0.22)
-	t.tween_property(panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(panel, "modulate", Color.white, 0.22)
+	t.tween_property(panel, "rect_scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-	await t.finished
-	await get_tree().create_timer(1.45).timeout
+	yield(t, "finished")
+	yield(get_tree().create_timer(1.45), "timeout")
 
-	var out := create_tween()
+	var out = create_tween()
 	out.set_parallel(true)
 	out.tween_property(fundo, "color", Color(0, 0, 0, 0.0), 0.20)
 	out.tween_property(panel, "modulate", Color(1, 1, 1, 0), 0.20)
-	out.tween_property(panel, "scale", Vector2(0.94, 0.94), 0.20)
+	out.tween_property(panel, "rect_scale", Vector2(0.94, 0.94), 0.20)
 
-	await out.finished
+	yield(out, "finished")
 
 	if is_instance_valid(layer):
 		layer.queue_free()
@@ -3156,7 +3145,7 @@ func _mostrar_aviso_turno(titulo_texto: String, subtitulo_texto: String, cor: Co
 # ============================================================
 # Tempo de prorrogação = 50% do tempo ATUAL da fase (bot ou real).
 func _tempo_prorrogacao(index: int) -> float:
-	return maxf(_tempo_do_player(index) * FATOR_PRORROGACAO, 1.0)
+	return max(_tempo_do_player(index) * FATOR_PRORROGACAO, 1.0)
 
 
 # ============================================================
@@ -3194,6 +3183,7 @@ func _texto_posicao_resultado(posicao: int, total_pos: int) -> String:
 
 
 func _resolver_empates_e_finalizar() -> void:
+	var _g3_estado = null
 	# Congela o placar normal antes de qualquer desempate.
 	for i in range(total_players):
 		gols_normais[i] = scores[i]
@@ -3206,18 +3196,20 @@ func _resolver_empates_e_finalizar() -> void:
 		_finalizar_partida()
 		return
 
-	var grupos := _grupos_empatados_reais()
+	var grupos = _grupos_empatados_reais()
 
 	# Se o empate foi só com bot, ou bot x bot, não roda prorrogação.
 	# O ranking já resolve: real > bot > índice.
-	if grupos.is_empty():
+	if grupos.empty():
 		fase_jogo = Fase.NORMAL
 		_atualizar_hud()
 		_finalizar_partida()
 		return
 
 	for grupo in grupos:
-		await _resolver_grupo_empatado(grupo)
+		_g3_estado = _resolver_grupo_empatado(grupo)
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 
 	# Restaura placar de exibição = normal + prorrogação.
 	for i in range(total_players):
@@ -3247,7 +3239,7 @@ func _grupos_empatados_reais() -> Array:
 
 	var chaves: Array = por_score.keys()
 	chaves.sort()
-	chaves.reverse()
+	chaves.invert()
 
 	var grupos: Array = []
 
@@ -3272,6 +3264,7 @@ func _grupos_empatados_reais() -> Array:
 
 
 func _resolver_grupo_empatado(grupo: Array) -> void:
+	var _g3_estado = null
 	var grupo_real: Array = []
 
 	for p in grupo:
@@ -3286,30 +3279,36 @@ func _resolver_grupo_empatado(grupo: Array) -> void:
 	if grupo_real.size() <= 1:
 		return
 
-	var nomes: Array[String] = []
+	var nomes: Array = []
 
 	for p in grupo_real:
 		nomes.append(_nome_player(int(p)))
 
-	await _mostrar_aviso_turno(
+	_g3_estado = _mostrar_aviso_turno(
 		"PRORROGAÇÃO",
-		"EMPATE ENTRE %s  •  VALE 50%% DO TEMPO" % " E ".join(nomes),
+		"EMPATE ENTRE %s  •  VALE 50%% DO TEMPO" % PoolStringArray(nomes).join(" E "),
 		COR_ALERTA
 	)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	fase_jogo = Fase.PRORROGACAO
 
 	for p in grupo_real:
 		jogou_prorrogacao[p] = true
-		await _jogar_turno_prorrogacao(p)
+		_g3_estado = _jogar_turno_prorrogacao(p)
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 
-	var ainda := _subset_max_ot(grupo_real)
+	var ainda = _subset_max_ot(grupo_real)
 
 	if ainda.size() <= 1:
 		fase_jogo = Fase.NORMAL
 		return
 
-	await _rodar_penaltis(ainda)
+	_g3_estado = _rodar_penaltis(ainda)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	fase_jogo = Fase.NORMAL
 
@@ -3350,33 +3349,34 @@ func _jogar_turno_prorrogacao(p: int) -> void:
 	_mostrar_preparacao_player()
 
 	while not _ot_turno_acabou:
-		await get_tree().process_frame
+		yield(get_tree(), "idle_frame")
 
-	gols_prorrogacao[p] = maxi(scores[p] - base, 0)
+	gols_prorrogacao[p] = int(max(scores[p] - base, 0))
 	terminou_player[p] = true
 	_serial_write("OFF")
 
 	# ── NOVO: apito de fim igual ao turno normal ──
 	_tocar_audio(sfx_apito_fim)
-	await get_tree().create_timer(0.6).timeout
+	yield(get_tree().create_timer(0.6), "timeout")
 
 	_atualizar_hud()
-	await get_tree().create_timer(0.10).timeout
+	yield(get_tree().create_timer(0.10), "timeout")
 
 
-func _sortear_bocas_penalti() -> Array[int]:
-	var todos: Array[int] = []
+func _sortear_bocas_penalti() -> Array:
+	var todos: Array = []
 	for i in range(LEDS_TOTAL):
 		todos.append(i)
 	todos.shuffle()
 
-	var res: Array[int] = []
-	for i in range(mini(PENALTI_QTD_BOCAS, todos.size())):
+	var res: Array = []
+	for i in range(int(min(PENALTI_QTD_BOCAS, todos.size()))):
 		res.append(todos[i])
 	return res
 
 
 func _rodar_penaltis(participantes: Array) -> void:
+	var _g3_estado = null
 	fase_jogo = Fase.PENALTIS
 	partida_ativa = false
 	aguardando_start_turno = false
@@ -3384,7 +3384,7 @@ func _rodar_penaltis(participantes: Array) -> void:
 
 	_serial_write("OFF")
 
-	var jogadores_penalti: Array[int] = []
+	var jogadores_penalti: Array = []
 
 	for p in participantes:
 		var idx: int = int(p)
@@ -3408,7 +3408,7 @@ func _rodar_penaltis(participantes: Array) -> void:
 		jogou_penaltis[p] = true
 		penaltis_marcados[p] = 0
 
-	await _mostrar_aviso_turno(
+	_g3_estado = _mostrar_aviso_turno(
 		"DISPUTA DE PÊNALTIS",
 		"%d BOCA%s ACENDEM  •  %ds PARA ACERTAR  •  %d COBRANÇAS" % [
 			PENALTI_QTD_BOCAS,
@@ -3418,6 +3418,8 @@ func _rodar_penaltis(participantes: Array) -> void:
 		],
 		COR_NEON
 	)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	_criar_overlay_penalti(jogadores_penalti)
 
@@ -3431,7 +3433,10 @@ func _rodar_penaltis(participantes: Array) -> void:
 	# Cada jogador faz TODAS as cobranças iniciais antes de passar a vez.
 	for p in jogadores_penalti:
 		for rodada in range(PENALTI_RODADAS_INICIAIS):
-			var marcou: bool = await _cobrar_penalti(p, rodada + 1, jogadores_penalti, pen)
+			_g3_estado = _cobrar_penalti(p, rodada + 1, jogadores_penalti, pen)
+			if _g3_estado is GDScriptFunctionState:
+				_g3_estado = yield(_g3_estado, "completed")
+			var marcou: bool = _g3_estado
 
 			if marcou:
 				pen[p] = int(pen[p]) + 1
@@ -3452,16 +3457,21 @@ func _rodar_penaltis(participantes: Array) -> void:
 			lider = int(contestados[0])
 			break
 
-		await _mostrar_aviso_turno(
+		_g3_estado = _mostrar_aviso_turno(
 			"MORTE SÚBITA",
 			"EMPATE NOS PÊNALTIS  •  UMA COBRANÇA PARA CADA",
 			COR_ALERTA
 		)
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 
 		_atualizar_overlay_penalti(contestados, pen, -1)
 
 		for p in contestados:
-			var marcou_sd: bool = await _cobrar_penalti(p, rodada_sd, contestados, pen)
+			_g3_estado = _cobrar_penalti(p, rodada_sd, contestados, pen)
+			if _g3_estado is GDScriptFunctionState:
+				_g3_estado = yield(_g3_estado, "completed")
+			var marcou_sd: bool = _g3_estado
 
 			if marcou_sd:
 				pen[p] = int(pen[p]) + 1
@@ -3471,7 +3481,9 @@ func _rodar_penaltis(participantes: Array) -> void:
 
 		lider = _lider_penaltis(pen, contestados)
 
-	await _mostrar_vencedor_penalti(lider)
+	_g3_estado = _mostrar_vencedor_penalti(lider)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	_remover_overlay_penalti()
 
@@ -3514,12 +3526,13 @@ func _empatados_topo_penaltis(pen: Dictionary, subset: Array) -> Array:
 
 
 func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Dictionary) -> bool:
+	var _g3_estado = null
 	if p < 0 or p >= total_players:
 		return false
 
 	player_atual = p
 
-	var eh_bot := _player_eh_bot(p)
+	var eh_bot = _player_eh_bot(p)
 
 	_set_overlay_penalti_chute(p, num_rodada)
 	_atualizar_overlay_penalti(participantes, pen, p)
@@ -3536,29 +3549,29 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 			pen_contagem.text = ""
 		if pen_feedback and is_instance_valid(pen_feedback):
 			pen_feedback.text = "APERTE START PARA COBRAR"
-			pen_feedback.add_theme_color_override("font_color", COR_OK)
-			pen_feedback.add_theme_color_override("font_shadow_color", COR_OK)
+			pen_feedback.add_color_override("font_color", COR_OK)
+			pen_feedback.add_color_override("font_color_shadow", COR_OK)
 
-		await get_tree().create_timer(0.25).timeout
+		yield(get_tree().create_timer(0.25), "timeout")
 
 		while not _start_foi_pressionado():
-			await get_tree().process_frame
+			yield(get_tree(), "idle_frame")
 
 		if pen_feedback and is_instance_valid(pen_feedback):
 			pen_feedback.text = "PREPARE-SE..."
-			pen_feedback.add_theme_color_override("font_color", COR_ALERTA)
-			pen_feedback.add_theme_color_override("font_shadow_color", COR_ALERTA)
+			pen_feedback.add_color_override("font_color", COR_ALERTA)
+			pen_feedback.add_color_override("font_color_shadow", COR_ALERTA)
 
 		# Contagem de 3s para o player se posicionar antes da boca acender.
 		for n in range(3, 0, -1):
 			if pen_contagem and is_instance_valid(pen_contagem):
 				pen_contagem.text = str(n)
-				pen_contagem.add_theme_color_override("font_color", Color(1.0, 0.85, 0.08))
-				pen_contagem.add_theme_color_override("font_shadow_color", Color(1.0, 0.35, 0.05))
-				pen_contagem.scale = Vector2(1.25, 1.25)
-				var tc := create_tween()
-				tc.tween_property(pen_contagem, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			await get_tree().create_timer(0.85).timeout
+				pen_contagem.add_color_override("font_color", Color(1.0, 0.85, 0.08))
+				pen_contagem.add_color_override("font_color_shadow", Color(1.0, 0.35, 0.05))
+				pen_contagem.rect_scale = Vector2(1.25, 1.25)
+				var tc = create_tween()
+				tc.tween_property(pen_contagem, "rect_scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			yield(get_tree().create_timer(0.85), "timeout")
 
 		if pen_contagem and is_instance_valid(pen_contagem):
 			pen_contagem.text = ""
@@ -3566,7 +3579,7 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 			pen_feedback.text = ""
 
 	# Sorteia e acende SOMENTE uma boca.
-	var bocas := _sortear_bocas_penalti()
+	var bocas = _sortear_bocas_penalti()
 
 	_pen_alvos.clear()
 	leds_ativos.clear()
@@ -3587,7 +3600,7 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 
 	_tocar_audio(sfx_apito_init)
 
-	await get_tree().create_timer(0.35).timeout
+	yield(get_tree().create_timer(0.35), "timeout")
 
 	_pen_resultado = 0
 	_pen_aguardando = true
@@ -3598,9 +3611,9 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 
 	if eh_bot:
 		bot_marca = randf() < PENALTI_PROB_BOT
-		bot_momento = randf_range(0.6, maxf(PENALTI_TEMPO_ACERTO - 0.5, 0.7))
+		bot_momento = rand_range(0.6, max(PENALTI_TEMPO_ACERTO - 0.5, 0.7))
 
-	var t0 := float(Time.get_ticks_msec())
+	var t0 = float(Time.get_ticks_msec())
 
 	while (float(Time.get_ticks_msec()) - t0) / 1000.0 < PENALTI_TEMPO_ACERTO:
 		if _pen_resultado == 1:
@@ -3612,16 +3625,16 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 			break
 
 		if eh_bot and bot_marca:
-			var tempo_passado := (float(Time.get_ticks_msec()) - t0) / 1000.0
-			if tempo_passado >= bot_momento and not _pen_alvos.is_empty():
-				var alvo_bot := int(_pen_alvos[randi() % _pen_alvos.size()])
+			var tempo_passado = (float(Time.get_ticks_msec()) - t0) / 1000.0
+			if tempo_passado >= bot_momento and not _pen_alvos.empty():
+				var alvo_bot = int(_pen_alvos[randi() % _pen_alvos.size()])
 				_flash_led(alvo_bot, true)
 				_pen_resultado = 1
 				marcou = true
 				break
 
 		_atualizar_contagem_penalti(t0)
-		await get_tree().process_frame
+		yield(get_tree(), "idle_frame")
 
 	_pen_aguardando = false
 
@@ -3640,7 +3653,9 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 		_tocar_som_da_lista(SONS_VAIA, "penalti_erro", 1.0, true)
 		_feedback_penalti(false)
 
-	await _esperar_som_reativo_terminar(3.5)
+	_g3_estado = _esperar_som_reativo_terminar(3.5)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	return marcou
 
@@ -3665,17 +3680,17 @@ func _registrar_chute_penalti(index_led: int) -> void:
 
 func _esperar_som_reativo_terminar(timeout_seg: float = 3.5) -> void:
 	# Garante que o som comece e espera ele terminar (com teto de segurança).
-	await get_tree().create_timer(0.05).timeout
+	yield(get_tree().create_timer(0.05), "timeout")
 
-	var t0 := float(Time.get_ticks_msec())
+	var t0 = float(Time.get_ticks_msec())
 
 	while sfx_reativo and sfx_reativo.playing:
 		if (float(Time.get_ticks_msec()) - t0) / 1000.0 >= timeout_seg:
 			break
 
-		await get_tree().process_frame
+		yield(get_tree(), "idle_frame")
 
-	await get_tree().create_timer(0.12).timeout
+	yield(get_tree().create_timer(0.12), "timeout")
 
 
 
@@ -3697,22 +3712,22 @@ func _criar_overlay_penalti(participantes: Array) -> void:
 	pen_layer.layer = 280
 	add_child(pen_layer)
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 
 	var cor_modal: Color = COR_NEON
 	if participantes.size() > 0:
-		var rv := 0.0; var gv := 0.0; var bv := 0.0
+		var rv = 0.0; var gv := 0.0; var bv := 0.0
 		for p in participantes:
-			var idx := int(p)
+			var idx = int(p)
 			if idx >= 0 and idx < cores_players.size():
 				rv += cores_players[idx].r
 				gv += cores_players[idx].g
 				bv += cores_players[idx].b
-		var n := float(participantes.size())
+		var n = float(participantes.size())
 		cor_modal = Color(rv / n, gv / n, bv / n, 1.0)
 
 	var fundo := ColorRect.new()
-	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.set_anchors_preset(Control.PRESET_WIDE)
 	fundo.color = Color(cor_modal.r * 0.06, cor_modal.g * 0.06, cor_modal.b * 0.06, 0.82)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pen_layer.add_child(fundo)
@@ -3722,13 +3737,13 @@ func _criar_overlay_penalti(participantes: Array) -> void:
 	var card_w: float = 220.0
 	var card_gap: float = 18.0
 	var cards_total_w: float = card_w * float(qtd) + card_gap * float(qtd - 1)
-	var painel_w: float = clampf(cards_total_w + 120.0, 500.0, tela.x * 0.90)
+	var painel_w: float = clamp(cards_total_w + 120.0, 500.0, tela.x * 0.90)
 	var painel_h: float = 560.0
 
 	pen_panel_root = Panel.new()
-	pen_panel_root.size = Vector2(painel_w, painel_h)
+	pen_panel_root.rect_size = Vector2(painel_w, painel_h)
 	# Centralização explícita.
-	pen_panel_root.position = Vector2(
+	pen_panel_root.rect_position = Vector2(
 		(tela.x - painel_w) * 0.5,
 		(tela.y - painel_h) * 0.5
 	)
@@ -3744,42 +3759,42 @@ func _criar_overlay_penalti(participantes: Array) -> void:
 	st.shadow_color = Color(cor_modal.r, cor_modal.g, cor_modal.b, 0.90)
 	st.shadow_size = 48
 	st.shadow_offset = Vector2.ZERO
-	pen_panel_root.add_theme_stylebox_override("panel", st)
+	pen_panel_root.add_stylebox_override("panel", st)
 
-	var W := pen_panel_root.size.x
+	var W = pen_panel_root.rect_size.x
 
 	var faixa_topo := ColorRect.new()
-	faixa_topo.position = Vector2(0, 0)
-	faixa_topo.size = Vector2(W, 6)
+	faixa_topo.rect_position = Vector2(0, 0)
+	faixa_topo.rect_size = Vector2(W, 6)
 	faixa_topo.color = Color(cor_modal.r, cor_modal.g, cor_modal.b, 0.95)
 	faixa_topo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pen_panel_root.add_child(faixa_topo)
 
-	pen_titulo = _novo_label("DISPUTA DE PÊNALTIS", 34, Color.WHITE, cor_modal)
-	pen_titulo.position = Vector2(0, 14)
-	pen_titulo.size = Vector2(W, 48)
-	pen_titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	pen_titulo.add_theme_constant_override("outline_size", 4)
+	pen_titulo = _novo_label("DISPUTA DE PÊNALTIS", 34, Color.white, cor_modal)
+	pen_titulo.rect_position = Vector2(0, 14)
+	pen_titulo.rect_size = Vector2(W, 48)
+	pen_titulo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(pen_titulo, 4)
 	pen_panel_root.add_child(pen_titulo)
 
 	pen_rodada = _novo_label("", 16, COR_ALERTA, COR_ALERTA)
-	pen_rodada.position = Vector2(0, 62)
-	pen_rodada.size = Vector2(W, 24)
+	pen_rodada.rect_position = Vector2(0, 62)
+	pen_rodada.rect_size = Vector2(W, 24)
 	pen_panel_root.add_child(pen_rodada)
 
-	pen_chutador = _novo_label("", 28, Color.WHITE)
-	pen_chutador.position = Vector2(20, 90)
-	pen_chutador.size = Vector2(W - 40, 44)
-	pen_chutador.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	pen_chutador.add_theme_constant_override("outline_size", 4)
+	pen_chutador = _novo_label("", 28, Color.white)
+	pen_chutador.rect_position = Vector2(20, 90)
+	pen_chutador.rect_size = Vector2(W - 40, 44)
+	pen_chutador.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(pen_chutador, 4)
 	pen_panel_root.add_child(pen_chutador)
 
 	# Cards centralizados horizontalmente.
 	var cards_x: float = (W - cards_total_w) * 0.5
 	pen_cards_box = HBoxContainer.new()
-	pen_cards_box.position = Vector2(cards_x, 144)
-	pen_cards_box.size = Vector2(cards_total_w, 220)
-	pen_cards_box.add_theme_constant_override("separation", int(card_gap))
+	pen_cards_box.rect_position = Vector2(cards_x, 144)
+	pen_cards_box.rect_size = Vector2(cards_total_w, 220)
+	pen_cards_box.add_constant_override("separation", int(card_gap))
 	pen_cards_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	pen_cards_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pen_panel_root.add_child(pen_cards_box)
@@ -3788,27 +3803,27 @@ func _criar_overlay_penalti(participantes: Array) -> void:
 		_criar_card_penalti(int(p))
 
 	pen_contagem = _novo_label("", 80, Color(1.0, 0.85, 0.08), Color(1.0, 0.35, 0.05))
-	pen_contagem.position = Vector2(0, 376)
-	pen_contagem.size = Vector2(W, 90)
+	pen_contagem.rect_position = Vector2(0, 376)
+	pen_contagem.rect_size = Vector2(W, 90)
 	pen_panel_root.add_child(pen_contagem)
 
-	pen_feedback = _novo_label("", 26, Color.WHITE)
-	pen_feedback.position = Vector2(0, 474)
-	pen_feedback.size = Vector2(W, 40)
-	pen_feedback.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	pen_feedback.add_theme_constant_override("outline_size", 4)
+	pen_feedback = _novo_label("", 26, Color.white)
+	pen_feedback.rect_position = Vector2(0, 474)
+	pen_feedback.rect_size = Vector2(W, 40)
+	pen_feedback.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(pen_feedback, 4)
 	pen_panel_root.add_child(pen_feedback)
 
 	var sep_base := ColorRect.new()
-	sep_base.position = Vector2(40, 472)
-	sep_base.size = Vector2(W - 80, 1)
+	sep_base.rect_position = Vector2(40, 472)
+	sep_base.rect_size = Vector2(W - 80, 1)
 	sep_base.color = Color(1, 1, 1, 0.08)
 	sep_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pen_panel_root.add_child(sep_base)
 
-	var entrada := create_tween()
+	var entrada = create_tween()
 	entrada.set_parallel(true)
-	entrada.tween_property(pen_panel_root, "modulate", Color.WHITE, 0.22)
+	entrada.tween_property(pen_panel_root, "modulate", Color.white, 0.22)
 
 	for p in pen_participantes:
 		pen_estado_cards[int(p)] = "NA DISPUTA"
@@ -3819,10 +3834,10 @@ func _criar_card_penalti(p: int) -> void:
 	if pen_cards_box == null or not is_instance_valid(pen_cards_box):
 		return
 
-	var cor := cores_players[p]
+	var cor = cores_players[p]
 
 	var card := Panel.new()
-	card.custom_minimum_size = Vector2(220, 216)
+	card.rect_min_size = Vector2(220, 216)
 	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -3839,59 +3854,59 @@ func _criar_card_penalti(p: int) -> void:
 	st.shadow_color = Color(0, 0, 0, 0.35)
 	st.shadow_size = 10
 	st.shadow_offset = Vector2.ZERO
-	card.add_theme_stylebox_override("panel", st)
+	card.add_stylebox_override("panel", st)
 
 	# Faixa de cor no topo do card.
 	var faixa := ColorRect.new()
-	faixa.position = Vector2(0, 0)
-	faixa.size = Vector2(W, 6)
+	faixa.rect_position = Vector2(0, 0)
+	faixa.rect_size = Vector2(W, 6)
 	faixa.color = Color(cor.r, cor.g, cor.b, 1.0)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(faixa)
 
 	# Nome do jogador.
-	var lbl_nome := _novo_label(_nome_player(p), 18, Color.WHITE, cor)
-	lbl_nome.position = Vector2(0, 10)
-	lbl_nome.size = Vector2(W, 30)
-	lbl_nome.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.90))
-	lbl_nome.add_theme_constant_override("outline_size", 3)
+	var lbl_nome = _novo_label(_nome_player(p), 18, Color.white, cor)
+	lbl_nome.rect_position = Vector2(0, 10)
+	lbl_nome.rect_size = Vector2(W, 30)
+	lbl_nome.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.90))
+	Compat.contorno(lbl_nome, 3)
 	card.add_child(lbl_nome)
 
 	# Tipo.
-	var tipo_txt := "BOT" if _player_eh_bot(p) else "JOGADOR"
-	var lbl_tipo := _novo_label(tipo_txt, 12, Color(0.60, 0.66, 0.76))
-	lbl_tipo.position = Vector2(0, 40)
-	lbl_tipo.size = Vector2(W, 18)
+	var tipo_txt = "BOT" if _player_eh_bot(p) else "JOGADOR"
+	var lbl_tipo = _novo_label(tipo_txt, 12, Color(0.60, 0.66, 0.76))
+	lbl_tipo.rect_position = Vector2(0, 40)
+	lbl_tipo.rect_size = Vector2(W, 18)
 	card.add_child(lbl_tipo)
 
 	# Separador.
 	var sep := ColorRect.new()
-	sep.position = Vector2(W * 0.10, 62)
-	sep.size = Vector2(W * 0.80, 1)
+	sep.rect_position = Vector2(W * 0.10, 62)
+	sep.rect_size = Vector2(W * 0.80, 1)
 	sep.color = Color(1, 1, 1, 0.10)
 	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(sep)
 
 	# Label "PÊNALTIS".
-	var lbl_sub := _novo_label("PÊNALTIS", 12, Color(0.46, 0.52, 0.62))
-	lbl_sub.position = Vector2(0, 66)
-	lbl_sub.size = Vector2(W, 18)
+	var lbl_sub = _novo_label("PÊNALTIS", 12, Color(0.46, 0.52, 0.62))
+	lbl_sub.rect_position = Vector2(0, 66)
+	lbl_sub.rect_size = Vector2(W, 18)
 	card.add_child(lbl_sub)
 
 	# Placar grande — ocupa bem a área central.
-	var lbl_score := _novo_label("0", 72, Color.WHITE, cor)
-	lbl_score.position = Vector2(0, 82)
-	lbl_score.size = Vector2(W, 88)
-	lbl_score.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	lbl_score.add_theme_constant_override("outline_size", 6)
+	var lbl_score = _novo_label("0", 72, Color.white, cor)
+	lbl_score.rect_position = Vector2(0, 82)
+	lbl_score.rect_size = Vector2(W, 88)
+	lbl_score.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(lbl_score, 6)
 	card.add_child(lbl_score)
 
 	# Status na base.
-	var lbl_status := _novo_label("NA DISPUTA", 13, Color(0.70, 0.76, 0.86))
-	lbl_status.position = Vector2(0, H - 32)
-	lbl_status.size = Vector2(W, 28)
-	lbl_status.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.90))
-	lbl_status.add_theme_constant_override("outline_size", 3)
+	var lbl_status = _novo_label("NA DISPUTA", 13, Color(0.70, 0.76, 0.86))
+	lbl_status.rect_position = Vector2(0, H - 32)
+	lbl_status.rect_size = Vector2(W, 28)
+	lbl_status.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.90))
+	Compat.contorno(lbl_status, 3)
 	card.add_child(lbl_status)
 
 	pen_card_panels[p] = card
@@ -3902,10 +3917,10 @@ func _criar_card_penalti(p: int) -> void:
 
 
 func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool = false) -> void:
-	var card := pen_card_panels.get(p, null) as Panel
-	var lbl_score := pen_card_score_labels.get(p, null) as Label
-	var lbl_status := pen_card_status_labels.get(p, null) as Label
-	var lbl_nome := pen_card_nome_labels.get(p, null) as Label
+	var card = pen_card_panels.get(p, null) as Panel
+	var lbl_score = pen_card_score_labels.get(p, null) as Label
+	var lbl_status = pen_card_status_labels.get(p, null) as Label
+	var lbl_nome = pen_card_nome_labels.get(p, null) as Label
 
 	if card == null or lbl_score == null or lbl_status == null or lbl_nome == null:
 		return
@@ -3913,12 +3928,12 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 	pen_estado_cards[p] = status_texto
 
 	var cor_player: Color = cores_players[p]
-	var bg := Color(0.018, 0.022, 0.032, 0.96)
-	var borda := Color(0.22, 0.26, 0.34, 1.0)
-	var sombra := Color(0, 0, 0, 0.28)
-	var cor_status := Color(0.74, 0.80, 0.88)
-	var escala_alvo := Vector2.ONE
-	var mod_alvo := Color(0.94, 0.94, 0.94, 1.0)
+	var bg = Color(0.018, 0.022, 0.032, 0.96)
+	var borda = Color(0.22, 0.26, 0.34, 1.0)
+	var sombra = Color(0, 0, 0, 0.28)
+	var cor_status = Color(0.74, 0.80, 0.88)
+	var escala_alvo = Vector2.ONE
+	var mod_alvo = Color(0.94, 0.94, 0.94, 1.0)
 
 	match status_texto:
 		"COBRANDO", "VEZ AGORA", "PREPARANDO":
@@ -3927,7 +3942,7 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 			sombra = Color(cor_player.r, cor_player.g, cor_player.b, 0.85)
 			cor_status = cor_player
 			escala_alvo = Vector2(1.03, 1.03)
-			mod_alvo = Color.WHITE
+			mod_alvo = Color.white
 
 		"GOL":
 			bg = Color(0.02, 0.09, 0.04, 0.98)
@@ -3935,7 +3950,7 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 			sombra = Color(COR_OK.r, COR_OK.g, COR_OK.b, 0.88)
 			cor_status = COR_OK
 			escala_alvo = Vector2(1.02, 1.02)
-			mod_alvo = Color.WHITE
+			mod_alvo = Color.white
 
 		"PERDEU":
 			bg = Color(0.10, 0.025, 0.025, 0.98)
@@ -3943,7 +3958,7 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 			sombra = Color(COR_ERRO.r, COR_ERRO.g, COR_ERRO.b, 0.88)
 			cor_status = COR_ERRO
 			escala_alvo = Vector2(1.01, 1.01)
-			mod_alvo = Color.WHITE
+			mod_alvo = Color.white
 
 		"VENCEU":
 			bg = Color(0.12, 0.08, 0.02, 0.99)
@@ -3951,7 +3966,7 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 			sombra = Color(COR_ALERTA.r, COR_ALERTA.g, COR_ALERTA.b, 0.92)
 			cor_status = COR_ALERTA
 			escala_alvo = Vector2(1.06, 1.06)
-			mod_alvo = Color.WHITE
+			mod_alvo = Color.white
 
 		"FIM":
 			bg = Color(0.028, 0.030, 0.034, 0.96)
@@ -3968,7 +3983,7 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 				sombra = Color(cor_player.r, cor_player.g, cor_player.b, 0.78)
 				cor_status = cor_player
 				escala_alvo = Vector2(1.02, 1.02)
-				mod_alvo = Color.WHITE
+				mod_alvo = Color.white
 
 	var st := StyleBoxFlat.new()
 	st.bg_color = bg
@@ -3978,18 +3993,18 @@ func _aplicar_visual_card_penalti(p: int, status_texto: String, destaque: bool =
 	st.shadow_color = sombra
 	st.shadow_size = 20 if destaque or status_texto in ["COBRANDO", "VEZ AGORA", "GOL", "PERDEU", "VENCEU"] else 6
 	st.shadow_offset = Vector2.ZERO
-	card.add_theme_stylebox_override("panel", st)
+	card.add_stylebox_override("panel", st)
 
-	lbl_nome.add_theme_color_override("font_shadow_color", borda if destaque else cor_player)
-	lbl_score.add_theme_color_override("font_shadow_color", borda)
+	lbl_nome.add_color_override("font_color_shadow", borda if destaque else cor_player)
+	lbl_score.add_color_override("font_color_shadow", borda)
 	lbl_status.text = status_texto
-	lbl_status.add_theme_color_override("font_color", cor_status)
-	lbl_status.add_theme_color_override("font_shadow_color", cor_status)
+	lbl_status.add_color_override("font_color", cor_status)
+	lbl_status.add_color_override("font_color_shadow", cor_status)
 
-	card.pivot_offset = card.size * 0.5
-	var t := create_tween()
+	card.rect_pivot_offset = card.rect_size * 0.5
+	var t = create_tween()
 	t.set_parallel(true)
-	t.tween_property(card, "scale", escala_alvo, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(card, "rect_scale", escala_alvo, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(card, "modulate", mod_alvo, 0.14)
 
 
@@ -3998,15 +4013,15 @@ func _set_overlay_penalti_chute(p: int, num_rodada: int) -> void:
 	if pen_chutador == null or not is_instance_valid(pen_chutador):
 		return
 
-	var cor := cores_players[p]
-	var nome := _nome_player(p)
+	var cor = cores_players[p]
+	var nome = _nome_player(p)
 
 	if _player_eh_bot(p):
 		nome += " BOT"
 
 	pen_chutador.text = "VEZ DE %s" % nome
-	pen_chutador.add_theme_color_override("font_color", cor)
-	pen_chutador.add_theme_color_override("font_shadow_color", cor)
+	pen_chutador.add_color_override("font_color", cor)
+	pen_chutador.add_color_override("font_color_shadow", cor)
 
 	if num_rodada > PENALTI_RODADAS_INICIAIS:
 		pen_rodada.text = "MORTE SÚBITA • COBRANÇA %d" % num_rodada
@@ -4017,7 +4032,7 @@ func _set_overlay_penalti_chute(p: int, num_rodada: int) -> void:
 	pen_contagem.text = ""
 
 	for pp in pen_participantes:
-		var idx := int(pp)
+		var idx = int(pp)
 
 		if idx == p:
 			_aplicar_visual_card_penalti(idx, "VEZ AGORA", true)
@@ -4038,12 +4053,12 @@ func _atualizar_overlay_penalti(participantes: Array, pen: Dictionary, destaque:
 		return
 
 	for pp in participantes:
-		var p := int(pp)
+		var p = int(pp)
 
 		if not pen_card_panels.has(p):
 			_criar_card_penalti(p)
 
-		var lbl_score := pen_card_score_labels.get(p, null) as Label
+		var lbl_score = pen_card_score_labels.get(p, null) as Label
 
 		if lbl_score != null:
 			lbl_score.text = str(int(pen.get(p, 0)))
@@ -4053,7 +4068,7 @@ func _atualizar_overlay_penalti(participantes: Array, pen: Dictionary, destaque:
 		if p == destaque:
 			if _pen_aguardando:
 				status_txt = "COBRANDO"
-			elif status_txt not in ["GOL", "PERDEU", "VENCEU"]:
+			elif not (status_txt in ["GOL", "PERDEU", "VENCEU"]):
 				status_txt = "VEZ AGORA"
 		else:
 			if status_txt in ["COBRANDO", "VEZ AGORA", "PREPARANDO"]:
@@ -4066,17 +4081,17 @@ func _atualizar_contagem_penalti(t0: float) -> void:
 	if pen_contagem == null or not is_instance_valid(pen_contagem):
 		return
 
-	var restante := PENALTI_TEMPO_ACERTO - (float(Time.get_ticks_msec()) - t0) / 1000.0
-	restante = clampf(restante, 0.0, PENALTI_TEMPO_ACERTO)
+	var restante = PENALTI_TEMPO_ACERTO - (float(Time.get_ticks_msec()) - t0) / 1000.0
+	restante = clamp(restante, 0.0, PENALTI_TEMPO_ACERTO)
 
 	pen_contagem.text = "%d" % int(ceil(restante))
 
 	if restante <= 2.0:
-		pen_contagem.add_theme_color_override("font_color", COR_ERRO)
-		pen_contagem.add_theme_color_override("font_shadow_color", COR_ERRO)
+		pen_contagem.add_color_override("font_color", COR_ERRO)
+		pen_contagem.add_color_override("font_color_shadow", COR_ERRO)
 	else:
-		pen_contagem.add_theme_color_override("font_color", Color(1.0, 0.85, 0.08))
-		pen_contagem.add_theme_color_override("font_shadow_color", Color(1.0, 0.35, 0.05))
+		pen_contagem.add_color_override("font_color", Color(1.0, 0.85, 0.08))
+		pen_contagem.add_color_override("font_color_shadow", Color(1.0, 0.35, 0.05))
 
 
 func _feedback_penalti(ok: bool) -> void:
@@ -4085,13 +4100,13 @@ func _feedback_penalti(ok: bool) -> void:
 
 	if ok:
 		pen_feedback.text = "GOL!"
-		pen_feedback.add_theme_color_override("font_color", COR_OK)
-		pen_feedback.add_theme_color_override("font_shadow_color", COR_OK)
+		pen_feedback.add_color_override("font_color", COR_OK)
+		pen_feedback.add_color_override("font_color_shadow", COR_OK)
 		_aplicar_visual_card_penalti(player_atual, "GOL", true)
 	else:
 		pen_feedback.text = "PERDEU!"
-		pen_feedback.add_theme_color_override("font_color", COR_ERRO)
-		pen_feedback.add_theme_color_override("font_shadow_color", COR_ERRO)
+		pen_feedback.add_color_override("font_color", COR_ERRO)
+		pen_feedback.add_color_override("font_color_shadow", COR_ERRO)
 		_aplicar_visual_card_penalti(player_atual, "PERDEU", true)
 
 	if pen_contagem and is_instance_valid(pen_contagem):
@@ -4102,8 +4117,8 @@ func _mostrar_vencedor_penalti(vencedor: int) -> void:
 	if vencedor < 0 or vencedor >= total_players:
 		return
 
-	var cor := cores_players[vencedor]
-	var nome := _nome_player(vencedor)
+	var cor = cores_players[vencedor]
+	var nome = _nome_player(vencedor)
 
 	if _player_eh_bot(vencedor):
 		nome += " BOT"
@@ -4113,8 +4128,8 @@ func _mostrar_vencedor_penalti(vencedor: int) -> void:
 
 	if pen_chutador and is_instance_valid(pen_chutador):
 		pen_chutador.text = "%s VENCEU NOS PÊNALTIS!" % nome
-		pen_chutador.add_theme_color_override("font_color", cor)
-		pen_chutador.add_theme_color_override("font_shadow_color", cor)
+		pen_chutador.add_color_override("font_color", cor)
+		pen_chutador.add_color_override("font_color_shadow", cor)
 
 	if pen_rodada and is_instance_valid(pen_rodada):
 		pen_rodada.text = "CLASSIFICAÇÃO DEFINIDA"
@@ -4124,11 +4139,11 @@ func _mostrar_vencedor_penalti(vencedor: int) -> void:
 
 	if pen_feedback and is_instance_valid(pen_feedback):
 		pen_feedback.text = "🏆 CLASSIFICADO!"
-		pen_feedback.add_theme_color_override("font_color", COR_ALERTA)
-		pen_feedback.add_theme_color_override("font_shadow_color", COR_ALERTA)
+		pen_feedback.add_color_override("font_color", COR_ALERTA)
+		pen_feedback.add_color_override("font_color_shadow", COR_ALERTA)
 
 	for pp in pen_participantes:
-		var p := int(pp)
+		var p = int(pp)
 
 		if p == vencedor:
 			_aplicar_visual_card_penalti(p, "VENCEU", true)
@@ -4139,8 +4154,8 @@ func _mostrar_vencedor_penalti(vencedor: int) -> void:
 		sfx_reativo.stop()
 
 	if sfx_campeao and sfx_campeao.stream:
-		if sfx_campeao.stream is AudioStreamMP3:
-			sfx_campeao.stream.loop = false
+		if sfx_campeao.stream is AudioStream:
+			Compat.laco(sfx_campeao.stream, false)
 
 		_duck_musica(true, 0.12)
 		sfx_campeao.stop()
@@ -4148,13 +4163,13 @@ func _mostrar_vencedor_penalti(vencedor: int) -> void:
 	else:
 		_tocar_som_da_lista(SONS_SUPEROU_TURNO, "penalti_vitoria", 1.4, true)
 
-	await get_tree().create_timer(0.1).timeout
+	yield(get_tree().create_timer(0.1), "timeout")
 
-	var _t0_vit := float(Time.get_ticks_msec())
+	var _t0_vit = float(Time.get_ticks_msec())
 
 	while true:
-		var passou := (float(Time.get_ticks_msec()) - _t0_vit) / 1000.0
-		var tocando := (sfx_campeao and sfx_campeao.playing) or (sfx_reativo and sfx_reativo.playing)
+		var passou = (float(Time.get_ticks_msec()) - _t0_vit) / 1000.0
+		var tocando = (sfx_campeao and sfx_campeao.playing) or (sfx_reativo and sfx_reativo.playing)
 
 		if passou >= 8.0:
 			break
@@ -4162,7 +4177,7 @@ func _mostrar_vencedor_penalti(vencedor: int) -> void:
 		if passou >= 2.5 and not tocando:
 			break
 
-		await get_tree().process_frame
+		yield(get_tree(), "idle_frame")
 
 	if sfx_campeao and not sfx_campeao.playing:
 		_duck_musica(false, 0.25)
@@ -4200,45 +4215,45 @@ func _animar_score(index: int) -> void:
 	if index < 0 or index >= score_labels.size():
 		return
 
-	var label := score_labels[index]
-	var cor := cores_players[index]
+	var label = score_labels[index]
+	var cor = cores_players[index]
 
-	label.scale = Vector2(1.55, 1.55)
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_color_override("font_shadow_color", cor)
+	label.rect_scale = Vector2(1.55, 1.55)
+	label.add_color_override("font_color", Color.white)
+	label.add_color_override("font_color_shadow", cor)
 
-	var t := create_tween()
+	var t = create_tween()
 	t.set_parallel(true)
-	t.tween_property(label, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(label, Compat.prop(label, "scale"), Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(label, "modulate", Color(1.35, 1.35, 1.35, 1.0), 0.10)
-	t.tween_property(label, "modulate", Color.WHITE, 0.22).set_delay(0.10)
+	t.tween_property(label, "modulate", Color.white, 0.22).set_delay(0.10)
 
 
 func _efeito_gol_card(index: int) -> void:
 	if index < 0 or index >= player_panels.size():
 		return
 
-	var panel := player_panels[index]
-	var cor := cores_players[index]
+	var panel = player_panels[index]
+	var cor = cores_players[index]
 
 	var flash := ColorRect.new()
-	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.set_anchors_preset(Control.PRESET_WIDE)
 	flash.color = Color(cor.r, cor.g, cor.b, 0.0)
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	flash.z_index = 70
+	Compat.z(flash, 70)
 	panel.add_child(flash)
 
-	var escala_original := panel.scale
-	panel.pivot_offset = panel.size * 0.5
+	var escala_original = panel.rect_scale
+	panel.rect_pivot_offset = panel.rect_size * 0.5
 
-	var t := create_tween()
+	var t = create_tween()
 	t.set_parallel(true)
-	t.tween_property(panel, "scale", escala_original * 1.07, 0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.tween_property(panel, "scale", escala_original, 0.26).set_delay(0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(panel, Compat.prop(panel, "scale"), escala_original * 1.07, 0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(panel, Compat.prop(panel, "scale"), escala_original, 0.26).set_delay(0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(flash, "color", Color(cor.r, cor.g, cor.b, 0.55), 0.07)
 	t.tween_property(flash, "color", Color(cor.r, cor.g, cor.b, 0.0), 0.38).set_delay(0.07)
 
-	await t.finished
+	yield(t, "finished")
 
 	if is_instance_valid(flash):
 		flash.queue_free()
@@ -4248,39 +4263,39 @@ func _mostrar_popup_ponto(index: int, valor: int) -> void:
 	if index < 0 or index >= player_panels.size():
 		return
 
-	var panel := player_panels[index]
-	var cor := cores_players[index]
-	var W := panel.size.x
-	var H := panel.size.y
+	var panel = player_panels[index]
+	var cor = cores_players[index]
+	var W = panel.rect_size.x
+	var H = panel.rect_size.y
 
 	var popup := Label.new()
 	popup.text = "GOOOL!"
-	popup.size = Vector2(W, 90)
-	popup.position = Vector2(0, H * 0.40)
-	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	popup.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	popup.z_index = 95
-	popup.pivot_offset = popup.size * 0.5
+	popup.rect_size = Vector2(W, 90)
+	popup.rect_position = Vector2(0, H * 0.40)
+	popup.align = Label.ALIGN_CENTER
+	popup.valign = Label.VALIGN_CENTER
+	Compat.z(popup, 95)
+	popup.rect_pivot_offset = popup.rect_size * 0.5
 
 	if fonte_orbitron:
-		popup.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(popup, fonte_orbitron)
 
-	popup.add_theme_font_size_override("font_size", int(clampf(H * 0.16, 34.0, 76.0)))
-	popup.add_theme_color_override("font_color", Color.WHITE)
-	popup.add_theme_color_override("font_shadow_color", cor)
-	popup.add_theme_constant_override("shadow_offset_x", 0)
-	popup.add_theme_constant_override("shadow_offset_y", 0)
+	Compat.tamanho(popup, int(clamp(H * 0.16, 34.0, 76.0)))
+	popup.add_color_override("font_color", Color.white)
+	popup.add_color_override("font_color_shadow", cor)
+	popup.add_constant_override("shadow_offset_x", 0)
+	popup.add_constant_override("shadow_offset_y", 0)
 	panel.add_child(popup)
 
-	popup.scale = Vector2(0.5, 0.5)
+	popup.rect_scale = Vector2(0.5, 0.5)
 
-	var t := create_tween()
+	var t = create_tween()
 	t.set_parallel(true)
-	t.tween_property(popup, "scale", Vector2(1.25, 1.25), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.tween_property(popup, "position:y", popup.position.y - H * 0.22, 0.72).set_delay(0.12)
+	t.tween_property(popup, "rect_scale", Vector2(1.25, 1.25), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(popup, "rect_position:y", popup.rect_position.y - H * 0.22, 0.72).set_delay(0.12)
 	t.tween_property(popup, "modulate", Color(1, 1, 1, 0), 0.42).set_delay(0.42)
 
-	await t.finished
+	yield(t, "finished")
 
 	if is_instance_valid(popup):
 		popup.queue_free()
@@ -4321,7 +4336,7 @@ func _criar_audios() -> void:
 	sfx_reativo = AudioStreamPlayer.new()
 	sfx_reativo.name = "SfxReativo"
 	add_child(sfx_reativo)
-	sfx_reativo.finished.connect(_on_sfx_reativo_finished)
+	sfx_reativo.connect("finished", self, "_on_sfx_reativo_finished")
 
 	sfx_campeao = AudioStreamPlayer.new()
 	sfx_campeao.name = "SfxCampeao"
@@ -4359,14 +4374,14 @@ func _criar_audios() -> void:
 func _sortear_musicas_players() -> void:
 	musicas_por_player.clear()
 
-	var disponiveis: Array[AudioStream] = []
+	var disponiveis: Array = []
 
 	for caminho in MUSICAS_PLAYERS:
 		if ResourceLoader.exists(caminho):
 			var s: AudioStream = load(caminho)
 
-			if s is AudioStreamMP3:
-				s.loop = true
+			if s is AudioStream:
+				Compat.laco(s, true)
 
 			disponiveis.append(s)
 
@@ -4395,8 +4410,8 @@ func _tocar_musica_do_player(index: int) -> void:
 		if ResourceLoader.exists(MUSICA_PLAY):
 			stream = load(MUSICA_PLAY)
 
-			if stream is AudioStreamMP3:
-				stream.loop = true
+			if stream is AudioStream:
+				Compat.laco(stream, true)
 		else:
 			return
 
@@ -4415,261 +4430,54 @@ func _tocar_audio(player: AudioStreamPlayer) -> void:
 # ARDUINO / POWERSHELL
 # ============================================================
 func _abrir_serial_arduino() -> void:
+	# TV Box: o Arduino Nano é do autoload Arduino (USB); não há ponte.
 	if not USAR_ARDUINO:
-		print("Arduino desativado por USAR_ARDUINO = false")
 		return
-
-	if USAR_PONTE_POWERSHELL:
-		_matar_pontes_powershell_antigas()
-
-		await get_tree().create_timer(0.4).timeout
-
-		_iniciar_ponte_powershell()
-
-		await get_tree().create_timer(3.0).timeout
-
-		_serial_write("OFF")
-
-		await get_tree().create_timer(0.20).timeout
-
-		print("================================")
-		print("ARDUINO PRONTO PARA CUP PLAY")
-		print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
-		print("================================")
+	_serial_write("OFF")
 
 
 func _matar_pontes_powershell_antigas() -> void:
-	var output: Array = []
-
-	var comando := """
-Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" |
-Where-Object { $_.CommandLine -like '*arduino_bridge_cup.ps1*' -or $_.CommandLine -like '*arduino_bridge.ps1*' } |
-ForEach-Object {
-	try {
-		Stop-Process -Id $_.ProcessId -Force
-	} catch {}
-}
-"""
-
-	var args := [
-		"-NoProfile",
-		"-ExecutionPolicy",
-		"Bypass",
-		"-Command",
-		comando
-	]
-
-	OS.execute("powershell.exe", args, output, true, false)
-
-	print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
+	pass  # TV Box: sem PowerShell.
 
 
 func _iniciar_ponte_powershell() -> void:
-	caminho_log_arduino = ProjectSettings.globalize_path("user://arduino_log_cup.txt")
-	caminho_script_arduino = ProjectSettings.globalize_path("user://arduino_bridge_cup.ps1")
-	caminho_fila_arduino = ProjectSettings.globalize_path("user://arduino_queue_cup")
-
-	DirAccess.make_dir_recursive_absolute(caminho_fila_arduino)
-
-	var dir := DirAccess.open(caminho_fila_arduino)
-
-	if dir:
-		dir.list_dir_begin()
-		var nome := dir.get_next()
-
-		while nome != "":
-			if not dir.current_is_dir() and nome.ends_with(".cmd"):
-				dir.remove(nome)
-
-			nome = dir.get_next()
-
-		dir.list_dir_end()
-
-	var flog := FileAccess.open(caminho_log_arduino, FileAccess.WRITE)
-
-	if flog:
-		flog.store_string("INICIANDO LOG DA PONTE ARDUINO CUP\n")
-		flog.close()
-
-	var script := """
-$ErrorActionPreference = 'Continue'
-
-$porta = '%s'
-$baud = %d
-$queueDir = '%s'
-$logFile = '%s'
-
-function Log($txt) {
-	$linha = ("{0} - {1}" -f (Get-Date -Format "HH:mm:ss.fff"), $txt)
-	Add-Content -Path $logFile -Value $linha
-	Write-Host $linha
-}
-
-Log "ABRINDO PORTA $porta / $baud"
-Log "FILA: $queueDir"
-
-try {
-	$port = New-Object System.IO.Ports.SerialPort $porta, $baud, 'None', 8, 'One'
-	$port.DtrEnable = $true
-	$port.RtsEnable = $true
-	$port.NewLine = "`n"
-	$port.Open()
-
-	Log "PORTA ABERTA"
-
-	Start-Sleep -Milliseconds 2300
-
-	$port.WriteLine("OFF")
-	Log "TX: OFF"
-
-	while ($true) {
-		if (-not (Test-Path $queueDir)) {
-			New-Item -ItemType Directory -Path $queueDir | Out-Null
-		}
-
-		$files = Get-ChildItem -Path $queueDir -Filter "*.cmd" | Sort-Object Name
-
-		foreach ($file in $files) {
-			$cmd = ""
-
-			try {
-				$cmd = Get-Content $file.FullName -Raw
-				$cmd = $cmd.Trim()
-				Remove-Item $file.FullName -Force
-			}
-			catch {
-				continue
-			}
-
-			if ($cmd.Length -le 0) {
-				continue
-			}
-
-			if ($cmd -eq "__EXIT__") {
-				Log "SAINDO"
-				$port.WriteLine("OFF")
-				Start-Sleep -Milliseconds 100
-				$port.Close()
-				Log "PORTA FECHADA"
-				exit
-			}
-
-			Log "TX: $cmd"
-			$port.WriteLine($cmd)
-			Start-Sleep -Milliseconds 25
-		}
-
-		Start-Sleep -Milliseconds 8
-	}
-}
-catch {
-	Log ("ERRO: " + $_.Exception.Message)
-}
-""" % [
-		SERIAL_PORTA,
-		SERIAL_BAUD,
-		caminho_fila_arduino.replace("\\", "\\\\"),
-		caminho_log_arduino.replace("\\", "\\\\")
-	]
-
-	var fs := FileAccess.open(caminho_script_arduino, FileAccess.WRITE)
-
-	if fs == null:
-		push_error("Não consegui criar script da ponte PowerShell.")
-		return
-
-	fs.store_string(script)
-	fs.close()
-
-	var args := [
-		"-NoProfile",
-		"-ExecutionPolicy",
-		"Bypass",
-		"-File",
-		caminho_script_arduino
-	]
-
-	ponte_ps_pid = OS.create_process("powershell.exe", args, false)
-
-	print("================================")
-	print("PONTE POWERSHELL CUP INICIADA")
-	print("PID: ", ponte_ps_pid)
-	print("QUEUE: ", caminho_fila_arduino)
-	print("LOG FILE: ", caminho_log_arduino)
-	print("================================")
+	pass  # TV Box: sem PowerShell; o autoload Arduino cuida da USB.
 
 
 func _serial_write(texto: String) -> void:
 	if not USAR_ARDUINO:
 		return
-
-	var cmd := texto.strip_edges()
-
-	if cmd == "":
-		return
-
-	print("SERIAL/PONTE WRITE -> ", cmd)
-
-	if USAR_PONTE_POWERSHELL:
-		if caminho_fila_arduino == "":
-			push_warning("Ponte PowerShell ainda não iniciou. Comando ignorado: " + cmd)
-			return
-
-		DirAccess.make_dir_recursive_absolute(caminho_fila_arduino)
-
-		var nome_arquivo := "%020d_%06d.cmd" % [
-			Time.get_ticks_msec(),
-			randi() % 1000000
-		]
-
-		var caminho_temp := caminho_fila_arduino.path_join(nome_arquivo + ".tmp")
-		var caminho_final := caminho_fila_arduino.path_join(nome_arquivo)
-
-		var f := FileAccess.open(caminho_temp, FileAccess.WRITE)
-
-		if f == null:
-			push_warning("Não consegui criar comando temporário Arduino: " + caminho_temp)
-			return
-
-		f.store_string(cmd)
-		f.close()
-
-		var err := DirAccess.rename_absolute(caminho_temp, caminho_final)
-
-		if err != OK:
-			push_warning("Não consegui mover comando para fila Arduino. Erro: " + str(err))
-
-		return
+	Arduino.enviar(texto)
 
 
 func _enviar_leds_para_arduino() -> void:
 	if not USAR_ARDUINO:
 		return
 
-	if leds_ativos.is_empty():
+	if leds_ativos.empty():
 		_serial_write("OFF")
 		return
 
-	var partes: Array[String] = []
+	var partes: Array = []
 
 	for index_led in leds_ativos:
 		if index_led < 0 or index_led >= LEDS_LETRAS.size():
 			continue
 
-		var letra := LEDS_LETRAS[index_led]
-		var rgb := _rgb_led_por_index(index_led)
+		var letra = LEDS_LETRAS[index_led]
+		var rgb = _rgb_led_por_index(index_led)
 
-		var r := int(clamp(rgb[0], 0, 255))
-		var g := int(clamp(rgb[1], 0, 255))
-		var b := int(clamp(rgb[2], 0, 255))
+		var r = int(clamp(rgb[0], 0, 255))
+		var g = int(clamp(rgb[1], 0, 255))
+		var b = int(clamp(rgb[2], 0, 255))
 
 		partes.append("%s=%d,%d,%d" % [letra, r, g, b])
 
-	if partes.is_empty():
+	if partes.empty():
 		_serial_write("OFF")
 		return
 
-	var comando := "SET:" + ";".join(partes)
+	var comando = "SET:" + PoolStringArray(partes).join(";")
 	_serial_write(comando)
 
 
@@ -4692,16 +4500,16 @@ func _fechar_jogo_arcade() -> void:
 		audio_fundo.stop()
 
 	if USAR_PONTE_POWERSHELL and caminho_fila_arduino != "":
-		var nome_arquivo := "%020d_EXIT.cmd" % Time.get_ticks_msec()
-		var caminho_final := caminho_fila_arduino.path_join(nome_arquivo)
+		var nome_arquivo = "%020d_EXIT.cmd" % Time.get_ticks_msec()
+		var caminho_final = caminho_fila_arduino.plus_file(nome_arquivo)
 
-		var f := FileAccess.open(caminho_final, FileAccess.WRITE)
+		var f = Compat.abrir_arquivo(caminho_final, File.WRITE)
 
 		if f:
 			f.store_string("__EXIT__")
 			f.close()
 
-	await get_tree().create_timer(0.12).timeout
+	yield(get_tree().create_timer(0.12), "timeout")
 
 	get_tree().quit()
 
@@ -4710,10 +4518,10 @@ func _exit_tree() -> void:
 	_serial_write("OFF")
 
 	if USAR_PONTE_POWERSHELL and caminho_fila_arduino != "":
-		var nome_arquivo := "%020d_EXIT.cmd" % Time.get_ticks_msec()
-		var caminho_final := caminho_fila_arduino.path_join(nome_arquivo)
+		var nome_arquivo = "%020d_EXIT.cmd" % Time.get_ticks_msec()
+		var caminho_final = caminho_fila_arduino.plus_file(nome_arquivo)
 
-		var f := FileAccess.open(caminho_final, FileAccess.WRITE)
+		var f = Compat.abrir_arquivo(caminho_final, File.WRITE)
 
 		if f:
 			f.store_string("__EXIT__")
@@ -4727,7 +4535,7 @@ func _exit_tree() -> void:
 
 
 func _notification(what: int) -> void:
-	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
+	if what in [MainLoop.NOTIFICATION_WM_QUIT_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
 		return
 
 
@@ -4735,10 +4543,8 @@ func _notification(what: int) -> void:
 # HELPERS VISUAIS
 # ============================================================
 func _travar_modo_arcade() -> void:
-	RenderingServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, true)
+	VisualServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
+	pass  # (Android: a janela ja e a tela cheia)
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	get_tree().auto_accept_quit = false
 
@@ -4749,23 +4555,23 @@ func _carregar_fontes() -> void:
 		fonte_orbitron = load(FONTE_ORBITRON)
 
 
-func _novo_label(txt: String, tam: int, cor: Color, sombra: Color = Color.TRANSPARENT) -> Label:
+func _novo_label(txt: String, tam: int, cor: Color, sombra: Color = Color.transparent) -> Label:
 	var l := Label.new()
 	l.text = txt
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.align = Label.ALIGN_CENTER
+	l.valign = Label.VALIGN_CENTER
 
 	if fonte_orbitron:
-		l.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(l, fonte_orbitron)
 
-	l.add_theme_font_size_override("font_size", tam)
-	l.add_theme_color_override("font_color", cor)
+	Compat.tamanho(l, tam)
+	l.add_color_override("font_color", cor)
 
 	if sombra.a > 0.0:
-		l.add_theme_color_override("font_shadow_color", sombra)
-		l.add_theme_constant_override("shadow_offset_x", 0)
-		l.add_theme_constant_override("shadow_offset_y", 0)
+		l.add_color_override("font_color_shadow", sombra)
+		l.add_constant_override("shadow_offset_x", 0)
+		l.add_constant_override("shadow_offset_y", 0)
 
 	return l
 
@@ -4774,40 +4580,40 @@ func _novo_label_card(texto: String, largura: float, centro_y: float, fonte_size
 	var lbl := Label.new()
 	lbl.text = texto
 
-	var altura := float(fonte_size) + 14.0
+	var altura = float(fonte_size) + 14.0
 
-	lbl.position = Vector2(0, centro_y - altura * 0.5)
-	lbl.size = Vector2(largura, altura)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", fonte_size)
-	lbl.add_theme_color_override("font_color", cor)
-	lbl.add_theme_constant_override("shadow_offset_x", 0)
-	lbl.add_theme_constant_override("shadow_offset_y", 0)
+	lbl.rect_position = Vector2(0, centro_y - altura * 0.5)
+	lbl.rect_size = Vector2(largura, altura)
+	lbl.align = Label.ALIGN_CENTER
+	lbl.valign = Label.VALIGN_CENTER
+	Compat.tamanho(lbl, fonte_size)
+	lbl.add_color_override("font_color", cor)
+	lbl.add_constant_override("shadow_offset_x", 0)
+	lbl.add_constant_override("shadow_offset_y", 0)
 
 	if fonte_orbitron:
-		lbl.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(lbl, fonte_orbitron)
 
 	return lbl
 
 
-func _escolher_som_aleatorio(lista: Array[String], chave: String) -> String:
-	var disponiveis: Array[String] = []
+func _escolher_som_aleatorio(lista: Array, chave: String) -> String:
+	var disponiveis: Array = []
 
 	for caminho in lista:
 		if ResourceLoader.exists(caminho):
 			disponiveis.append(caminho)
 
-	if disponiveis.is_empty():
+	if disponiveis.empty():
 		return ""
 
 	var ultimo_global: String = ""
-	if not _historico_sons_global.is_empty():
+	if not _historico_sons_global.empty():
 		ultimo_global = str(_historico_sons_global.back())
 
 	var ultimo_chave: String = str(_ultimo_som_por_lista.get(chave, ""))
 
-	var candidatos: Array[String] = []
+	var candidatos: Array = []
 
 	# Prioridade 1:
 	# Não pode estar no histórico recente, não pode ser o último global,
@@ -4824,7 +4630,7 @@ func _escolher_som_aleatorio(lista: Array[String], chave: String) -> String:
 
 	# Prioridade 2:
 	# Pode estar no histórico, mas não pode repetir o último global.
-	if candidatos.is_empty():
+	if candidatos.empty():
 		for caminho in disponiveis:
 			if caminho == ultimo_global:
 				continue
@@ -4835,14 +4641,14 @@ func _escolher_som_aleatorio(lista: Array[String], chave: String) -> String:
 
 	# Prioridade 3:
 	# Pelo menos não repete imediatamente.
-	if candidatos.is_empty():
+	if candidatos.empty():
 		for caminho in disponiveis:
 			if caminho != ultimo_global:
 				candidatos.append(caminho)
 
 	# Se só existe exatamente o mesmo som disponível, não toca agora.
 	# Isso garante: nunca toca a mesma música seguida.
-	if candidatos.is_empty():
+	if candidatos.empty():
 		return ""
 
 	var escolhido: String = candidatos[randi() % candidatos.size()]
@@ -4862,7 +4668,7 @@ func _registrar_som_global(caminho: String) -> void:
 		_historico_sons_global.pop_front()
 
 
-func _tocar_som_da_lista(lista: Array[String], chave: String, volume_db: float = 0.0, forcar: bool = false) -> void:
+func _tocar_som_da_lista(lista: Array, chave: String, volume_db: float = 0.0, forcar: bool = false) -> void:
 	if sfx_reativo == null:
 		return
 
@@ -4875,18 +4681,18 @@ func _tocar_som_da_lista(lista: Array[String], chave: String, volume_db: float =
 	if sfx_reativo.playing and not forcar:
 		return
 
-	var caminho := _escolher_som_aleatorio(lista, chave)
+	var caminho = _escolher_som_aleatorio(lista, chave)
 
 	if caminho == "":
 		return
 
-	var stream := load(caminho) as AudioStream
+	var stream = load(caminho) as AudioStream
 
 	if stream == null:
 		return
 
-	if stream is AudioStreamMP3:
-		stream.loop = false
+	if stream is AudioStream:
+		Compat.laco(stream, false)
 
 	if forcar and sfx_reativo.playing:
 		sfx_reativo.stop()
@@ -4989,7 +4795,7 @@ func _avaliar_motivacao() -> void:
 	if _esta_abaixo_de_alguem_ja_jogado(player_atual):
 		return
 
-	var agora := float(Time.get_ticks_msec())
+	var agora = float(Time.get_ticks_msec())
 
 	if agora - _ultimo_motivacional_ms < MOTIVACIONAL_INTERVALO_MS:
 		return
@@ -5084,7 +4890,7 @@ func _tocar_audio_com_duck(player: AudioStreamPlayer, tempo_duck: float = 1.2) -
 	player.stop()
 	player.play()
 
-	await get_tree().create_timer(tempo_duck).timeout
+	yield(get_tree().create_timer(tempo_duck), "timeout")
 
 	if not sfx_reativo.playing and not sfx_campeao.playing:
 		_duck_musica(false, 0.30)
@@ -5103,8 +4909,8 @@ func _tocar_campeao_agora() -> void:
 	if sfx_reativo and sfx_reativo.playing:
 		sfx_reativo.stop()
 
-	if sfx_campeao.stream is AudioStreamMP3:
-		sfx_campeao.stream.loop = false
+	if sfx_campeao.stream is AudioStream:
+		Compat.laco(sfx_campeao.stream, false)
 
 	_duck_musica(true, 0.12)
 
@@ -5125,8 +4931,8 @@ func _parar_campeao() -> void:
 	if sfx_campeao and sfx_campeao.playing:
 		sfx_campeao.stop()
 
-	if sfx_campeao and sfx_campeao.stream and sfx_campeao.stream is AudioStreamMP3:
-		sfx_campeao.stream.loop = false
+	if sfx_campeao and sfx_campeao.stream and sfx_campeao.stream is AudioStream:
+		Compat.laco(sfx_campeao.stream, false)
 
 	_reativo_bloqueado_por_campeao = false
 	_campeao_pendente = false
@@ -5166,7 +4972,7 @@ func _tempo_bot_por_fase() -> float:
 
 func _sortear_proximo_gol_bot() -> void:
 	bot_timer_gol = 0.0
-	bot_proximo_gol_em = randf_range(BOT_INTERVALO_GOL_MIN, BOT_INTERVALO_GOL_MAX)
+	bot_proximo_gol_em = rand_range(BOT_INTERVALO_GOL_MIN, BOT_INTERVALO_GOL_MAX)
 
 
 
@@ -5174,13 +4980,13 @@ func _pontuacao_alvo_bot() -> int:
 	# Mais tempo = mais gols nas fases avançadas.
 	match fase_copa:
 		"OITAVAS":
-			return randi_range(4, 9)
+			return Compat.randi_range(4, 9)
 		"SEMIFINAL":
-			return randi_range(6, 13)
+			return Compat.randi_range(6, 13)
 		"FINAL":
-			return randi_range(9, 18)
+			return Compat.randi_range(9, 18)
 		_:
-			return randi_range(2, 6)  # GRUPOS
+			return Compat.randi_range(2, 6)  # GRUPOS
 
 
 
@@ -5200,12 +5006,12 @@ func _processar_bot(delta: float) -> void:
 		return
 
 	bot_timer_gol = 0.0
-	bot_proximo_gol_em = randf_range(BOT_INTERVALO_GOL_MIN, BOT_INTERVALO_GOL_MAX)
+	bot_proximo_gol_em = rand_range(BOT_INTERVALO_GOL_MIN, BOT_INTERVALO_GOL_MAX)
 
 	if scores[player_atual] >= _pontuacao_alvo_bot():
 		return
 
-	if leds_ativos.is_empty():
+	if leds_ativos.empty():
 		return
 
 	var index_led: int = int(leds_ativos[randi() % leds_ativos.size()])
@@ -5217,16 +5023,16 @@ func _criar_fundo_imagem_loading(alvo: Control) -> void:
 		return
 
 	var fundo_base := ColorRect.new()
-	fundo_base.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo_base.set_anchors_preset(Control.PRESET_WIDE)
 	fundo_base.color = Color(0.004, 0.007, 0.014, 1.0)
 	fundo_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	alvo.add_child(fundo_base)
 
 	if ResourceLoader.exists(IMAGEM_LOADING_COPA):
 		var img := TextureRect.new()
-		img.set_anchors_preset(Control.PRESET_FULL_RECT)
+		img.set_anchors_preset(Control.PRESET_WIDE)
 		img.texture = load(IMAGEM_LOADING_COPA)
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.expand = true
 
 		# Imagem completa, sem zoom e sem corte.
 		# Pode sobrar barra escura se a proporção da imagem for diferente da tela.
@@ -5238,20 +5044,20 @@ func _criar_fundo_imagem_loading(alvo: Control) -> void:
 		push_warning("Imagem de loading não encontrada: " + IMAGEM_LOADING_COPA)
 
 	var escurecer := ColorRect.new()
-	escurecer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	escurecer.set_anchors_preset(Control.PRESET_WIDE)
 	escurecer.color = Color(0, 0, 0, 0.42)
 	escurecer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	alvo.add_child(escurecer)
 
 	var glow := ColorRect.new()
-	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glow.set_anchors_preset(Control.PRESET_WIDE)
 	glow.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.075)
 	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	alvo.add_child(glow)
 
 
-func _listar_imagens_patrocinadores() -> Array[String]:
-	var imagens: Array[String] = []
+func _listar_imagens_patrocinadores() -> Array:
+	var imagens: Array = []
 
 	for caminho in PATROCINADORES_FIXOS:
 		if ResourceLoader.exists(caminho):
@@ -5268,11 +5074,11 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	if alvo == null:
 		return
 
-	var imagens: Array[String] = _listar_imagens_patrocinadores()
-	if imagens.is_empty():
+	var imagens: Array = _listar_imagens_patrocinadores()
+	if imagens.empty():
 		return
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 	var total: int = imagens.size()
 
 	var max_por_linha: int = 8
@@ -5282,10 +5088,10 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 		max_por_linha = 6
 	else:
 		max_por_linha = 8
-	max_por_linha = maxi(max_por_linha, 1)
+	max_por_linha = int(max(max_por_linha, 1))
 
 	var linhas: int = int(ceil(float(total) / float(max_por_linha)))
-	linhas = maxi(linhas, 1)
+	linhas = int(max(linhas, 1))
 
 	var margem_x: float = 54.0
 	var gap: float = 18.0
@@ -5296,7 +5102,7 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	elif linhas >= 3:
 		card_h = 64.0
 
-	var footer_h: float = float(linhas) * card_h + float(maxi(linhas - 1, 0)) * row_gap + 34.0
+	var footer_h: float = float(linhas) * card_h + float(int(max(linhas - 1, 0))) * row_gap + 34.0
 	var footer_h_max: float = tela.y * 0.34
 	if footer_h > footer_h_max:
 		var fator: float = footer_h_max / footer_h
@@ -5307,10 +5113,10 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	var footer_y: float = tela.y - footer_h - 14.0
 
 	var fundo := Panel.new()
-	fundo.position = Vector2(32.0, footer_y)
-	fundo.size = Vector2(tela.x - 64.0, footer_h)
+	fundo.rect_position = Vector2(32.0, footer_y)
+	fundo.rect_size = Vector2(tela.x - 64.0, footer_h)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fundo.clip_contents = true
+	fundo.rect_clip_content = true
 
 	var fundo_style := StyleBoxFlat.new()
 	fundo_style.bg_color = Color(0.004, 0.012, 0.020, 0.86)
@@ -5320,79 +5126,79 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	fundo_style.shadow_color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.36)
 	fundo_style.shadow_size = 24
 	fundo_style.shadow_offset = Vector2.ZERO
-	fundo.add_theme_stylebox_override("panel", fundo_style)
+	fundo.add_stylebox_override("panel", fundo_style)
 	alvo.add_child(fundo)
 
 	if ResourceLoader.exists(IMAGEM_FUNDO_FOOTER_PATRO):
 		var foto := TextureRect.new()
-		foto.set_anchors_preset(Control.PRESET_FULL_RECT)
+		foto.set_anchors_preset(Control.PRESET_WIDE)
 		foto.texture = load(IMAGEM_FUNDO_FOOTER_PATRO)
-		foto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		foto.expand = true
 		foto.stretch_mode = TextureRect.STRETCH_SCALE
 		foto.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		foto.modulate = Color(1, 1, 1, 0.55)
 		fundo.add_child(foto)
 
 		var escuro_foto := ColorRect.new()
-		escuro_foto.set_anchors_preset(Control.PRESET_FULL_RECT)
+		escuro_foto.set_anchors_preset(Control.PRESET_WIDE)
 		escuro_foto.color = Color(0, 0, 0, 0.42)
 		escuro_foto.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fundo.add_child(escuro_foto)
 	else:
 		var verde := ColorRect.new()
-		verde.set_anchors_preset(Control.PRESET_FULL_RECT)
+		verde.set_anchors_preset(Control.PRESET_WIDE)
 		verde.color = Color(0.00, 0.26, 0.10, 0.72)
 		verde.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fundo.add_child(verde)
 
 		var amarelo := ColorRect.new()
-		amarelo.position = Vector2(fundo.size.x * 0.50, 0)
-		amarelo.size = Vector2(fundo.size.x * 0.50, fundo.size.y)
+		amarelo.rect_position = Vector2(fundo.rect_size.x * 0.50, 0)
+		amarelo.rect_size = Vector2(fundo.rect_size.x * 0.50, fundo.rect_size.y)
 		amarelo.color = Color(1.0, 0.82, 0.06, 0.22)
 		amarelo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fundo.add_child(amarelo)
 
 	var brilho := ColorRect.new()
-	brilho.position = Vector2(24, 10)
-	brilho.size = Vector2(fundo.size.x - 48, 3)
+	brilho.rect_position = Vector2(24, 10)
+	brilho.rect_size = Vector2(fundo.rect_size.x - 48, 3)
 	brilho.color = Color(1, 1, 1, 0.14)
 	brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fundo.add_child(brilho)
 
 	for linha in range(linhas):
 		var inicio: int = linha * max_por_linha
-		var fim: int = mini(inicio + max_por_linha, total)
+		var fim: int = int(min(inicio + max_por_linha, total))
 		var qtd: int = fim - inicio
 		if qtd <= 0:
 			continue
 
-		var area_w: float = fundo.size.x - margem_x * 2.0
+		var area_w: float = fundo.rect_size.x - margem_x * 2.0
 		var card_w: float = (area_w - gap * float(qtd - 1)) / float(qtd)
 
 		if total <= 4:
-			card_w = clampf(card_w, 180.0, 310.0)
+			card_w = clamp(card_w, 180.0, 310.0)
 		elif total <= 8:
-			card_w = clampf(card_w, 135.0, 230.0)
+			card_w = clamp(card_w, 135.0, 230.0)
 		else:
-			card_w = clampf(card_w, 105.0, 190.0)
+			card_w = clamp(card_w, 105.0, 190.0)
 
 		var total_w: float = card_w * float(qtd) + gap * float(qtd - 1)
-		var x0: float = (fundo.size.x - total_w) * 0.5
+		var x0: float = (fundo.rect_size.x - total_w) * 0.5
 		var y0: float = 17.0 + float(linha) * (card_h + row_gap)
 
 		for i in range(qtd):
 			var caminho: String = imagens[inicio + i]
-			var card := _criar_card_patrocinador_footer_loading(caminho, Vector2(card_w, card_h))
-			card.position = Vector2(x0 + float(i) * (card_w + gap), y0)
+			var card = _criar_card_patrocinador_footer_loading(caminho, Vector2(card_w, card_h))
+			card.rect_position = Vector2(x0 + float(i) * (card_w + gap), y0)
 			card.modulate = Color(1, 1, 1, 0)
-			card.scale = Vector2(0.94, 0.94)
+			card.rect_scale = Vector2(0.94, 0.94)
 			fundo.add_child(card)
 
 			var delay: float = float(inicio + i) * 0.025
-			var t := create_tween()
+			var t = create_tween()
 			t.set_parallel(true)
-			t.tween_property(card, "modulate", Color.WHITE, 0.22).set_delay(delay)
-			t.tween_property(card, "scale", Vector2.ONE, 0.22).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			t.tween_property(card, "modulate", Color.white, 0.22).set_delay(delay)
+			t.tween_property(card, Compat.prop(card, "scale"), Vector2.ONE, 0.22).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _fundo_logo_loading(caminho: String) -> Color:
@@ -5403,19 +5209,19 @@ func _fundo_logo_loading(caminho: String) -> Color:
 		return Color(0.0, 0.0, 0.0, 1.0)
 
 	# corona_logo.png -> fundo BRANCO
-	if base.contains("corona"):
+	if Compat.contem(base, "corona"):
 		return Color(1.0, 1.0, 1.0, 1.0)
 
 	# Michelob-Ultra -> fundo BRANCO
-	if base.contains("michelob"):
+	if Compat.contem(base, "michelob"):
 		return Color(1.0, 1.0, 1.0, 1.0)
 
 	# GA_Logo.png / Guaraná -> verde da marca
-	if base.begins_with("ga_") or base.contains("guaran"):
+	if base.begins_with("ga_") or Compat.contem(base, "guaran"):
 		return Color(0.0, 0.60, 0.28, 1.0)
 
 	# Stella -> dourado/amarelo
-	if base.contains("stella"):
+	if Compat.contem(base, "stella"):
 		return Color(0.79, 0.65, 0.18, 1.0)
 
 	# Budweiser -> vermelho
@@ -5428,10 +5234,10 @@ func _fundo_logo_loading(caminho: String) -> Color:
 
 func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) -> Panel:
 	var card := Panel.new()
-	card.size = tamanho
-	card.custom_minimum_size = tamanho
+	card.rect_size = tamanho
+	card.rect_min_size = tamanho
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.clip_contents = true
+	card.rect_clip_content = true
 
 	var fundo_especial: Color = _fundo_logo_loading(caminho)
 	var tem_especial: bool = fundo_especial.a > 0.0
@@ -5445,14 +5251,14 @@ func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) 
 	st.shadow_color = Color(1.0, 0.82, 0.05, 0.42)
 	st.shadow_size = 14
 	st.shadow_offset = Vector2.ZERO
-	card.add_theme_stylebox_override("panel", st)
+	card.add_stylebox_override("panel", st)
 
 	var margem := 7.0
 	var inner := Panel.new()
-	inner.position = Vector2(margem, margem)
-	inner.size = tamanho - Vector2(margem * 2.0, margem * 2.0)
+	inner.rect_position = Vector2(margem, margem)
+	inner.rect_size = tamanho - Vector2(margem * 2.0, margem * 2.0)
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner.clip_contents = true
+	inner.rect_clip_content = true
 	card.add_child(inner)
 
 	var inner_st := StyleBoxFlat.new()
@@ -5464,51 +5270,51 @@ func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) 
 	else:
 		inner_st.bg_color = Color(0.98, 0.86, 0.12, 1.0)
 		inner_st.border_color = Color(0.0, 0.42, 0.12, 0.95)
-	inner.add_theme_stylebox_override("panel", inner_st)
+	inner.add_stylebox_override("panel", inner_st)
 
 	if not tem_especial:
 		var faixa_verde := ColorRect.new()
-		faixa_verde.position = Vector2.ZERO
-		faixa_verde.size = Vector2(inner.size.x * 0.50, inner.size.y)
+		faixa_verde.rect_position = Vector2.ZERO
+		faixa_verde.rect_size = Vector2(inner.rect_size.x * 0.50, inner.rect_size.y)
 		faixa_verde.color = Color(0.02, 0.42, 0.14, 1.0)
 		faixa_verde.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inner.add_child(faixa_verde)
 
 		var faixa_amarela := ColorRect.new()
-		faixa_amarela.position = Vector2(inner.size.x * 0.50, 0)
-		faixa_amarela.size = Vector2(inner.size.x * 0.50, inner.size.y)
+		faixa_amarela.rect_position = Vector2(inner.rect_size.x * 0.50, 0)
+		faixa_amarela.rect_size = Vector2(inner.rect_size.x * 0.50, inner.rect_size.y)
 		faixa_amarela.color = Color(1.0, 0.86, 0.10, 1.0)
 		faixa_amarela.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inner.add_child(faixa_amarela)
 
 	var brilho := ColorRect.new()
-	brilho.position = Vector2(10, 7)
-	brilho.size = Vector2(inner.size.x - 20, 2)
+	brilho.rect_position = Vector2(10, 7)
+	brilho.rect_size = Vector2(inner.rect_size.x - 20, 2)
 	brilho.color = Color(1, 1, 1, 0.08 if claro else 0.18)
 	brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(brilho)
 
-	var tex := load(caminho) as Texture2D
+	var tex = load(caminho) as Texture
 	if tex != null:
 		var pad := 8.0
 		if tem_especial:
 			pad = 12.0
 		var img := TextureRect.new()
-		img.position = Vector2(pad, pad * 0.72)
-		img.size = inner.size - Vector2(pad * 2.0, pad * 1.44)
+		img.rect_position = Vector2(pad, pad * 0.72)
+		img.rect_size = inner.rect_size - Vector2(pad * 2.0, pad * 1.44)
 		img.texture = tex
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.expand = true
 		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inner.add_child(img)
 	else:
 		var erro := Label.new()
 		erro.text = "LOGO"
-		erro.set_anchors_preset(Control.PRESET_FULL_RECT)
-		erro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		erro.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		erro.add_theme_font_size_override("font_size", 14)
-		erro.add_theme_color_override("font_color", Color.RED)
+		erro.set_anchors_preset(Control.PRESET_WIDE)
+		erro.align = Label.ALIGN_CENTER
+		erro.valign = Label.VALIGN_CENTER
+		Compat.tamanho(erro, 14)
+		erro.add_color_override("font_color", Color.red)
 		inner.add_child(erro)
 
 	return card
@@ -5524,9 +5330,9 @@ func _adicionar_imagem_fundo_rodape_loading(fundo: Panel) -> void:
 		return
 
 	var img := TextureRect.new()
-	img.set_anchors_preset(Control.PRESET_FULL_RECT)
+	img.set_anchors_preset(Control.PRESET_WIDE)
 	img.texture = load(IMAGEM_RODAPE_LOADING)
-	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.expand = true
 
 	# Estica para cobrir todo o rodapé.
 	img.stretch_mode = TextureRect.STRETCH_SCALE
@@ -5535,13 +5341,13 @@ func _adicionar_imagem_fundo_rodape_loading(fundo: Panel) -> void:
 	fundo.add_child(img)
 
 	var escurecer := ColorRect.new()
-	escurecer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	escurecer.set_anchors_preset(Control.PRESET_WIDE)
 	escurecer.color = Color(0, 0, 0, 0.36)
 	escurecer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fundo.add_child(escurecer)
 
 	var brilho := ColorRect.new()
-	brilho.set_anchors_preset(Control.PRESET_FULL_RECT)
+	brilho.set_anchors_preset(Control.PRESET_WIDE)
 	brilho.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.065)
 	brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fundo.add_child(brilho)
@@ -5576,17 +5382,17 @@ func _adicionar_fundo_imagem_card_player(panel: Panel, index: int, cor: Color) -
 	var inset: float = 5.0
 	var raio: float = 0.0
 
-	var tam_img: Vector2 = panel.size - Vector2(inset * 2.0, inset * 2.0)
+	var tam_img: Vector2 = panel.rect_size - Vector2(inset * 2.0, inset * 2.0)
 
 	if tam_img.x <= 0.0 or tam_img.y <= 0.0:
 		return
 
 	# Imagem de fundo arredondada.
 	var img := TextureRect.new()
-	img.position = Vector2(inset, inset)
-	img.size = tam_img
+	img.rect_position = Vector2(inset, inset)
+	img.rect_size = tam_img
 	img.texture = load(caminho)
-	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.expand = true
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	img.material = _material_fundo_card_arredondado(tam_img, raio)
@@ -5594,8 +5400,8 @@ func _adicionar_fundo_imagem_card_player(panel: Panel, index: int, cor: Color) -
 
 	# Camada de cor do jogador por cima da imagem.
 	var tint := Panel.new()
-	tint.position = Vector2(inset, inset)
-	tint.size = tam_img
+	tint.rect_position = Vector2(inset, inset)
+	tint.rect_size = tam_img
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var tint_style := StyleBoxFlat.new()
@@ -5603,14 +5409,14 @@ func _adicionar_fundo_imagem_card_player(panel: Panel, index: int, cor: Color) -
 	tint_style.border_color = Color(cor.r, cor.g, cor.b, 0.14)
 	tint_style.set_border_width_all(1)
 	tint_style.set_corner_radius_all(int(raio))
-	tint.add_theme_stylebox_override("panel", tint_style)
+	tint.add_stylebox_override("panel", tint_style)
 
 	panel.add_child(tint)
 
 	# Camada escura para manter nome, tempo e placar legíveis.
 	var escuro := Panel.new()
-	escuro.position = Vector2(inset, inset)
-	escuro.size = tam_img
+	escuro.rect_position = Vector2(inset, inset)
+	escuro.rect_size = tam_img
 	escuro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var escuro_style := StyleBoxFlat.new()
@@ -5618,7 +5424,7 @@ func _adicionar_fundo_imagem_card_player(panel: Panel, index: int, cor: Color) -
 	escuro_style.border_color = Color(1, 1, 1, 0.05)
 	escuro_style.set_border_width_all(1)
 	escuro_style.set_corner_radius_all(int(raio))
-	escuro.add_theme_stylebox_override("panel", escuro_style)
+	escuro.add_stylebox_override("panel", escuro_style)
 
 	panel.add_child(escuro)
 
@@ -5630,16 +5436,16 @@ func _caminho_fundo_card_player(index: int) -> String:
 
 		var nome_cor: String = str(j.get("cor_nome", "")).strip_edges().to_upper()
 
-		if nome_cor.contains("AZUL"):
+		if Compat.contem(nome_cor, "AZUL"):
 			return FUNDO_CARD_AZUL
 
-		if nome_cor.contains("VERDE"):
+		if Compat.contem(nome_cor, "VERDE"):
 			return FUNDO_CARD_VERDE
 
-		if nome_cor.contains("VERMELHO"):
+		if Compat.contem(nome_cor, "VERMELHO"):
 			return FUNDO_CARD_VERMELHO
 
-		if nome_cor.contains("AMARELO"):
+		if Compat.contem(nome_cor, "AMARELO"):
 			return FUNDO_CARD_AMARELO
 
 		var cor_index: int = int(j.get("cor_index", -1))
@@ -5704,8 +5510,8 @@ void fragment() {
 
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
-	mat.set_shader_parameter("rect_size", tam)
-	mat.set_shader_parameter("radius_px", raio_px)
+	mat.set_shader_param("rect_size", tam)
+	mat.set_shader_param("radius_px", raio_px)
 
 	return mat
 
@@ -5753,7 +5559,7 @@ func _cobrir_tela_para_transicao() -> void:
 	add_child(cl)
 
 	var cover := ColorRect.new()
-	cover.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cover.set_anchors_preset(Control.PRESET_WIDE)
 	cover.color = Color(0.004, 0.007, 0.014, 1.0)   # mesma cor base do loading, nunca cinza
 	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(cover)
@@ -5768,23 +5574,63 @@ func _adicionar_fundo_stadio() -> void:
 		push_warning("Imagem de fundo do estádio não encontrada: " + IMAGEM_FUNDO_STADIO)
 		return
 
-	var tela := get_viewport().get_visible_rect().size
+	var tela = get_viewport().get_visible_rect().size
 	var header_h: float = 82.0  # mesma altura do cabeçalho criado em _criar_header_copa()
 
 	# Imagem do estádio: começa logo abaixo do cabeçalho e cobre o resto da tela.
 	var img := TextureRect.new()
-	img.position = Vector2(0.0, header_h)
-	img.size = Vector2(tela.x, tela.y - header_h)
+	img.rect_position = Vector2(0.0, header_h)
+	img.rect_size = Vector2(tela.x, tela.y - header_h)
 	img.texture = load(IMAGEM_FUNDO_STADIO)
-	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.expand = true
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(img)
 
 	# Camada escura sutil para manter os cards/textos legíveis por cima do estádio.
 	var escuro := ColorRect.new()
-	escuro.position = Vector2(0.0, header_h)
-	escuro.size = Vector2(tela.x, tela.y - header_h)
+	escuro.rect_position = Vector2(0.0, header_h)
+	escuro.rect_size = Vector2(tela.x, tela.y - header_h)
 	escuro.color = Color(0, 0, 0, 0.35)
 	escuro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(escuro)
+
+
+func _ordem_1(a, b) -> bool:
+	var na: int = int(a.get("gols_normais", 0))
+	var nb: int = int(b.get("gols_normais", 0))
+	if na != nb:
+		return na > nb
+
+	var pa: int = int(a.get("gols_prorrogacao", 0))
+	var pb: int = int(b.get("gols_prorrogacao", 0))
+	if pa != pb:
+		return pa > pb
+
+	var ka: int = int(a.get("penaltis", 0))
+	var kb: int = int(b.get("penaltis", 0))
+	if ka != kb:
+		return ka > kb
+
+	var bot_a: bool = bool(a.get("boot", false))
+	var bot_b: bool = bool(b.get("boot", false))
+	if bot_a != bot_b:
+		return bot_b
+
+	return int(a.get("player_index", 0)) < int(b.get("player_index", 0))
+
+
+func _g3_fazer_header(panel, header_y, txt: String, x: float, w: float, alin: int) -> void:
+	var h := Label.new()
+	h.text = txt
+	h.rect_position = Vector2(x, header_y)
+	h.rect_size = Vector2(w, 22)
+	h.align = alin
+	h.valign = Label.VALIGN_CENTER
+	Compat.tamanho(h, 13)
+	h.add_color_override("font_color", Color(0.62, 0.70, 0.80))
+	h.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.80))
+	Compat.contorno(h, 2)
+	if fonte_orbitron:
+		Compat.fonte(h, fonte_orbitron)
+	panel.add_child(h)

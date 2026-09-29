@@ -1,3 +1,4 @@
-[gd_scene format=3 uid="uid://dpwrobbvhi8p2"]
+[gd_scene load_steps=1 format=2]
 
-[node name="Ranking" type="Node2D" unique_id=450642432]
+
+[node name="Ranking" type="Node2D"]

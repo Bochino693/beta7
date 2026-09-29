@@ -52,7 +52,7 @@ const MODOS: Array = [
 
 var canvas: CanvasLayer
 var root: Control
-var fonte_orbitron: Font = null
+var fonte_orbitron = null
 
 var copas: Array = []
 var ranking_jogadores: Array = []
@@ -83,11 +83,9 @@ func _ready() -> void:
 
 
 func _travar_tela() -> void:
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, true)
+	pass  # (Android: a janela ja e a tela cheia)
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	RenderingServer.set_default_clear_color(COR_FUNDO)
+	VisualServer.set_default_clear_color(COR_FUNDO)
 
 
 func _carregar_fonte() -> void:
@@ -106,7 +104,7 @@ func _criar_interface() -> void:
 	add_child(canvas)
 
 	root = Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.set_anchors_preset(Control.PRESET_WIDE)
 	canvas.add_child(root)
 
 	_criar_fundo()
@@ -119,29 +117,29 @@ func _criar_interface() -> void:
 
 func _criar_fundo() -> void:
 	var base := ColorRect.new()
-	base.set_anchors_preset(Control.PRESET_FULL_RECT)
+	base.set_anchors_preset(Control.PRESET_WIDE)
 	base.color = COR_FUNDO
 	base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(base)
 
 	if ResourceLoader.exists(IMAGEM_FUNDO):
 		var img := TextureRect.new()
-		img.set_anchors_preset(Control.PRESET_FULL_RECT)
+		img.set_anchors_preset(Control.PRESET_WIDE)
 		img.texture = load(IMAGEM_FUNDO)
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.expand = true
 		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		img.modulate = Color(1, 1, 1, 0.46)
 		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(img)
 
 	var overlay := ColorRect.new()
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.set_anchors_preset(Control.PRESET_WIDE)
 	overlay.color = Color(0, 0, 0, 0.62)
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(overlay)
 
 	var aura := ColorRect.new()
-	aura.set_anchors_preset(Control.PRESET_FULL_RECT)
+	aura.set_anchors_preset(Control.PRESET_WIDE)
 	aura.color = Color(COR_ROXO.r, COR_ROXO.g, COR_ROXO.b, 0.07)
 	aura.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(aura)
@@ -151,21 +149,21 @@ func _criar_header() -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	var header := Panel.new()
-	header.position = Vector2(24, 20)
-	header.size = Vector2(vp.x - 48, 92)
+	header.rect_position = Vector2(24, 20)
+	header.rect_size = Vector2(vp.x - 48, 92)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.add_theme_stylebox_override("panel", _style_panel(COR_ROXO, 0.26, 26, 3))
+	header.add_stylebox_override("panel", _style_panel(COR_ROXO, 0.26, 26, 3))
 	root.add_child(header)
 
 	_label(
 		header,
 		"RANKING DOS CAMPEÕES",
 		Vector2(30, 10),
-		Vector2(header.size.x - 470, 48),
+		Vector2(header.rect_size.x - 470, 48),
 		38,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		COR_ROXO
 	)
 
@@ -173,41 +171,41 @@ func _criar_header() -> void:
 		header,
 		"Estatísticas acumuladas dos jogadores registrados no TOP 3 das competições salvas",
 		Vector2(34, 58),
-		Vector2(header.size.x - 500, 24),
+		Vector2(header.rect_size.x - 500, 24),
 		14,
 		COR_TEXTO,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER
 	)
 
 	total_label = _label(
 		header,
 		"0 PLAYERS",
-		Vector2(header.size.x - 410, 18),
+		Vector2(header.rect_size.x - 410, 18),
 		Vector2(170, 46),
 		20,
 		COR_OURO,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER,
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER,
 		COR_OURO
 	)
 
 	_criar_botao(
 		header,
 		"ATUALIZAR",
-		Vector2(header.size.x - 230, 20),
+		Vector2(header.rect_size.x - 230, 20),
 		Vector2(96, 46),
 		COR_VERDE,
-		Callable(self, "_carregar_dados")
+		"_carregar_dados"
 	)
 
 	_criar_botao(
 		header,
 		"VOLTAR",
-		Vector2(header.size.x - 122, 20),
+		Vector2(header.rect_size.x - 122, 20),
 		Vector2(96, 46),
 		COR_NEON,
-		Callable(self, "_voltar_mural")
+		"_voltar_mural"
 	)
 
 
@@ -215,16 +213,16 @@ func _criar_tabs() -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	var barra := Panel.new()
-	barra.position = Vector2(24, 122)
-	barra.size = Vector2(vp.x - 48, 56)
+	barra.rect_position = Vector2(24, 122)
+	barra.rect_size = Vector2(vp.x - 48, 56)
 	barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	barra.add_theme_stylebox_override("panel", _style_panel(COR_NEON, 0.14, 18, 2))
+	barra.add_stylebox_override("panel", _style_panel(COR_NEON, 0.14, 18, 2))
 	root.add_child(barra)
 
 	tabs_box = HBoxContainer.new()
-	tabs_box.position = Vector2(18, 8)
-	tabs_box.size = Vector2(barra.size.x - 36, 40)
-	tabs_box.add_theme_constant_override("separation", 12)
+	tabs_box.rect_position = Vector2(18, 8)
+	tabs_box.rect_size = Vector2(barra.rect_size.x - 36, 40)
+	tabs_box.add_constant_override("separation", 12)
 	barra.add_child(tabs_box)
 
 	_montar_tabs()
@@ -234,10 +232,10 @@ func _criar_resumo() -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	resumo_panel = Panel.new()
-	resumo_panel.position = Vector2(24, 190)
-	resumo_panel.size = Vector2(vp.x - 48, 86)
+	resumo_panel.rect_position = Vector2(24, 190)
+	resumo_panel.rect_size = Vector2(vp.x - 48, 86)
 	resumo_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	resumo_panel.add_theme_stylebox_override("panel", _style_panel(COR_OURO, 0.10, 18, 2))
+	resumo_panel.add_stylebox_override("panel", _style_panel(COR_OURO, 0.10, 18, 2))
 	root.add_child(resumo_panel)
 
 
@@ -267,59 +265,59 @@ func _criar_layout() -> void:
 	var detalhe_x: float = tabela_x + tabela_w + gap
 
 	var tabela_panel := Panel.new()
-	tabela_panel.position = Vector2(tabela_x, y)
-	tabela_panel.size = Vector2(tabela_w, h)
-	tabela_panel.clip_contents = true
-	tabela_panel.add_theme_stylebox_override("panel", _style_panel(COR_NEON, 0.16, 24, 2))
+	tabela_panel.rect_position = Vector2(tabela_x, y)
+	tabela_panel.rect_size = Vector2(tabela_w, h)
+	tabela_panel.rect_clip_content = true
+	tabela_panel.add_stylebox_override("panel", _style_panel(COR_NEON, 0.16, 24, 2))
 	root.add_child(tabela_panel)
 
 	_label(
 		tabela_panel,
 		"CLASSIFICAÇÃO GERAL",
 		Vector2(24, 16),
-		Vector2(tabela_panel.size.x - 48, 34),
+		Vector2(tabela_panel.rect_size.x - 48, 34),
 		22,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		COR_NEON
 	)
 
 	var linha := ColorRect.new()
-	linha.position = Vector2(24, 62)
-	linha.size = Vector2(tabela_panel.size.x - 48, 2)
+	linha.rect_position = Vector2(24, 62)
+	linha.rect_size = Vector2(tabela_panel.rect_size.x - 48, 2)
 	linha.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.58)
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tabela_panel.add_child(linha)
 
-	tabela_linha_w = tabela_panel.size.x - 40.0
+	tabela_linha_w = tabela_panel.rect_size.x - 40.0
 
 	var header := Panel.new()
-	header.position = Vector2(20, 78)
-	header.size = Vector2(tabela_linha_w, 38)
+	header.rect_position = Vector2(20, 78)
+	header.rect_size = Vector2(tabela_linha_w, 38)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.add_theme_stylebox_override("panel", _style_panel(COR_ROXO, 0.08, 10, 1))
+	header.add_stylebox_override("panel", _style_panel(COR_ROXO, 0.08, 10, 1))
 	tabela_panel.add_child(header)
 
 	_criar_header_tabela(header)
 
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(20, 126)
-	scroll.size = Vector2(tabela_linha_w, tabela_panel.size.y - 150)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.rect_position = Vector2(20, 126)
+	scroll.rect_size = Vector2(tabela_linha_w, tabela_panel.rect_size.y - 150)
+	scroll.scroll_horizontal_enabled = false
 	tabela_panel.add_child(scroll)
 
 	tabela_box = VBoxContainer.new()
-	tabela_box.custom_minimum_size = Vector2(tabela_linha_w, 0)
+	tabela_box.rect_min_size = Vector2(tabela_linha_w, 0)
 	tabela_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabela_box.add_theme_constant_override("separation", 8)
+	tabela_box.add_constant_override("separation", 8)
 	scroll.add_child(tabela_box)
 
 	detalhe_panel = Panel.new()
-	detalhe_panel.position = Vector2(detalhe_x, y)
-	detalhe_panel.size = Vector2(detalhe_w, h)
-	detalhe_panel.clip_contents = true
-	detalhe_panel.add_theme_stylebox_override("panel", _style_panel(COR_OURO, 0.15, 24, 2))
+	detalhe_panel.rect_position = Vector2(detalhe_x, y)
+	detalhe_panel.rect_size = Vector2(detalhe_w, h)
+	detalhe_panel.rect_clip_content = true
+	detalhe_panel.add_stylebox_override("panel", _style_panel(COR_OURO, 0.15, 24, 2))
 	root.add_child(detalhe_panel)
 
 
@@ -328,21 +326,21 @@ func _criar_rodape() -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	var rodape := Panel.new()
-	rodape.position = Vector2(24, vp.y - 50)
-	rodape.size = Vector2(vp.x - 48, 30)
+	rodape.rect_position = Vector2(24, vp.y - 50)
+	rodape.rect_size = Vector2(vp.x - 48, 30)
 	rodape.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rodape.add_theme_stylebox_override("panel", _style_panel(Color.WHITE, 0.04, 10, 1))
+	rodape.add_stylebox_override("panel", _style_panel(Color.white, 0.04, 10, 1))
 	root.add_child(rodape)
 
 	_label(
 		rodape,
 		"CLICK: selecionar player   •   Ranking calculado pelo TOP 3 salvo no ChampionsDb   •   VOLTAR: mural   •   CTRL + TAB: fechar",
 		Vector2.ZERO,
-		rodape.size,
+		rodape.rect_size,
 		13,
 		Color(0.70, 0.78, 0.86),
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 
@@ -363,26 +361,24 @@ func _montar_tabs() -> void:
 		b.text = label
 		b.focus_mode = Control.FOCUS_NONE
 		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		b.custom_minimum_size = Vector2(0, 40)
+		b.rect_min_size = Vector2(0, 40)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 		if fonte_orbitron:
-			b.add_theme_font_override("font", fonte_orbitron)
+			Compat.fonte(b, fonte_orbitron)
 
-		b.add_theme_font_size_override("font_size", 12)
-		b.add_theme_color_override("font_color", Color.WHITE if ativo else Color(0.78, 0.84, 0.92))
-		b.add_theme_color_override("font_hover_color", Color.WHITE)
-		b.add_theme_color_override("font_pressed_color", cor)
+		Compat.tamanho(b, 12)
+		b.add_color_override("font_color", Color.white if ativo else Color(0.78, 0.84, 0.92))
+		b.add_color_override("font_color_hover", Color.white)
+		b.add_color_override("font_color_pressed", cor)
 
-		b.add_theme_stylebox_override("normal", _style_button(cor, 0.62 if ativo else 0.18, 13))
-		b.add_theme_stylebox_override("hover", _style_button(cor, 0.52, 13))
-		b.add_theme_stylebox_override("pressed", _style_button(cor, 0.85, 13))
-		b.add_theme_stylebox_override("focus", _style_button(cor, 0.40, 13))
+		b.add_stylebox_override("normal", _style_button(cor, 0.62 if ativo else 0.18, 13))
+		b.add_stylebox_override("hover", _style_button(cor, 0.52, 13))
+		b.add_stylebox_override("pressed", _style_button(cor, 0.85, 13))
+		b.add_stylebox_override("focus", _style_button(cor, 0.40, 13))
 
 		var id_local: String = id
-		b.pressed.connect(func() -> void:
-			_aplicar_modo(id_local)
-		)
+		b.connect("pressed", self, "_aplicar_modo", [id_local])
 
 		tabs_box.add_child(b)
 
@@ -404,7 +400,7 @@ func _carregar_dados() -> void:
 	copas.clear()
 	ranking_jogadores.clear()
 
-	var db := get_node_or_null("/root/ChampionsDb")
+	var db = get_node_or_null("/root/ChampionsDb")
 
 	if db == null:
 		push_warning("ChampionsRanking: Autoload ChampionsDb não encontrado.")
@@ -416,7 +412,7 @@ func _carregar_dados() -> void:
 		_mostrar_sem_dados("ChampionsDb não tem listar_copas().")
 		return
 
-	var retorno: Variant = db.call("listar_copas")
+	var retorno = db.call("listar_copas")
 
 	if retorno is Array:
 		copas = retorno
@@ -447,7 +443,7 @@ func _gerar_ranking() -> void:
 		var tipo_nome: String = str(copa.get("tipo_nome", _tipo_nome_local(tipo)))
 		var titulo: String = str(copa.get("titulo", "Competição"))
 		var data_txt: String = str(copa.get("finished_at_text", ""))
-		var top3_var: Variant = copa.get("top3", [])
+		var top3_var = copa.get("top3", [])
 
 		if not (top3_var is Array):
 			continue
@@ -498,7 +494,7 @@ func _gerar_ranking() -> void:
 				p["terceiros"] = int(p.get("terceiros", 0)) + 1
 
 			var melhor_pos: int = int(p.get("melhor_posicao", 99))
-			p["melhor_posicao"] = mini(melhor_pos, posicao)
+			p["melhor_posicao"] = int(min(melhor_pos, posicao))
 
 			var pontos_posicao: int = _pontos_por_posicao(posicao)
 
@@ -575,26 +571,7 @@ func _pontos_por_posicao(posicao: int) -> int:
 
 
 func _ordenar_ranking() -> void:
-	ranking_jogadores.sort_custom(func(a: Variant, b: Variant) -> bool:
-		var pa: Dictionary = _as_dict(a)
-		var pb: Dictionary = _as_dict(b)
-
-		match modo_atual:
-			MODO_GOLS:
-				return _comparar_por_lista(pa, pb, ["gols_total", "titulos", "vitorias_total", "podios", "score_campanha"])
-
-			MODO_TITULOS:
-				return _comparar_por_lista(pa, pb, ["titulos", "vices", "terceiros", "gols_total", "vitorias_total"])
-
-			MODO_VITORIAS:
-				return _comparar_por_lista(pa, pb, ["vitorias_total", "titulos", "gols_total", "podios", "score_campanha"])
-
-			MODO_PODIOS:
-				return _comparar_por_lista(pa, pb, ["podios", "titulos", "vices", "terceiros", "gols_total"])
-
-			_:
-				return _comparar_por_lista(pa, pb, ["score_campanha", "titulos", "vitorias_total", "gols_total", "podios"])
-	)
+	ranking_jogadores.sort_custom(self, "_ordem_1")
 
 
 func _comparar_por_lista(a: Dictionary, b: Dictionary, campos: Array) -> bool:
@@ -632,7 +609,7 @@ func _montar_resumo() -> void:
 		total_podios += int(p.get("podios", 0))
 		total_vitorias += int(p.get("vitorias_total", 0))
 
-	var col_w: float = resumo_panel.size.x / 5.0
+	var col_w: float = resumo_panel.rect_size.x / 5.0
 
 	_criar_bloco_resumo(resumo_panel, "COMPETIÇÕES", str(total_comp), Vector2(0, 12), Vector2(col_w, 64), COR_OURO)
 	_criar_bloco_resumo(resumo_panel, "PLAYERS", str(total_players), Vector2(col_w, 12), Vector2(col_w, 64), COR_NEON)
@@ -642,32 +619,32 @@ func _montar_resumo() -> void:
 
 
 func _criar_header_tabela(parent: Control) -> void:
-	var W: float = parent.size.x
-	var H: float = parent.size.y
+	var W: float = parent.rect_size.x
+	var H: float = parent.rect_size.y
 	var c: Dictionary = _colunas_tabela(W)
 
 	var r: Rect2
 
 	r = c["pos"]
-	_label(parent, "POS", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "POS", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_CENTER, Label.VALIGN_CENTER)
 
 	r = c["player"]
-	_label(parent, "PLAYER", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_LEFT, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "PLAYER", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_LEFT, Label.VALIGN_CENTER)
 
 	r = c["destaque"]
-	_label(parent, "DESTAQUE", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "DESTAQUE", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_CENTER, Label.VALIGN_CENTER)
 
 	r = c["titulos"]
-	_label(parent, "TÍT.", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "TÍT.", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_CENTER, Label.VALIGN_CENTER)
 
 	r = c["vitorias"]
-	_label(parent, "VIT.", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "VIT.", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_CENTER, Label.VALIGN_CENTER)
 
 	r = c["gols"]
-	_label(parent, "GOLS", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "GOLS", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_CENTER, Label.VALIGN_CENTER)
 
 	r = c["podios"]
-	_label(parent, "PÓDIOS", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_label(parent, "PÓDIOS", Vector2(r.position.x, 0), Vector2(r.size.x, H), 12, COR_TEXTO, Label.ALIGN_CENTER, Label.VALIGN_CENTER)
 
 
 
@@ -677,18 +654,18 @@ func _montar_tabela() -> void:
 
 	_limpar_filhos(tabela_box)
 
-	if ranking_jogadores.is_empty():
-		var vazio := _label(
+	if ranking_jogadores.empty():
+		var vazio = _label(
 			tabela_box,
 			"Nenhum ranking ainda.\n\nFinalize uma Copa, Torneio ou Campeonato para alimentar o ChampionsDb.",
 			Vector2.ZERO,
 			Vector2(760, 170),
 			18,
 			COR_TEXTO,
-			HORIZONTAL_ALIGNMENT_CENTER,
-			VERTICAL_ALIGNMENT_CENTER
+			Label.ALIGN_CENTER,
+			Label.VALIGN_CENTER
 		)
-		vazio.custom_minimum_size = Vector2(760, 170)
+		vazio.rect_min_size = Vector2(760, 170)
 		_mostrar_sem_dados("Nenhum player registrado no TOP 3 ainda.")
 		return
 
@@ -709,14 +686,14 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 	var H: float = 62.0
 
 	var wrap := Panel.new()
-	wrap.custom_minimum_size = Vector2(W, H)
+	wrap.rect_min_size = Vector2(W, H)
 	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrap.add_theme_stylebox_override("panel", _style_button(cor, 0.54 if selecionado else 0.18, 14))
+	wrap.add_stylebox_override("panel", _style_button(cor, 0.54 if selecionado else 0.18, 14))
 	tabela_box.add_child(wrap)
 
 	var faixa := ColorRect.new()
-	faixa.position = Vector2(0, 7)
-	faixa.size = Vector2(6, H - 14)
+	faixa.rect_position = Vector2(0, 7)
+	faixa.rect_size = Vector2(6, H - 14)
 	faixa.color = cor
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_child(faixa)
@@ -731,9 +708,9 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.position.x, 0),
 		Vector2(r.size.x, H),
 		17,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER,
 		cor
 	)
 
@@ -744,9 +721,9 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.position.x, 0),
 		Vector2(r.size.x, H),
 		17,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		cor
 	)
 
@@ -760,8 +737,8 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.size.x, H),
 		20,
 		_cor_modo(modo_atual),
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER,
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER,
 		_cor_modo(modo_atual)
 	)
 
@@ -773,8 +750,8 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.size.x, H),
 		18,
 		COR_OURO,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 	r = c["vitorias"]
@@ -785,8 +762,8 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.size.x, H),
 		18,
 		COR_VERDE,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 	r = c["gols"]
@@ -797,8 +774,8 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.size.x, H),
 		18,
 		COR_BRONZE,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 	r = c["podios"]
@@ -809,28 +786,26 @@ func _adicionar_linha_player(p: Dictionary, posicao: int) -> void:
 		Vector2(r.size.x, H),
 		18,
 		COR_NEON,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 	var btn := Button.new()
 	btn.flat = true
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	btn.position = Vector2.ZERO
-	btn.size = Vector2(W, H)
-	btn.custom_minimum_size = Vector2(W, H)
+	btn.rect_position = Vector2.ZERO
+	btn.rect_size = Vector2(W, H)
+	btn.rect_min_size = Vector2(W, H)
 
 	var vazio_sb := StyleBoxEmpty.new()
-	btn.add_theme_stylebox_override("normal", vazio_sb)
-	btn.add_theme_stylebox_override("hover", vazio_sb)
-	btn.add_theme_stylebox_override("pressed", vazio_sb)
-	btn.add_theme_stylebox_override("focus", vazio_sb)
+	btn.add_stylebox_override("normal", vazio_sb)
+	btn.add_stylebox_override("hover", vazio_sb)
+	btn.add_stylebox_override("pressed", vazio_sb)
+	btn.add_stylebox_override("focus", vazio_sb)
 
 	var key_local: String = key
-	btn.pressed.connect(func() -> void:
-		_selecionar_player(key_local)
-	)
+	btn.connect("pressed", self, "_selecionar_player", [key_local])
 
 	wrap.add_child(btn)
 
@@ -851,7 +826,7 @@ func _valor_destaque(p: Dictionary) -> String:
 
 
 func _selecionar_inicial() -> void:
-	if ranking_jogadores.is_empty():
+	if ranking_jogadores.empty():
 		jogador_selecionado_key = ""
 		_mostrar_sem_dados("Nenhum player encontrado.")
 		return
@@ -899,24 +874,24 @@ func _mostrar_sem_dados(msg: String) -> void:
 	_label(
 		detalhe_panel,
 		"RANKING VAZIO",
-		Vector2(0, detalhe_panel.size.y * 0.35),
-		Vector2(detalhe_panel.size.x, 48),
+		Vector2(0, detalhe_panel.rect_size.y * 0.35),
+		Vector2(detalhe_panel.rect_size.x, 48),
 		30,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER,
 		COR_OURO
 	)
 
 	_label(
 		detalhe_panel,
 		msg,
-		Vector2(36, detalhe_panel.size.y * 0.47),
-		Vector2(detalhe_panel.size.x - 72, 80),
+		Vector2(36, detalhe_panel.rect_size.y * 0.47),
+		Vector2(detalhe_panel.rect_size.x - 72, 80),
 		16,
 		COR_TEXTO,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 func _mostrar_player(p: Dictionary) -> void:
@@ -928,8 +903,8 @@ func _mostrar_player(p: Dictionary) -> void:
 	var nome: String = str(p.get("nome", "---"))
 	var conquistas: Array = _as_array(p.get("conquistas", []))
 
-	var W: float = detalhe_panel.size.x
-	var H: float = detalhe_panel.size.y
+	var W: float = detalhe_panel.rect_size.x
+	var H: float = detalhe_panel.rect_size.y
 	var margem: float = 26.0
 	var inner_w: float = W - margem * 2.0
 
@@ -939,9 +914,9 @@ func _mostrar_player(p: Dictionary) -> void:
 		Vector2(margem, 18),
 		Vector2(inner_w, 46),
 		28,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		COR_OURO
 	)
 
@@ -952,13 +927,13 @@ func _mostrar_player(p: Dictionary) -> void:
 		Vector2(inner_w, 24),
 		12,
 		COR_TEXTO,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER
 	)
 
 	var linha := ColorRect.new()
-	linha.position = Vector2(margem, 100)
-	linha.size = Vector2(inner_w, 2)
+	linha.rect_position = Vector2(margem, 100)
+	linha.rect_size = Vector2(inner_w, 2)
 	linha.color = Color(COR_OURO.r, COR_OURO.g, COR_OURO.b, 0.55)
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	detalhe_panel.add_child(linha)
@@ -986,30 +961,26 @@ func _mostrar_player(p: Dictionary) -> void:
 		Vector2(inner_w, 30),
 		19,
 		COR_OURO,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		COR_OURO
 	)
 
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(margem, lista_y + 38)
-	scroll.size = Vector2(inner_w, H - lista_y - 56)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.rect_position = Vector2(margem, lista_y + 38)
+	scroll.rect_size = Vector2(inner_w, H - lista_y - 56)
+	scroll.scroll_horizontal_enabled = false
 	detalhe_panel.add_child(scroll)
 
-	detalhe_conquista_w = scroll.size.x - 4.0
+	detalhe_conquista_w = scroll.rect_size.x - 4.0
 
 	var box := VBoxContainer.new()
-	box.custom_minimum_size = Vector2(detalhe_conquista_w, 0)
+	box.rect_min_size = Vector2(detalhe_conquista_w, 0)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 10)
+	box.add_constant_override("separation", 10)
 	scroll.add_child(box)
 
-	conquistas.sort_custom(func(a: Variant, b: Variant) -> bool:
-		var da: Dictionary = _as_dict(a)
-		var db: Dictionary = _as_dict(b)
-		return int(da.get("score", 0)) > int(db.get("score", 0))
-	)
+	conquistas.sort_custom(self, "_ordem_2")
 
 	for cvar in conquistas:
 		var c: Dictionary = _as_dict(cvar)
@@ -1019,32 +990,32 @@ func _mostrar_player(p: Dictionary) -> void:
 
 func _criar_card_detalhe(parent: Control, titulo: String, valor: String, pos: Vector2, tam: Vector2, cor: Color) -> void:
 	var card := Panel.new()
-	card.position = pos
-	card.size = tam
+	card.rect_position = pos
+	card.rect_size = tam
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.add_theme_stylebox_override("panel", _style_button(cor, 0.32, 16))
+	card.add_stylebox_override("panel", _style_button(cor, 0.32, 16))
 	parent.add_child(card)
 
 	_label(
 		card,
 		titulo,
 		Vector2(10, 8),
-		Vector2(card.size.x - 20, 20),
+		Vector2(card.rect_size.x - 20, 20),
 		12,
 		Color(0.72, 0.80, 0.88),
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 	_label(
 		card,
 		valor,
 		Vector2(10, 28),
-		Vector2(card.size.x - 20, 42),
+		Vector2(card.rect_size.x - 20, 42),
 		26,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER,
 		cor
 	)
 
@@ -1057,9 +1028,9 @@ func _adicionar_card_conquista(parent: VBoxContainer, c: Dictionary) -> void:
 	var H: float = 90.0
 
 	var card := Panel.new()
-	card.custom_minimum_size = Vector2(W, H)
+	card.rect_min_size = Vector2(W, H)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.add_theme_stylebox_override("panel", _style_button(cor, 0.22, 14))
+	card.add_stylebox_override("panel", _style_button(cor, 0.22, 14))
 	parent.add_child(card)
 
 	var medalha_txt: String = "%dº" % posicao
@@ -1077,8 +1048,8 @@ func _adicionar_card_conquista(parent: VBoxContainer, c: Dictionary) -> void:
 		Vector2(150, 24),
 		12,
 		cor,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		cor
 	)
 
@@ -1089,8 +1060,8 @@ func _adicionar_card_conquista(parent: VBoxContainer, c: Dictionary) -> void:
 		Vector2(140, 24),
 		11,
 		COR_TEXTO,
-		HORIZONTAL_ALIGNMENT_RIGHT,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_RIGHT,
+		Label.VALIGN_CENTER
 	)
 
 	_label(
@@ -1099,9 +1070,9 @@ func _adicionar_card_conquista(parent: VBoxContainer, c: Dictionary) -> void:
 		Vector2(14, 34),
 		Vector2(W - 28, 24),
 		14,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER,
 		cor
 	)
 
@@ -1118,8 +1089,8 @@ func _adicionar_card_conquista(parent: VBoxContainer, c: Dictionary) -> void:
 		Vector2(W - 28, 20),
 		11,
 		COR_TEXTO,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_LEFT,
+		Label.VALIGN_CENTER
 	)
 
 
@@ -1129,9 +1100,9 @@ func _adicionar_card_conquista(parent: VBoxContainer, c: Dictionary) -> void:
 # ============================================================
 func _voltar_mural() -> void:
 	if ResourceLoader.exists(CENA_MURAL):
-		get_tree().change_scene_to_file(CENA_MURAL)
+		get_tree().change_scene(CENA_MURAL)
 	elif ResourceLoader.exists(CENA_OPENING):
-		get_tree().change_scene_to_file(CENA_OPENING)
+		get_tree().change_scene(CENA_OPENING)
 
 
 func _fechar_jogo_arcade() -> void:
@@ -1139,7 +1110,7 @@ func _fechar_jogo_arcade() -> void:
 		return
 
 	fechando_jogo = true
-	await get_tree().create_timer(0.08).timeout
+	yield(get_tree().create_timer(0.08), "timeout")
 	get_tree().quit()
 
 
@@ -1150,31 +1121,31 @@ func _input(event: InputEvent) -> void:
 	if not event.pressed or event.echo:
 		return
 
-	var viewport := get_viewport()
+	var viewport = get_viewport()
 
-	if event.ctrl_pressed and event.keycode == KEY_TAB:
+	if event.control and event.scancode == KEY_TAB:
 		if viewport:
 			viewport.set_input_as_handled()
 
 		_fechar_jogo_arcade()
 		return
 
-	if event.keycode == KEY_ESCAPE:
+	if event.scancode == KEY_ESCAPE:
 		if viewport:
 			viewport.set_input_as_handled()
 		return
 
-	if event.alt_pressed and event.keycode == KEY_F4:
+	if event.alt and event.scancode == KEY_F4:
 		if viewport:
 			viewport.set_input_as_handled()
 		return
 
-	if event.alt_pressed and event.keycode == KEY_TAB:
+	if event.alt and event.scancode == KEY_TAB:
 		if viewport:
 			viewport.set_input_as_handled()
 		return
 
-	if event.ctrl_pressed and event.keycode == KEY_ESCAPE:
+	if event.control and event.scancode == KEY_ESCAPE:
 		if viewport:
 			viewport.set_input_as_handled()
 		return
@@ -1185,7 +1156,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
 		return
 
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -1195,29 +1166,29 @@ func _notification(what: int) -> void:
 # ============================================================
 # HELPERS VISUAIS
 # ============================================================
-func _criar_botao(parent: Control, txt: String, pos: Vector2, tamanho: Vector2, cor: Color, acao: Callable) -> Button:
+func _criar_botao(parent: Control, txt: String, pos: Vector2, tamanho: Vector2, cor: Color, acao: String) -> Button:
 	var b := Button.new()
 	b.text = txt
-	b.position = pos
-	b.size = tamanho
-	b.custom_minimum_size = tamanho
+	b.rect_position = pos
+	b.rect_size = tamanho
+	b.rect_min_size = tamanho
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 	if fonte_orbitron:
-		b.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(b, fonte_orbitron)
 
-	b.add_theme_font_size_override("font_size", 13)
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_hover_color", Color.WHITE)
-	b.add_theme_color_override("font_pressed_color", cor)
+	Compat.tamanho(b, 13)
+	b.add_color_override("font_color", Color.white)
+	b.add_color_override("font_color_hover", Color.white)
+	b.add_color_override("font_color_pressed", cor)
 
-	b.add_theme_stylebox_override("normal", _style_button(cor, 0.22, 14))
-	b.add_theme_stylebox_override("hover", _style_button(cor, 0.55, 14))
-	b.add_theme_stylebox_override("pressed", _style_button(cor, 0.82, 14))
-	b.add_theme_stylebox_override("focus", _style_button(cor, 0.36, 14))
+	b.add_stylebox_override("normal", _style_button(cor, 0.22, 14))
+	b.add_stylebox_override("hover", _style_button(cor, 0.55, 14))
+	b.add_stylebox_override("pressed", _style_button(cor, 0.82, 14))
+	b.add_stylebox_override("focus", _style_button(cor, 0.36, 14))
 
-	b.pressed.connect(acao)
+	b.connect("pressed", self, acao)
 	parent.add_child(b)
 
 	return b
@@ -1230,33 +1201,33 @@ func _label(
 	tamanho: Vector2,
 	font_size: int,
 	cor: Color,
-	h_align := HORIZONTAL_ALIGNMENT_LEFT,
-	v_align := VERTICAL_ALIGNMENT_CENTER,
+	h_align := Label.ALIGN_LEFT,
+	v_align := Label.VALIGN_CENTER,
 	sombra: Color = Color(0, 0, 0, 0)
 ) -> Label:
 	var l := Label.new()
 	l.text = txt
-	l.position = pos
-	l.size = tamanho
-	l.horizontal_alignment = h_align
-	l.vertical_alignment = v_align
+	l.rect_position = pos
+	l.rect_size = tamanho
+	l.align = h_align
+	l.valign = v_align
 	l.clip_text = true
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.autowrap = true
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	pass  # (Godot 3: clip_text corta o texto)
 
 	if fonte_orbitron:
-		l.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(l, fonte_orbitron)
 
-	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", cor)
+	Compat.tamanho(l, font_size)
+	l.add_color_override("font_color", cor)
 
 	if sombra.a > 0.0:
-		l.add_theme_color_override("font_shadow_color", sombra)
-		l.add_theme_constant_override("shadow_offset_x", 0)
-		l.add_theme_constant_override("shadow_offset_y", 0)
-		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
-		l.add_theme_constant_override("outline_size", 3)
+		l.add_color_override("font_color_shadow", sombra)
+		l.add_constant_override("shadow_offset_x", 0)
+		l.add_constant_override("shadow_offset_y", 0)
+		l.add_color_override("font_outline_modulate", Color(0, 0, 0, 1))
+		Compat.contorno(l, 3)
 
 	parent.add_child(l)
 	return l
@@ -1299,8 +1270,8 @@ func _criar_bloco_resumo(parent: Control, titulo: String, valor: String, pos: Ve
 		Vector2(tamanho.x, 22),
 		12,
 		Color(0.68, 0.76, 0.84),
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER
 	)
 
 	_label(
@@ -1309,9 +1280,9 @@ func _criar_bloco_resumo(parent: Control, titulo: String, valor: String, pos: Ve
 		pos + Vector2(0, 25),
 		Vector2(tamanho.x, 42),
 		31,
-		Color.WHITE,
-		HORIZONTAL_ALIGNMENT_CENTER,
-		VERTICAL_ALIGNMENT_CENTER,
+		Color.white,
+		Label.ALIGN_CENTER,
+		Label.VALIGN_CENTER,
 		cor
 	)
 
@@ -1319,13 +1290,13 @@ func _criar_bloco_resumo(parent: Control, titulo: String, valor: String, pos: Ve
 # ============================================================
 # HELPERS DE DADOS
 # ============================================================
-func _as_dict(v: Variant) -> Dictionary:
+func _as_dict(v) -> Dictionary:
 	if v is Dictionary:
 		return v
 	return {}
 
 
-func _as_array(v: Variant) -> Array:
+func _as_array(v) -> Array:
 	if v is Array:
 		return v
 	return []
@@ -1352,15 +1323,15 @@ func _player_key(nome: String) -> String:
 func _ler_num(item: Dictionary, chaves: Array, padrao: int = 0) -> int:
 	for k in chaves:
 		if item.has(k):
-			var v: Variant = item[k]
+			var v = item[k]
 
-			if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+			if typeof(v) == TYPE_INT or typeof(v) == TYPE_REAL:
 				return int(v)
 
 			if typeof(v) == TYPE_STRING:
-				var s := str(v).strip_edges()
+				var s = str(v).strip_edges()
 
-				if s.is_valid_int():
+				if s.is_valid_integer():
 					return int(s)
 
 				if s.is_valid_float():
@@ -1372,7 +1343,7 @@ func _ler_num(item: Dictionary, chaves: Array, padrao: int = 0) -> int:
 func _ler_txt(item: Dictionary, chaves: Array, padrao: String = "-") -> String:
 	for k in chaves:
 		if item.has(k):
-			var s := str(item[k]).strip_edges()
+			var s = str(item[k]).strip_edges()
 			if s != "":
 				return s
 
@@ -1485,7 +1456,7 @@ func _colunas_tabela(W: float) -> Dictionary:
 
 	var x: float = 0.0
 
-	var cols := {}
+	var cols = {}
 
 	cols["pos"] = Rect2(Vector2(x, 0), Vector2(pos_w, 1))
 	x += pos_w + gap
@@ -1508,3 +1479,30 @@ func _colunas_tabela(W: float) -> Dictionary:
 	cols["podios"] = Rect2(Vector2(x, 0), Vector2(podios_w, 1))
 
 	return cols
+
+
+func _ordem_1(a, b) -> bool:
+	var pa: Dictionary = _as_dict(a)
+	var pb: Dictionary = _as_dict(b)
+
+	match modo_atual:
+		MODO_GOLS:
+			return _comparar_por_lista(pa, pb, ["gols_total", "titulos", "vitorias_total", "podios", "score_campanha"])
+
+		MODO_TITULOS:
+			return _comparar_por_lista(pa, pb, ["titulos", "vices", "terceiros", "gols_total", "vitorias_total"])
+
+		MODO_VITORIAS:
+			return _comparar_por_lista(pa, pb, ["vitorias_total", "titulos", "gols_total", "podios", "score_campanha"])
+
+		MODO_PODIOS:
+			return _comparar_por_lista(pa, pb, ["podios", "titulos", "vices", "terceiros", "gols_total"])
+
+		_:
+			return _comparar_por_lista(pa, pb, ["score_campanha", "titulos", "vitorias_total", "gols_total", "podios"])
+
+
+func _ordem_2(a, b) -> bool:
+	var da: Dictionary = _as_dict(a)
+	var db: Dictionary = _as_dict(b)
+	return int(da.get("score", 0)) > int(db.get("score", 0))

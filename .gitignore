@@ -1,3 +1,14 @@
-# Godot 4+ specific ignores
+# Godot 3.6 (versão TV Box S905L): cache de importação e o modelo Android
+# que o GERAR_APK extrai no PC. android/plugins (plugin USB) FICA no git.
+.import/
 .godot/
-/android/
+/android/build/
+/android/.build_version
+# Saídas de build e arquivos gerados na máquina
+/build/
+/APK-Pronto/
+*.apk
+*.idsig
+/logs/
+/sobras_de_versoes_antigas/
+tools/__pycache__/

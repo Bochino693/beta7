@@ -27,7 +27,7 @@ var podio_hold_barra_w: float = 0.0
 var podio_hold_label: Label = null
 
 
-const PATROCINADORES_FIXOS: Array[String] = [
+const PATROCINADORES_FIXOS: Array = [
 	"res://patro/logoofi.png",
 	"res://patro/bar.png",
 	"res://patro/bud.png",
@@ -64,11 +64,11 @@ const COR_BRONZE: Color = Color(0.86, 0.55, 0.28)
 
 const NUM_GRUPOS: int = 4
 const JOGADORES_POR_GRUPO: int = 4
-const LETRAS_GRUPO: Array[String] = ["A", "B", "C", "D"]
+const LETRAS_GRUPO: Array = ["A", "B", "C", "D"]
 
-const MUSICA_CUP_LOBBY: String = "res://songs/cup_song.mp3"
-const SFX_SELECT_CUP: String = "res://songs/player_select.mp3"
-const SFX_CONFIRM_CUP: String = "res://songs/game_start.mp3"
+const MUSICA_CUP_LOBBY: String = "res://songs/cup_song.ogg"
+const SFX_SELECT_CUP: String = "res://songs/player_select.wav"
+const SFX_CONFIRM_CUP: String = "res://songs/game_start.wav"
 
 const IMAGEM_LOADING_COPA: String = "res://images/loading.png"
 const IMAGEM_BACK_COPA: String = "res://fundos/back.png"
@@ -79,7 +79,7 @@ const SERIAL_PORTA_LOBBY: String = "COM5"
 const SERIAL_BAUD_LOBBY: int = 9600
 
 const LEDS_TOTAL: int = 7
-const LEDS_LETRAS: Array[String] = ["A", "B", "C", "D", "E", "F", "G"]
+const LEDS_LETRAS: Array = ["A", "B", "C", "D", "E", "F", "G"]
 
 const TEMPO_LED_LOBBY: float = 0.26
 const LEDS_LOBBY_MIN: int = 1
@@ -92,10 +92,10 @@ const FASE_FINAL: String = "FINAL"
 const FASE_ENCERRADA: String = "ENCERRADA"
 
 const PASTA_PATROCINADORES: String = "res://patro"
-const EXT_PATROCINADORES: Array[String] = ["png", "jpg", "jpeg", "webp"]
+const EXT_PATROCINADORES: Array = ["png", "jpg", "jpeg", "webp"]
 
 
-const SFX_CAMPEAO_CUP: String = "res://songs/campeao.mp3"
+const SFX_CAMPEAO_CUP: String = "res://songs/campeao.ogg"
 const TEMPO_RETORNO_OPENING_FINAL: float = 21.0
 
 var sfx_campeao_cup: AudioStreamPlayer = null
@@ -154,9 +154,10 @@ var ponte_lobby_pronta: bool = false
 
 
 func _ready() -> void:
+	var _g3_estado = null
 	randomize()
 	get_tree().auto_accept_quit = false
-	RenderingServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
+	VisualServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
 
 	_travar_arcade()
 	_carregar_fontes()
@@ -165,12 +166,12 @@ func _ready() -> void:
 	_criar_fundo()
 	_criar_ui_root()
 
-	var loading_lobby := _mostrar_tela_carregamento_lobby(
+	var loading_lobby = _mostrar_tela_carregamento_lobby(
 		"CARREGANDO LOBBY",
 		"PREPARANDO COPA..."
 	)
 
-	await get_tree().process_frame
+	yield(get_tree(), "idle_frame")
 
 	_criar_audios_cup()
 
@@ -189,16 +190,20 @@ func _ready() -> void:
 	# Monta a tela por trás do loading.
 	_montar_tela_lobby()
 
-	await get_tree().process_frame
+	yield(get_tree(), "idle_frame")
 
 	# Conecta LEDs ainda com loading na tela.
-	await _abrir_serial_lobby()
+	_g3_estado = _abrir_serial_lobby()
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
-	await get_tree().process_frame
+	yield(get_tree(), "idle_frame")
 
 	_tocar_musica_cup()
 
-	await _remover_tela_carregamento_lobby(loading_lobby)
+	_g3_estado = _remover_tela_carregamento_lobby(loading_lobby)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 
 
@@ -206,7 +211,10 @@ func _process(delta: float) -> void:
 	_processar_mouse_hibernacao(delta)
 
 	if ponteiro:
-		ponteiro.position = get_viewport().get_mouse_position()
+		# TV Box sem mouse: o ponteiro só aparece quando um mouse se mexer.
+		if not ponteiro.visible and Input.get_last_mouse_speed() != Vector2.ZERO:
+			ponteiro.visible = true
+		ponteiro.rect_position = get_viewport().get_mouse_position()
 
 	_processar_leds_lobby(delta)
 	_processar_confetes(delta)
@@ -217,18 +225,18 @@ func _process(delta: float) -> void:
 # DADOS
 # ============================================================
 func _carregar_dados_copa() -> void:
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		if cg.grupos_copa is Array and cg.grupos_copa.size() > 0:
 			grupos = cg.grupos_copa.duplicate(true)
 
-	if grupos.is_empty() and get_tree().has_meta("copa_grupos"):
-		var g_meta: Variant = get_tree().get_meta("copa_grupos")
+	if grupos.empty() and get_tree().has_meta("copa_grupos"):
+		var g_meta = get_tree().get_meta("copa_grupos")
 		if g_meta is Array:
 			grupos = g_meta
 
-	if grupos.is_empty():
+	if grupos.empty():
 		push_warning("Nenhum grupo recebido. Criando grupos vazios para evitar erro.")
 		grupos = _criar_grupos_fallback()
 
@@ -300,7 +308,7 @@ func _garantir_estatisticas() -> void:
 
 
 func _salvar_estado_copa() -> void:
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		cg.salvar_estado_copa(grupos, partidas, partida_atual_index)
@@ -315,7 +323,7 @@ func _salvar_estado_copa() -> void:
 # Cada grupo com 4 jogadores gera 2 rodadas de 4 jogadores.
 # ============================================================
 func _gerar_partidas_grupos() -> void:
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		if cg.partidas_copa is Array and cg.partidas_copa.size() > 0:
@@ -324,7 +332,7 @@ func _gerar_partidas_grupos() -> void:
 			return
 
 	if get_tree().has_meta("copa_partidas"):
-		var p_meta: Variant = get_tree().get_meta("copa_partidas")
+		var p_meta = get_tree().get_meta("copa_partidas")
 		if p_meta is Array and p_meta.size() > 0:
 			partidas = p_meta
 			_atualizar_fase_atual()
@@ -353,11 +361,11 @@ func _gerar_partidas_grupos() -> void:
 
 
 func _atualizar_fase_atual() -> void:
-	if partidas.is_empty():
+	if partidas.empty():
 		fase_atual = FASE_GRUPOS
 		return
 
-	var ordem_fases: Array[String] = [
+	var ordem_fases: Array = [
 		FASE_GRUPOS,
 		FASE_OITAVAS,
 		FASE_SEMIFINAL,
@@ -406,7 +414,7 @@ func _fase_totalmente_finalizada(fase: String) -> bool:
 
 
 func _buscar_proxima_partida_pendente() -> int:
-	var ordem_fases: Array[String] = [
+	var ordem_fases: Array = [
 		FASE_GRUPOS,
 		FASE_OITAVAS,
 		FASE_SEMIFINAL,
@@ -477,25 +485,25 @@ func _montar_tela_lobby() -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	var header := Panel.new()
-	header.position = Vector2.ZERO
-	header.size = Vector2(vp.x, 86)
+	header.rect_position = Vector2.ZERO
+	header.rect_size = Vector2(vp.x, 86)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.add_theme_stylebox_override(
+	header.add_stylebox_override(
 		"panel",
 		_style_panel(Color(1, 1, 1, 0.12), Color(0.016, 0.020, 0.030, 0.98), 0.20)
 	)
 	ui_root.add_child(header)
 
-	var titulo := _label("🏆  LOBBY DA COPA", 36, Color.WHITE, COR_NEON)
-	titulo.position = Vector2(44, 0)
-	titulo.size = Vector2(vp.x * 0.50, 86)
-	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var titulo = _label("🏆  LOBBY DA COPA", 36, Color.white, COR_NEON)
+	titulo.rect_position = Vector2(44, 0)
+	titulo.rect_size = Vector2(vp.x * 0.50, 86)
+	titulo.align = Label.ALIGN_LEFT
 	ui_root.add_child(titulo)
 
-	var badge := _label(_texto_fase_atual(), 17, COR_ALERTA)
-	badge.position = Vector2(vp.x - 430, 0)
-	badge.size = Vector2(380, 86)
-	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var badge = _label(_texto_fase_atual(), 17, COR_ALERTA)
+	badge.rect_position = Vector2(vp.x - 430, 0)
+	badge.rect_size = Vector2(380, 86)
+	badge.align = Label.ALIGN_RIGHT
 	ui_root.add_child(badge)
 
 	# Fundo da Copa abaixo do cabeçalho.
@@ -517,7 +525,7 @@ func _criar_fluxograma_copa(vp: Vector2) -> void:
 	var h: float = 68.0
 
 	# Mais largura para respirar em X.
-	var total_w: float = minf(vp.x - 96.0, 1320.0)
+	var total_w: float = min(vp.x - 96.0, 1320.0)
 	var x: float = (vp.x - total_w) / 2.0
 
 	# Gap maior para a seta ficar bonita.
@@ -580,57 +588,57 @@ func _criar_fluxograma_copa(vp: Vector2) -> void:
 			brilho = 0.02
 
 		if sendo_vista:
-			brilho = maxf(brilho, 0.72)
+			brilho = max(brilho, 0.72)
 			fundo = Color(
-				minf(fundo.r + 0.018, 1.0),
-				minf(fundo.g + 0.018, 1.0),
-				minf(fundo.b + 0.026, 1.0),
+				min(fundo.r + 0.018, 1.0),
+				min(fundo.g + 0.018, 1.0),
+				min(fundo.b + 0.026, 1.0),
 				fundo.a
 			)
 
-		var box_pos := Vector2(x + float(i) * (box_w + gap), y)
+		var box_pos = Vector2(x + float(i) * (box_w + gap), y)
 
 		var box := Panel.new()
-		box.position = box_pos
-		box.size = Vector2(box_w, h)
+		box.rect_position = box_pos
+		box.rect_size = Vector2(box_w, h)
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_theme_stylebox_override("panel", _style_panel(cor, fundo, brilho))
+		box.add_stylebox_override("panel", _style_panel(cor, fundo, brilho))
 		ui_root.add_child(box)
 
 		# Número pequeno da etapa.
 		var num_box := Panel.new()
-		num_box.position = Vector2(14, 15)
-		num_box.size = Vector2(32, 32)
+		num_box.rect_position = Vector2(14, 15)
+		num_box.rect_size = Vector2(32, 32)
 		num_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		num_box.add_theme_stylebox_override("panel", _style_chip(cor))
+		num_box.add_stylebox_override("panel", _style_chip(cor))
 		box.add_child(num_box)
 
-		var num_lbl := _label(str(i + 1), 15, Color.WHITE)
-		num_lbl.position = Vector2.ZERO
-		num_lbl.size = num_box.size
-		num_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-		num_lbl.add_theme_constant_override("outline_size", 3)
+		var num_lbl = _label(str(i + 1), 15, Color.white)
+		num_lbl.rect_position = Vector2.ZERO
+		num_lbl.rect_size = num_box.rect_size
+		num_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+		Compat.contorno(num_lbl, 3)
 		num_box.add_child(num_lbl)
 
-		var titulo := _label(str(e["titulo"]), 19, Color.WHITE, cor)
-		titulo.position = Vector2(54, 8)
-		titulo.size = Vector2(box_w - 68, 32)
-		titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
-		titulo.add_theme_constant_override("outline_size", 4)
+		var titulo = _label(str(e["titulo"]), 19, Color.white, cor)
+		titulo.rect_position = Vector2(54, 8)
+		titulo.rect_size = Vector2(box_w - 68, 32)
+		titulo.align = Label.ALIGN_LEFT
+		titulo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.92))
+		Compat.contorno(titulo, 4)
 		box.add_child(titulo)
 
-		var sub := _label(str(e["sub"]), 13, Color(0.74, 0.84, 0.96))
-		sub.position = Vector2(54, 38)
-		sub.size = Vector2(box_w - 68, 24)
-		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var sub = _label(str(e["sub"]), 13, Color(0.74, 0.84, 0.96))
+		sub.rect_position = Vector2(54, 38)
+		sub.rect_size = Vector2(box_w - 68, 24)
+		sub.align = Label.ALIGN_LEFT
 		box.add_child(sub)
 
 		if sendo_vista:
 			var underline := ColorRect.new()
 			underline.color = Color(cor.r, cor.g, cor.b, 1.0)
-			underline.position = Vector2(box_w * 0.18, h - 7)
-			underline.size = Vector2(box_w * 0.64, 4)
+			underline.rect_position = Vector2(box_w * 0.18, h - 7)
+			underline.rect_size = Vector2(box_w * 0.64, 4)
 			underline.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			box.add_child(underline)
 
@@ -638,21 +646,17 @@ func _criar_fluxograma_copa(vp: Vector2) -> void:
 
 		if acessivel:
 			var btn := Button.new()
-			btn.position = box.position
-			btn.size = box.size
+			btn.rect_position = box.rect_position
+			btn.rect_size = box.rect_size
 			btn.focus_mode = Control.FOCUS_NONE
 			btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-			btn.add_theme_stylebox_override("normal", _style_transparente(0.0))
-			btn.add_theme_stylebox_override("hover", _style_transparente(0.12, cor))
-			btn.add_theme_stylebox_override("pressed", _style_transparente(0.20, cor))
-			btn.add_theme_stylebox_override("focus", _style_transparente(0.0))
+			btn.add_stylebox_override("normal", _style_transparente(0.0))
+			btn.add_stylebox_override("hover", _style_transparente(0.12, cor))
+			btn.add_stylebox_override("pressed", _style_transparente(0.20, cor))
+			btn.add_stylebox_override("focus", _style_transparente(0.0))
 
 			var fase_alvo: String = fase
-			btn.pressed.connect(func():
-				_tocar_select_cup()
-				fase_visualizada = fase_alvo
-				_montar_tela_lobby()
-			)
+			btn.connect("pressed", self, "_g3_ver_fase", [fase_alvo])
 
 			ui_root.add_child(btn)
 
@@ -663,8 +667,8 @@ func _criar_fluxograma_copa(vp: Vector2) -> void:
 			var seta_y: float = y + h * 0.5 - seta_tam * 0.5
 
 			var seta_box := Panel.new()
-			seta_box.position = Vector2(seta_x, seta_y)
-			seta_box.size = Vector2(seta_tam, seta_tam)
+			seta_box.rect_position = Vector2(seta_x, seta_y)
+			seta_box.rect_size = Vector2(seta_tam, seta_tam)
 			seta_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 			var seta_style := StyleBoxFlat.new()
@@ -675,14 +679,14 @@ func _criar_fluxograma_copa(vp: Vector2) -> void:
 			seta_style.shadow_color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.42)
 			seta_style.shadow_size = 14
 			seta_style.shadow_offset = Vector2.ZERO
-			seta_box.add_theme_stylebox_override("panel", seta_style)
+			seta_box.add_stylebox_override("panel", seta_style)
 			ui_root.add_child(seta_box)
 
-			var seta_lbl := _label("➜", 25, Color.WHITE, COR_NEON)
-			seta_lbl.position = Vector2(0, -1)
-			seta_lbl.size = Vector2(seta_tam, seta_tam)
-			seta_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.94))
-			seta_lbl.add_theme_constant_override("outline_size", 4)
+			var seta_lbl = _label("➜", 25, Color.white, COR_NEON)
+			seta_lbl.rect_position = Vector2(0, -1)
+			seta_lbl.rect_size = Vector2(seta_tam, seta_tam)
+			seta_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.94))
+			Compat.contorno(seta_lbl, 4)
 			seta_box.add_child(seta_lbl)
 
 
@@ -693,13 +697,13 @@ func _estado_visual_fase(fase: String) -> String:
 		if fase == FASE_GRUPOS:
 			return "CONCLUIDA"
 
-		if fase == FASE_OITAVAS and not _partidas_da_fase(FASE_OITAVAS).is_empty():
+		if fase == FASE_OITAVAS and not _partidas_da_fase(FASE_OITAVAS).empty():
 			return "CONCLUIDA"
 
-		if fase == FASE_SEMIFINAL and not _partidas_da_fase(FASE_SEMIFINAL).is_empty():
+		if fase == FASE_SEMIFINAL and not _partidas_da_fase(FASE_SEMIFINAL).empty():
 			return "CONCLUIDA"
 
-		if fase == FASE_FINAL and not _partidas_da_fase(FASE_FINAL).is_empty():
+		if fase == FASE_FINAL and not _partidas_da_fase(FASE_FINAL).empty():
 			return "CONCLUIDA"
 
 		return "BLOQUEADA"
@@ -714,7 +718,7 @@ func _estado_visual_fase(fase: String) -> String:
 		return "ATUAL"
 
 	if fase == FASE_OITAVAS:
-		if _partidas_da_fase(FASE_OITAVAS).is_empty():
+		if _partidas_da_fase(FASE_OITAVAS).empty():
 			return "BLOQUEADA"
 
 		if _fase_totalmente_finalizada(FASE_OITAVAS):
@@ -726,7 +730,7 @@ func _estado_visual_fase(fase: String) -> String:
 		return "LIBERADA"
 
 	if fase == FASE_SEMIFINAL:
-		if _partidas_da_fase(FASE_SEMIFINAL).is_empty():
+		if _partidas_da_fase(FASE_SEMIFINAL).empty():
 			return "BLOQUEADA"
 
 		if _fase_totalmente_finalizada(FASE_SEMIFINAL):
@@ -738,7 +742,7 @@ func _estado_visual_fase(fase: String) -> String:
 		return "LIBERADA"
 
 	if fase == FASE_FINAL:
-		if _partidas_da_fase(FASE_FINAL).is_empty():
+		if _partidas_da_fase(FASE_FINAL).empty():
 			return "BLOQUEADA"
 
 		if _fase_totalmente_finalizada(FASE_FINAL):
@@ -770,7 +774,7 @@ func _texto_fase_atual() -> String:
 
 
 func _criar_grid_grupos(vp: Vector2) -> void:
-	var grid_w: float = minf(vp.x - 88.0, 1380.0)
+	var grid_w: float = min(vp.x - 88.0, 1380.0)
 	var grid_h: float = vp.y - 310.0
 	var grid_x: float = (vp.x - grid_w) / 2.0
 	var grid_y: float = 212.0
@@ -797,8 +801,8 @@ func _criar_grid_grupos(vp: Vector2) -> void:
 		var grupo_nome: String = str(grupos[g].get("grupo", ""))
 		var destaque: bool = fase_atual == FASE_GRUPOS and grupo_nome == grupo_ativo
 
-		var card := _criar_card_grupo(g, Vector2(card_w, card_h), destaque)
-		card.position = Vector2(px, py)
+		var card = _criar_card_grupo(g, Vector2(card_w, card_h), destaque)
+		card.rect_position = Vector2(px, py)
 		ui_root.add_child(card)
 
 
@@ -859,27 +863,27 @@ func _y_linha_jogador_grupo(rect: Rect2, pos_rank: int) -> float:
 
 func _desenhar_linha_diagonal_neon(a: Vector2, b: Vector2, cor: Color, espessura: float = 4.0, brilho: float = 0.52) -> void:
 	var sombra := Line2D.new()
-	sombra.points = PackedVector2Array([a, b])
+	sombra.points = PoolVector2Array([a, b])
 	sombra.width = espessura * 3.4
 	sombra.default_color = Color(cor.r, cor.g, cor.b, brilho * 0.24)
 	sombra.antialiased = true
-	sombra.z_index = 8
+	Compat.z(sombra, 8)
 	ui_root.add_child(sombra)
 
 	var linha := Line2D.new()
-	linha.points = PackedVector2Array([a, b])
+	linha.points = PoolVector2Array([a, b])
 	linha.width = espessura
 	linha.default_color = Color(cor.r, cor.g, cor.b, 0.95)
 	linha.antialiased = true
-	linha.z_index = 9
+	Compat.z(linha, 9)
 	ui_root.add_child(linha)
 
 	var brilho_centro := Line2D.new()
-	brilho_centro.points = PackedVector2Array([a, b])
-	brilho_centro.width = maxf(1.0, espessura * 0.30)
+	brilho_centro.points = PoolVector2Array([a, b])
+	brilho_centro.width = max(1.0, espessura * 0.30)
 	brilho_centro.default_color = Color(1, 1, 1, 0.45)
 	brilho_centro.antialiased = true
-	brilho_centro.z_index = 10
+	Compat.z(brilho_centro, 10)
 	ui_root.add_child(brilho_centro)
 
 	_criar_no_conexao(a, cor)
@@ -938,25 +942,25 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 	# ========================================================
 	if fase_visualizada == FASE_OITAVAS:
 		var gap_top8: float = 42.0
-		var card_w: float = minf((vp.x - area_x * 2.0 - gap_top8) / 2.0, 560.0)
-		var card_h: float = minf(corpo_h - 18.0, 430.0)
+		var card_w: float = min((vp.x - area_x * 2.0 - gap_top8) / 2.0, 560.0)
+		var card_h: float = min(corpo_h - 18.0, 430.0)
 
-		card_w = maxf(card_w, 390.0)
-		card_h = maxf(card_h, 300.0)
+		card_w = max(card_w, 390.0)
+		card_h = max(card_h, 300.0)
 
 		var total_w: float = card_w * 2.0 + gap_top8
 		var x_a: float = centro_x - total_w * 0.5
 		var x_b: float = x_a + card_w + gap_top8
 		var y: float = corpo_y + (corpo_h - card_h) * 0.5
 
-		var titulo := _label("TOP 8 DA COPA", 24, Color.WHITE, COR_NEON)
-		titulo.position = Vector2(0, area_y - 2)
-		titulo.size = Vector2(vp.x, 34)
+		var titulo = _label("TOP 8 DA COPA", 24, Color.white, COR_NEON)
+		titulo.rect_position = Vector2(0, area_y - 2)
+		titulo.rect_size = Vector2(vp.x, 34)
 		ui_root.add_child(titulo)
 
-		var sub := _label("2 PARTIDAS COM 4 JOGADORES  •  PASSAM 2 DE CADA  •  EMPATE POR CRITÉRIO", 13, Color(0.68, 0.78, 0.90))
-		sub.position = Vector2(0, area_y + 28)
-		sub.size = Vector2(vp.x, 22)
+		var sub = _label("2 PARTIDAS COM 4 JOGADORES  •  PASSAM 2 DE CADA  •  EMPATE POR CRITÉRIO", 13, Color(0.68, 0.78, 0.90))
+		sub.rect_position = Vector2(0, area_y + 28)
+		sub.rect_size = Vector2(vp.x, 22)
 		ui_root.add_child(sub)
 
 		ui_root.add_child(_card_partida_knockout_moderno(
@@ -979,11 +983,11 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 	# MODO SEMIFINAL — MOSTRA TOP 8 + SEMIFINAL, SEM FINAL
 	# ========================================================
 	if fase_visualizada == FASE_SEMIFINAL:
-		var top8_w: float = clampf(vp.x * 0.245, 320.0, 430.0)
-		var semi_w: float = clampf(vp.x * 0.245, 320.0, 430.0)
+		var top8_w: float = clamp(vp.x * 0.245, 320.0, 430.0)
+		var semi_w: float = clamp(vp.x * 0.245, 320.0, 430.0)
 
-		var top8_h: float = clampf(corpo_h * 0.42, 230.0, 300.0)
-		var semi_h: float = clampf(corpo_h * 0.34, 180.0, 250.0)
+		var top8_h: float = clamp(corpo_h * 0.42, 230.0, 300.0)
+		var semi_h: float = clamp(corpo_h * 0.34, 180.0, 250.0)
 
 		var gap_x: float = 54.0
 		var total_w_semi: float = top8_w + gap_x + semi_w + gap_x + semi_w + gap_x + top8_w
@@ -1005,19 +1009,19 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 		if y_semi + semi_h > footer_limite:
 			y_semi = footer_limite - semi_h - 4.0
 
-		var rect_top8_a := Rect2(Vector2(x_top8_a, y_top8), Vector2(top8_w, top8_h))
-		var rect_top8_b := Rect2(Vector2(x_top8_b, y_top8), Vector2(top8_w, top8_h))
-		var rect_semi_a := Rect2(Vector2(x_semi_a, y_semi), Vector2(semi_w, semi_h))
-		var rect_semi_b := Rect2(Vector2(x_semi_b, y_semi), Vector2(semi_w, semi_h))
+		var rect_top8_a = Rect2(Vector2(x_top8_a, y_top8), Vector2(top8_w, top8_h))
+		var rect_top8_b = Rect2(Vector2(x_top8_b, y_top8), Vector2(top8_w, top8_h))
+		var rect_semi_a = Rect2(Vector2(x_semi_a, y_semi), Vector2(semi_w, semi_h))
+		var rect_semi_b = Rect2(Vector2(x_semi_b, y_semi), Vector2(semi_w, semi_h))
 
-		var titulo2 := _label("SEMIFINAL DA COPA", 24, Color.WHITE, COR_ALERTA)
-		titulo2.position = Vector2(0, area_y - 2)
-		titulo2.size = Vector2(vp.x, 34)
+		var titulo2 = _label("SEMIFINAL DA COPA", 24, Color.white, COR_ALERTA)
+		titulo2.rect_position = Vector2(0, area_y - 2)
+		titulo2.rect_size = Vector2(vp.x, 34)
 		ui_root.add_child(titulo2)
 
-		var sub2 := _label("TOP 8 CLASSIFICOU 4 JOGADORES  •  EMPATE TEM PRORROGAÇÃO + PÊNALTIS", 13, Color(0.68, 0.78, 0.90))
-		sub2.position = Vector2(0, area_y + 28)
-		sub2.size = Vector2(vp.x, 22)
+		var sub2 = _label("TOP 8 CLASSIFICOU 4 JOGADORES  •  EMPATE TEM PRORROGAÇÃO + PÊNALTIS", 13, Color(0.68, 0.78, 0.90))
+		sub2.rect_position = Vector2(0, area_y + 28)
+		sub2.rect_size = Vector2(vp.x, 22)
 		ui_root.add_child(sub2)
 
 		_desenhar_conexao_lado_aberto(rect_top8_a, rect_semi_a, _cor_caminho_partida(p_top8_a), "ESQ")
@@ -1076,14 +1080,14 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 		var gap_y_3: float
 
 		if compacto:
-			top8_w = clampf(vp.x * 0.188, 245.0, 292.0)
-			semi_w = clampf(vp.x * 0.150, 182.0, 230.0)
-			centro_w = clampf(vp.x * 0.222, 280.0, 345.0)
+			top8_w = clamp(vp.x * 0.188, 245.0, 292.0)
+			semi_w = clamp(vp.x * 0.150, 182.0, 230.0)
+			centro_w = clamp(vp.x * 0.222, 280.0, 345.0)
 
-			top8_h = clampf(corpo_h * 0.315, 188.0, 218.0)
-			semi_h = clampf(corpo_h * 0.205, 124.0, 150.0)
-			final_h = clampf(corpo_h * 0.215, 136.0, 164.0)
-			terceiro_h = clampf(corpo_h * 0.195, 118.0, 146.0)
+			top8_h = clamp(corpo_h * 0.315, 188.0, 218.0)
+			semi_h = clamp(corpo_h * 0.205, 124.0, 150.0)
+			final_h = clamp(corpo_h * 0.215, 136.0, 164.0)
+			terceiro_h = clamp(corpo_h * 0.195, 118.0, 146.0)
 
 			gap_x_top8_semi = 8.0
 			gap_x_semi_centro = 12.0
@@ -1092,9 +1096,9 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 			gap_y_2 = 10.0
 			gap_y_3 = 8.0
 		else:
-			top8_w = clampf(vp.x * 0.198, 300.0, 350.0)
-			semi_w = clampf(vp.x * 0.155, 220.0, 265.0)
-			centro_w = clampf(vp.x * 0.222, 320.0, 395.0)
+			top8_w = clamp(vp.x * 0.198, 300.0, 350.0)
+			semi_w = clamp(vp.x * 0.155, 220.0, 265.0)
+			centro_w = clamp(vp.x * 0.222, 320.0, 395.0)
 
 			top8_h = 224.0
 			semi_h = 158.0
@@ -1143,11 +1147,11 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 
 		if x_semi_a + semi_w > x_final - 6.0:
 			x_semi_a = x_final - semi_w - 8.0
-			x_top8_a = maxf(area_x, x_semi_a - top8_w - 6.0)
+			x_top8_a = max(area_x, x_semi_a - top8_w - 6.0)
 
 		if x_semi_b < x_final + centro_w + 6.0:
 			x_semi_b = x_final + centro_w + 8.0
-			x_top8_b = minf(vp.x - area_x - top8_w, x_semi_b + semi_w + 6.0)
+			x_top8_b = min(vp.x - area_x - top8_w, x_semi_b + semi_w + 6.0)
 
 		var y_top8: float = corpo_y + 2.0
 		var y_semi: float = y_top8 + top8_h + gap_y_1
@@ -1172,23 +1176,23 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 			y_final += volta
 			y_terceiro += volta
 
-		var rect_top8_a := Rect2(Vector2(x_top8_a, y_top8), Vector2(top8_w, top8_h))
-		var rect_top8_b := Rect2(Vector2(x_top8_b, y_top8), Vector2(top8_w, top8_h))
+		var rect_top8_a = Rect2(Vector2(x_top8_a, y_top8), Vector2(top8_w, top8_h))
+		var rect_top8_b = Rect2(Vector2(x_top8_b, y_top8), Vector2(top8_w, top8_h))
 
-		var rect_semi_a := Rect2(Vector2(x_semi_a, y_semi), Vector2(semi_w, semi_h))
-		var rect_semi_b := Rect2(Vector2(x_semi_b, y_semi), Vector2(semi_w, semi_h))
+		var rect_semi_a = Rect2(Vector2(x_semi_a, y_semi), Vector2(semi_w, semi_h))
+		var rect_semi_b = Rect2(Vector2(x_semi_b, y_semi), Vector2(semi_w, semi_h))
 
-		var rect_final := Rect2(Vector2(x_final, y_final), Vector2(centro_w, final_h))
-		var rect_terceiro := Rect2(Vector2(x_terceiro, y_terceiro), Vector2(centro_w, terceiro_h))
+		var rect_final = Rect2(Vector2(x_final, y_final), Vector2(centro_w, final_h))
+		var rect_terceiro = Rect2(Vector2(x_terceiro, y_terceiro), Vector2(centro_w, terceiro_h))
 
-		var titulo3 := _label("GRANDE FINAL DA COPA", 24, Color.WHITE, COR_ALERTA)
-		titulo3.position = Vector2(0, area_y - 2)
-		titulo3.size = Vector2(vp.x, 34)
+		var titulo3 = _label("GRANDE FINAL DA COPA", 24, Color.white, COR_ALERTA)
+		titulo3.rect_position = Vector2(0, area_y - 2)
+		titulo3.rect_size = Vector2(vp.x, 34)
 		ui_root.add_child(titulo3)
 
-		var sub3 := _label("CHAVEAMENTO COMPLETO  •  FINAL  •  DECISÃO DO 3º LUGAR", 13, Color(0.68, 0.78, 0.90))
-		sub3.position = Vector2(0, area_y + 28)
-		sub3.size = Vector2(vp.x, 22)
+		var sub3 = _label("CHAVEAMENTO COMPLETO  •  FINAL  •  DECISÃO DO 3º LUGAR", 13, Color(0.68, 0.78, 0.90))
+		sub3.rect_position = Vector2(0, area_y + 28)
+		sub3.rect_size = Vector2(vp.x, 22)
 		ui_root.add_child(sub3)
 
 		_desenhar_conexao_lado_aberto(rect_top8_a, rect_semi_a, _cor_caminho_partida(p_top8_a), "ESQ")
@@ -1198,7 +1202,7 @@ func _criar_bracket_knockout(vp: Vector2) -> void:
 		_desenhar_conexao_lado_aberto(rect_semi_b, rect_final, _cor_caminho_partida(p_semi_b), "DIR")
 
 		var cor_terceiro: Color = COR_BRONZE
-		if not p_terceiro.is_empty():
+		if not p_terceiro.empty():
 			cor_terceiro = _cor_caminho_partida(p_terceiro)
 
 		_desenhar_conexao_lado_aberto(rect_semi_a, rect_terceiro, cor_terceiro, "ESQ")
@@ -1279,7 +1283,7 @@ func _desenhar_conexao_lado_aberto(origem: Rect2, destino: Rect2, cor: Color, la
 		)
 
 	var distancia_x: float = abs(end.x - start.x)
-	var recuo: float = clampf(distancia_x * 0.45, 24.0, 70.0)
+	var recuo: float = clamp(distancia_x * 0.45, 24.0, 70.0)
 
 	var meio_x: float
 
@@ -1288,10 +1292,10 @@ func _desenhar_conexao_lado_aberto(origem: Rect2, destino: Rect2, cor: Color, la
 	else:
 		meio_x = start.x + recuo
 
-	var p1 := start
-	var p2 := Vector2(meio_x, start.y)
-	var p3 := Vector2(meio_x, end.y)
-	var p4 := end
+	var p1 = start
+	var p2 = Vector2(meio_x, start.y)
+	var p3 = Vector2(meio_x, end.y)
+	var p4 = end
 
 	_desenhar_linha_neon(p1, p2, cor, 4.0, 0.52)
 	_desenhar_linha_neon(p2, p3, cor, 4.0, 0.52)
@@ -1305,25 +1309,25 @@ func _criar_titulo_coluna_chave(titulo_txt: String, sub_txt: String, x: float, y
 	var cor: Color = COR_ALERTA if destaque else COR_NEON
 
 	var box := Panel.new()
-	box.position = Vector2(x, y)
-	box.size = Vector2(w, 36)
+	box.rect_position = Vector2(x, y)
+	box.rect_size = Vector2(w, 36)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var fundo: Color = Color(0.018, 0.026, 0.038, 0.88)
 	if destaque:
 		fundo = Color(0.055, 0.042, 0.012, 0.96)
 
-	box.add_theme_stylebox_override("panel", _style_panel(cor, fundo, 0.42 if destaque else 0.14))
+	box.add_stylebox_override("panel", _style_panel(cor, fundo, 0.42 if destaque else 0.14))
 	ui_root.add_child(box)
 
-	var titulo := _label(titulo_txt, 14, Color.WHITE, cor)
-	titulo.position = Vector2(0, -1)
-	titulo.size = Vector2(w, 22)
+	var titulo = _label(titulo_txt, 14, Color.white, cor)
+	titulo.rect_position = Vector2(0, -1)
+	titulo.rect_size = Vector2(w, 22)
 	box.add_child(titulo)
 
-	var sub := _label(sub_txt, 10, Color(0.68, 0.76, 0.88))
-	sub.position = Vector2(0, 18)
-	sub.size = Vector2(w, 16)
+	var sub = _label(sub_txt, 10, Color(0.68, 0.76, 0.88))
+	sub.rect_position = Vector2(0, 18)
+	sub.rect_size = Vector2(w, 16)
 	box.add_child(sub)
 
 
@@ -1336,11 +1340,11 @@ func _card_partida_knockout_moderno(
 	eh_final: bool = false
 ) -> Panel:
 	var panel := Panel.new()
-	panel.position = rect.position
-	panel.size = rect.size
-	panel.clip_contents = true
+	panel.rect_position = rect.position
+	panel.rect_size = rect.size
+	panel.rect_clip_content = true
 
-	var vazia: bool = p.is_empty()
+	var vazia: bool = p.empty()
 	var finalizada: bool = not vazia and bool(p.get("finalizada", false))
 
 	var cor: Color = COR_NEON
@@ -1365,15 +1369,15 @@ func _card_partida_knockout_moderno(
 		fundo = Color(0.060, 0.046, 0.010, 0.98)
 		brilho = 0.75
 
-	panel.add_theme_stylebox_override("panel", _style_panel(cor, fundo, brilho))
+	panel.add_stylebox_override("panel", _style_panel(cor, fundo, brilho))
 
 	var W: float = rect.size.x
 	var H: float = rect.size.y
 
 	var faixa := ColorRect.new()
 	faixa.color = Color(cor.r, cor.g, cor.b, 0.30)
-	faixa.position = Vector2(14, 8)
-	faixa.size = Vector2(W - 28, 3)
+	faixa.rect_position = Vector2(14, 8)
+	faixa.rect_size = Vector2(W - 28, 3)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(faixa)
 
@@ -1383,18 +1387,18 @@ func _card_partida_knockout_moderno(
 	if eh_final:
 		titulo_size += 1
 
-	var titulo := _label(titulo_txt, titulo_size, Color.WHITE, cor)
-	titulo.position = Vector2(8, 13)
-	titulo.size = Vector2(W - 16, 26)
+	var titulo = _label(titulo_txt, titulo_size, Color.white, cor)
+	titulo.rect_position = Vector2(8, 13)
+	titulo.rect_size = Vector2(W - 16, 26)
 	titulo.clip_text = true
-	titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.90))
-	titulo.add_theme_constant_override("outline_size", 3)
+	titulo.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.90))
+	Compat.contorno(titulo, 3)
 	panel.add_child(titulo)
 
 	if vazia:
-		var ag := _label("AGUARDANDO", 15, Color(0.48, 0.54, 0.62))
-		ag.position = Vector2(0, H * 0.5 - 18)
-		ag.size = Vector2(W, 36)
+		var ag = _label("AGUARDANDO", 15, Color(0.48, 0.54, 0.62))
+		ag.rect_position = Vector2(0, H * 0.5 - 18)
+		ag.rect_size = Vector2(W, 36)
 		panel.add_child(ag)
 		return panel
 
@@ -1403,13 +1407,13 @@ func _card_partida_knockout_moderno(
 	if finalizada and p.has("ranking") and p["ranking"] is Array and (p["ranking"] as Array).size() > 0:
 		lista = p["ranking"] as Array
 	else:
-		var jogadores_raw: Variant = p.get("jogadores", [])
+		var jogadores_raw = p.get("jogadores", [])
 		if jogadores_raw is Array:
 			lista = jogadores_raw as Array
 
-	var classificados_nomes: Array[String] = []
+	var classificados_nomes: Array = []
 
-	var classificados_raw: Variant = p.get("classificados", [])
+	var classificados_raw = p.get("classificados", [])
 	if classificados_raw is Array:
 		for c in classificados_raw:
 			if c is Dictionary:
@@ -1418,7 +1422,7 @@ func _card_partida_knockout_moderno(
 	var top_y: float = 43.0
 	var bottom_pad: float = 8.0
 	var disp_h: float = H - top_y - bottom_pad
-	var n: int = maxi(lista.size(), 1)
+	var n: int = int(max(lista.size(), 1))
 	var row_h: float = disp_h / float(n)
 
 	var nome_font: int = 12
@@ -1454,7 +1458,7 @@ func _card_partida_knockout_moderno(
 		var classificou: bool = classificados_nomes.has(nome)
 		var eliminado: bool = finalizada and not classificou
 
-		if finalizada and classificados_nomes.is_empty():
+		if finalizada and classificados_nomes.empty():
 			var posicao_item: int = int(j.get("posicao", i + 1))
 			var fase_card: String = str(p.get("fase", ""))
 
@@ -1471,8 +1475,8 @@ func _card_partida_knockout_moderno(
 		var cor_j: Color = _cor_jogador_dict(j)
 
 		var row := Panel.new()
-		row.position = Vector2(10, y + 3)
-		row.size = Vector2(W - 20, maxf(row_h - 6, 16.0))
+		row.rect_position = Vector2(10, y + 3)
+		row.rect_size = Vector2(W - 20, max(row_h - 6, 16.0))
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var row_bg: Color = Color(cor_j.r * 0.070, cor_j.g * 0.070, cor_j.b * 0.070, 0.82)
@@ -1499,14 +1503,14 @@ func _card_partida_knockout_moderno(
 		rs.shadow_color = Color(cor_j.r, cor_j.g, cor_j.b, row_shadow)
 		rs.shadow_size = 14 if classificou else 4
 		rs.shadow_offset = Vector2.ZERO
-		row.add_theme_stylebox_override("panel", rs)
+		row.add_stylebox_override("panel", rs)
 		panel.add_child(row)
 
 		var chip := Panel.new()
-		chip.position = Vector2(20, y + row_h * 0.5 - chip_tam * 0.5)
-		chip.size = Vector2(chip_tam, chip_tam)
+		chip.rect_position = Vector2(20, y + row_h * 0.5 - chip_tam * 0.5)
+		chip.rect_size = Vector2(chip_tam, chip_tam)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor_j))
+		chip.add_stylebox_override("panel", _style_chip(cor_j))
 		panel.add_child(chip)
 
 		if eliminado:
@@ -1516,7 +1520,7 @@ func _card_partida_knockout_moderno(
 		if eh_boot:
 			nome_txt += " BOT"
 
-		var nome_cor: Color = Color.WHITE
+		var nome_cor: Color = Color.white
 
 		if eliminado:
 			nome_cor = Color(0.46, 0.48, 0.52)
@@ -1553,16 +1557,16 @@ func _card_partida_knockout_moderno(
 				placar_w = 82.0 if tem_extra_placar else 62.0
 
 			placar_x = check_x - placar_w - (2.0 if layout_compacto else 5.0)
-			nome_w = maxf(42.0, placar_x - nome_x - 6.0)
+			nome_w = max(42.0, placar_x - nome_x - 6.0)
 
-		var nome_lbl := _label(nome_txt, nome_font, nome_cor)
-		nome_lbl.position = Vector2(nome_x, y)
-		nome_lbl.size = Vector2(nome_w, row_h)
-		nome_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		nome_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var nome_lbl = _label(nome_txt, nome_font, nome_cor)
+		nome_lbl.rect_position = Vector2(nome_x, y)
+		nome_lbl.rect_size = Vector2(nome_w, row_h)
+		nome_lbl.align = Label.ALIGN_LEFT
+		nome_lbl.valign = Label.VALIGN_CENTER
 		nome_lbl.clip_text = true
-		nome_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
-		nome_lbl.add_theme_constant_override("outline_size", 4 if classificou else 3)
+		nome_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.92))
+		Compat.contorno(nome_lbl, 4 if classificou else 3)
 		panel.add_child(nome_lbl)
 
 		if finalizada:
@@ -1570,28 +1574,28 @@ func _card_partida_knockout_moderno(
 				panel,
 				j,
 				Vector2(placar_x, y + 4.0),
-				Vector2(placar_w, maxf(row_h - 8.0, 18.0)),
+				Vector2(placar_w, max(row_h - 8.0, 18.0)),
 				cor_j,
 				eliminado
 			)
 
 		if classificou:
-			var ok := _label("✓", 18, COR_OK, COR_OK)
-			ok.position = Vector2(check_x, y)
-			ok.size = Vector2(check_w, row_h)
-			ok.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			ok.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			ok.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-			ok.add_theme_constant_override("outline_size", 4)
+			var ok = _label("✓", 18, COR_OK, COR_OK)
+			ok.rect_position = Vector2(check_x, y)
+			ok.rect_size = Vector2(check_w, row_h)
+			ok.align = Label.ALIGN_CENTER
+			ok.valign = Label.VALIGN_CENTER
+			ok.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+			Compat.contorno(ok, 4)
 			panel.add_child(ok)
 		elif eliminado:
-			var fora := _label("✕", 18, Color(0.48, 0.50, 0.55))
-			fora.position = Vector2(check_x, y)
-			fora.size = Vector2(check_w, row_h)
-			fora.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			fora.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			fora.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-			fora.add_theme_constant_override("outline_size", 4)
+			var fora = _label("✕", 18, Color(0.48, 0.50, 0.55))
+			fora.rect_position = Vector2(check_x, y)
+			fora.rect_size = Vector2(check_w, row_h)
+			fora.align = Label.ALIGN_CENTER
+			fora.valign = Label.VALIGN_CENTER
+			fora.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+			Compat.contorno(fora, 4)
 			panel.add_child(fora)
 
 	return panel
@@ -1599,18 +1603,18 @@ func _card_partida_knockout_moderno(
 
 
 func _desenhar_conexao_chave(origem: Rect2, destino: Rect2, cor: Color, destino_central: bool = false) -> void:
-	var start := Vector2(origem.position.x + origem.size.x, origem.position.y + origem.size.y * 0.5)
-	var end := Vector2(destino.position.x, destino.position.y + destino.size.y * 0.5)
+	var start = Vector2(origem.position.x + origem.size.x, origem.position.y + origem.size.y * 0.5)
+	var end = Vector2(destino.position.x, destino.position.y + destino.size.y * 0.5)
 
 	var meio_x: float = start.x + (end.x - start.x) * 0.52
 
 	if destino_central:
 		meio_x = start.x + (end.x - start.x) * 0.46
 
-	var p1 := start
-	var p2 := Vector2(meio_x, start.y)
-	var p3 := Vector2(meio_x, end.y)
-	var p4 := end
+	var p1 = start
+	var p2 = Vector2(meio_x, start.y)
+	var p3 = Vector2(meio_x, end.y)
+	var p4 = end
 
 	_desenhar_linha_neon(p1, p2, cor, 5.0, 0.50)
 	_desenhar_linha_neon(p2, p3, cor, 5.0, 0.50)
@@ -1628,56 +1632,56 @@ func _desenhar_linha_neon(a: Vector2, b: Vector2, cor: Color, espessura: float =
 
 
 func _desenhar_linha_horizontal(a: Vector2, b: Vector2, cor: Color, espessura: float, brilho: float) -> void:
-	var x1: float = minf(a.x, b.x)
-	var x2: float = maxf(a.x, b.x)
+	var x1: float = min(a.x, b.x)
+	var x2: float = max(a.x, b.x)
 	var y: float = a.y - espessura * 0.5
 
 	var sombra := ColorRect.new()
-	sombra.position = Vector2(x1, y - espessura * 1.2)
-	sombra.size = Vector2(x2 - x1, espessura * 3.4)
+	sombra.rect_position = Vector2(x1, y - espessura * 1.2)
+	sombra.rect_size = Vector2(x2 - x1, espessura * 3.4)
 	sombra.color = Color(cor.r, cor.g, cor.b, brilho * 0.22)
 	sombra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(sombra)
 
 	var linha := ColorRect.new()
-	linha.position = Vector2(x1, y)
-	linha.size = Vector2(x2 - x1, espessura)
+	linha.rect_position = Vector2(x1, y)
+	linha.rect_size = Vector2(x2 - x1, espessura)
 	linha.color = Color(cor.r, cor.g, cor.b, 0.92)
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(linha)
 
 	var brilho_centro := ColorRect.new()
-	brilho_centro.position = Vector2(x1, y + espessura * 0.35)
-	brilho_centro.size = Vector2(x2 - x1, maxf(1.0, espessura * 0.25))
-	brilho_centro.color = Color.WHITE
+	brilho_centro.rect_position = Vector2(x1, y + espessura * 0.35)
+	brilho_centro.rect_size = Vector2(x2 - x1, max(1.0, espessura * 0.25))
+	brilho_centro.color = Color.white
 	brilho_centro.modulate = Color(1, 1, 1, 0.42)
 	brilho_centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(brilho_centro)
 
 
 func _desenhar_linha_vertical(a: Vector2, b: Vector2, cor: Color, espessura: float, brilho: float) -> void:
-	var y1: float = minf(a.y, b.y)
-	var y2: float = maxf(a.y, b.y)
+	var y1: float = min(a.y, b.y)
+	var y2: float = max(a.y, b.y)
 	var x: float = a.x - espessura * 0.5
 
 	var sombra := ColorRect.new()
-	sombra.position = Vector2(x - espessura * 1.2, y1)
-	sombra.size = Vector2(espessura * 3.4, y2 - y1)
+	sombra.rect_position = Vector2(x - espessura * 1.2, y1)
+	sombra.rect_size = Vector2(espessura * 3.4, y2 - y1)
 	sombra.color = Color(cor.r, cor.g, cor.b, brilho * 0.22)
 	sombra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(sombra)
 
 	var linha := ColorRect.new()
-	linha.position = Vector2(x, y1)
-	linha.size = Vector2(espessura, y2 - y1)
+	linha.rect_position = Vector2(x, y1)
+	linha.rect_size = Vector2(espessura, y2 - y1)
 	linha.color = Color(cor.r, cor.g, cor.b, 0.92)
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(linha)
 
 	var brilho_centro := ColorRect.new()
-	brilho_centro.position = Vector2(x + espessura * 0.35, y1)
-	brilho_centro.size = Vector2(maxf(1.0, espessura * 0.25), y2 - y1)
-	brilho_centro.color = Color.WHITE
+	brilho_centro.rect_position = Vector2(x + espessura * 0.35, y1)
+	brilho_centro.rect_size = Vector2(max(1.0, espessura * 0.25), y2 - y1)
+	brilho_centro.color = Color.white
 	brilho_centro.modulate = Color(1, 1, 1, 0.42)
 	brilho_centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(brilho_centro)
@@ -1685,12 +1689,12 @@ func _desenhar_linha_vertical(a: Vector2, b: Vector2, cor: Color, espessura: flo
 
 func _criar_no_conexao(pos: Vector2, cor: Color) -> void:
 	var no := Panel.new()
-	no.size = Vector2(14, 14)
-	no.position = pos - no.size * 0.5
+	no.rect_size = Vector2(14, 14)
+	no.rect_position = pos - no.rect_size * 0.5
 	no.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var s := StyleBoxFlat.new()
-	s.bg_color = Color.WHITE
+	s.bg_color = Color.white
 	s.border_color = cor
 	s.set_border_width_all(2)
 	s.set_corner_radius_all(7)
@@ -1698,12 +1702,12 @@ func _criar_no_conexao(pos: Vector2, cor: Color) -> void:
 	s.shadow_size = 12
 	s.shadow_offset = Vector2.ZERO
 
-	no.add_theme_stylebox_override("panel", s)
+	no.add_stylebox_override("panel", s)
 	ui_root.add_child(no)
 
 
 func _cor_caminho_partida(p: Dictionary) -> Color:
-	if p.is_empty():
+	if p.empty():
 		return Color(0.28, 0.34, 0.42)
 
 	var classificados: Array = p.get("classificados", [])
@@ -1718,7 +1722,7 @@ func _cor_caminho_partida(p: Dictionary) -> Color:
 
 	var jogadores: Array = p.get("jogadores", [])
 	if jogadores.size() > 0:
-		var soma := Color(0, 0, 0, 1)
+		var soma = Color(0, 0, 0, 1)
 
 		for item in jogadores:
 			var c: Color = _cor_jogador_dict(item)
@@ -1740,22 +1744,22 @@ func _desenhar_conexao_campeao(origem: Rect2, destino: Rect2, cor: Color) -> voi
 	if cor.a <= 0.0:
 		cor = COR_ALERTA
 
-	var start := Vector2(
+	var start = Vector2(
 		origem.position.x + origem.size.x,
 		origem.position.y + origem.size.y * 0.5
 	)
 
-	var end := Vector2(
+	var end = Vector2(
 		destino.position.x,
 		destino.position.y + destino.size.y * 0.5
 	)
 
 	var meio_x: float = start.x + (end.x - start.x) * 0.5
 
-	var p1 := start
-	var p2 := Vector2(meio_x, start.y)
-	var p3 := Vector2(meio_x, end.y)
-	var p4 := end
+	var p1 = start
+	var p2 = Vector2(meio_x, start.y)
+	var p3 = Vector2(meio_x, end.y)
+	var p4 = end
 
 	_desenhar_linha_neon(p1, p2, cor, 6.0, 0.72)
 	_desenhar_linha_neon(p2, p3, cor, 6.0, 0.72)
@@ -1772,16 +1776,16 @@ func _cor_jogador_dict(j: Dictionary) -> Color:
 
 	var nome: String = str(j.get("nome", "")).to_lower()
 
-	if nome.contains("vermelho") or nome.contains("red"):
+	if Compat.contem(nome, "vermelho") or Compat.contem(nome, "red"):
 		return Color(1.0, 0.15, 0.15)
 
-	if nome.contains("verde") or nome.contains("green"):
+	if Compat.contem(nome, "verde") or Compat.contem(nome, "green"):
 		return Color(0.2, 1.0, 0.3)
 
-	if nome.contains("azul") or nome.contains("blue"):
+	if Compat.contem(nome, "azul") or Compat.contem(nome, "blue"):
 		return Color(0.1, 0.75, 1.0)
 
-	if nome.contains("amarelo") or nome.contains("yellow"):
+	if Compat.contem(nome, "amarelo") or Compat.contem(nome, "yellow"):
 		return Color(1.0, 0.85, 0.05)
 
 	return COR_NEON
@@ -1806,7 +1810,7 @@ func _montar_coluna_partidas(lista: Array, esperado: int, titulos: Array, cx: fl
 
 		var y: float = cy + float(i) * (card_h + gap)
 
-		var card := _card_partida_knockout(
+		var card = _card_partida_knockout(
 			p, titulo, Rect2(Vector2(cx, y), Vector2(cw, card_h)), destaque
 		)
 		ui_root.add_child(card)
@@ -1814,10 +1818,10 @@ func _montar_coluna_partidas(lista: Array, esperado: int, titulos: Array, cx: fl
 
 func _card_partida_knockout(p: Dictionary, titulo: String, rect: Rect2, destaque: bool) -> Panel:
 	var panel := Panel.new()
-	panel.position = rect.position
-	panel.size = rect.size
+	panel.rect_position = rect.position
+	panel.rect_size = rect.size
 
-	var vazia: bool = p.is_empty()
+	var vazia: bool = p.empty()
 	var finalizada: bool = not vazia and bool(p.get("finalizada", false))
 
 	var cor: Color = COR_NEON
@@ -1837,20 +1841,20 @@ func _card_partida_knockout(p: Dictionary, titulo: String, rect: Rect2, destaque
 		fundo = Color(0.045, 0.035, 0.012, 0.98)
 		brilho = 0.50
 
-	panel.add_theme_stylebox_override("panel", _style_panel(cor, fundo, brilho))
+	panel.add_stylebox_override("panel", _style_panel(cor, fundo, brilho))
 
 	var W: float = rect.size.x
 	var H: float = rect.size.y
 
-	var tl := _label(titulo, 14, Color.WHITE, cor)
-	tl.position = Vector2(0, 8)
-	tl.size = Vector2(W, 24)
+	var tl = _label(titulo, 14, Color.white, cor)
+	tl.rect_position = Vector2(0, 8)
+	tl.rect_size = Vector2(W, 24)
 	panel.add_child(tl)
 
 	if vazia:
-		var ag := _label("AGUARDANDO", 14, Color(0.45, 0.50, 0.58))
-		ag.position = Vector2(0, H / 2.0 - 14)
-		ag.size = Vector2(W, 28)
+		var ag = _label("AGUARDANDO", 14, Color(0.45, 0.50, 0.58))
+		ag.rect_position = Vector2(0, H / 2.0 - 14)
+		ag.rect_size = Vector2(W, 28)
 		panel.add_child(ag)
 		return panel
 
@@ -1862,7 +1866,7 @@ func _card_partida_knockout(p: Dictionary, titulo: String, rect: Rect2, destaque
 	else:
 		lista = p.get("jogadores", [])
 
-	var classificados_nomes: Array[String] = []
+	var classificados_nomes: Array = []
 	for c in p.get("classificados", []):
 		classificados_nomes.append(str(c.get("nome", "")))
 
@@ -1884,10 +1888,10 @@ func _card_partida_knockout(p: Dictionary, titulo: String, rect: Rect2, destaque
 			cor_chip = j["cor"]
 
 		var chip := Panel.new()
-		chip.position = Vector2(14, y + row_h / 2.0 - 8)
-		chip.size = Vector2(16, 16)
+		chip.rect_position = Vector2(14, y + row_h / 2.0 - 8)
+		chip.rect_size = Vector2(16, 16)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor_chip))
+		chip.add_stylebox_override("panel", _style_chip(cor_chip))
 		panel.add_child(chip)
 
 		# Nome (+ gols se finalizada).
@@ -1898,23 +1902,23 @@ func _card_partida_knockout(p: Dictionary, titulo: String, rect: Rect2, destaque
 			var gols: int = int(j.get("gols", j.get("score", 0)))
 			nome_txt += "  (%d)" % gols
 
-		var cor_nome: Color = Color.WHITE
+		var cor_nome: Color = Color.white
 		if classificou:
 			cor_nome = COR_OK
 		elif ehboot:
 			cor_nome = COR_BOOT
 
-		var lbl := _label(nome_txt, 13, cor_nome)
-		lbl.position = Vector2(38, y)
-		lbl.size = Vector2(W - 64, row_h)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var lbl = _label(nome_txt, 13, cor_nome)
+		lbl.rect_position = Vector2(38, y)
+		lbl.rect_size = Vector2(W - 64, row_h)
+		lbl.align = Label.ALIGN_LEFT
 		lbl.clip_text = true
 		panel.add_child(lbl)
 
 		if classificou:
-			var mark := _label("✓", 14, COR_OK)
-			mark.position = Vector2(W - 30, y)
-			mark.size = Vector2(22, row_h)
+			var mark = _label("✓", 14, COR_OK)
+			mark.rect_position = Vector2(W - 30, y)
+			mark.rect_size = Vector2(22, row_h)
 			panel.add_child(mark)
 
 	return panel
@@ -1931,21 +1935,21 @@ func _montar_coluna_campeao_moderno(rect: Rect2) -> void:
 		if rk.size() > 0:
 			campeao = rk[0]
 
-	var tem_campeao: bool = not campeao.is_empty()
+	var tem_campeao: bool = not campeao.empty()
 	var cor: Color = COR_ALERTA
 
 	if tem_campeao:
 		cor = _cor_jogador_dict(campeao)
 
 	var panel := Panel.new()
-	panel.position = rect.position
-	panel.size = rect.size
-	panel.clip_contents = true
+	panel.rect_position = rect.position
+	panel.rect_size = rect.size
+	panel.rect_clip_content = true
 
 	var fundo: Color = Color(0.052, 0.040, 0.010, 0.98) if tem_campeao else Color(0.014, 0.018, 0.026, 0.94)
 	var brilho: float = 0.70 if tem_campeao else 0.08
 
-	panel.add_theme_stylebox_override(
+	panel.add_stylebox_override(
 		"panel",
 		_style_panel(COR_ALERTA if tem_campeao else Color(0.26, 0.30, 0.38), fundo, brilho)
 	)
@@ -1954,48 +1958,48 @@ func _montar_coluna_campeao_moderno(rect: Rect2) -> void:
 	var W: float = rect.size.x
 	var H: float = rect.size.y
 
-	var label_resultado := _label("RESULTADO", int(clampf(H * 0.070, 12.0, 15.0)), Color(0.82, 0.88, 0.96))
-	label_resultado.position = Vector2(0, H * 0.05)
-	label_resultado.size = Vector2(W, H * 0.12)
+	var label_resultado = _label("RESULTADO", int(clamp(H * 0.070, 12.0, 15.0)), Color(0.82, 0.88, 0.96))
+	label_resultado.rect_position = Vector2(0, H * 0.05)
+	label_resultado.rect_size = Vector2(W, H * 0.12)
 	panel.add_child(label_resultado)
 
-	var coroa := _label("👑", int(clampf(H * 0.22, 34.0, 46.0)), Color.WHITE, COR_ALERTA)
-	coroa.position = Vector2(0, H * 0.17)
-	coroa.size = Vector2(W, H * 0.24)
+	var coroa = _label("👑", int(clamp(H * 0.22, 34.0, 46.0)), Color.white, COR_ALERTA)
+	coroa.rect_position = Vector2(0, H * 0.17)
+	coroa.rect_size = Vector2(W, H * 0.24)
 	panel.add_child(coroa)
 
-	var titulo := _label("GRANDE CAMPEÃO", int(clampf(H * 0.095, 17.0, 22.0)), Color.WHITE, COR_ALERTA)
-	titulo.position = Vector2(0, H * 0.40)
-	titulo.size = Vector2(W, H * 0.16)
+	var titulo = _label("GRANDE CAMPEÃO", int(clamp(H * 0.095, 17.0, 22.0)), Color.white, COR_ALERTA)
+	titulo.rect_position = Vector2(0, H * 0.40)
+	titulo.rect_size = Vector2(W, H * 0.16)
 	panel.add_child(titulo)
 
 	if tem_campeao:
 		var nome: String = str(campeao.get("nome", "?"))
 		var gols: int = int(campeao.get("gols", campeao.get("score", 0)))
 
-		var chip_tam: float = clampf(H * 0.15, 30.0, 40.0)
+		var chip_tam: float = clamp(H * 0.15, 30.0, 40.0)
 
 		var chip := Panel.new()
-		chip.position = Vector2(W * 0.5 - chip_tam * 0.5, H * 0.58)
-		chip.size = Vector2(chip_tam, chip_tam)
+		chip.rect_position = Vector2(W * 0.5 - chip_tam * 0.5, H * 0.58)
+		chip.rect_size = Vector2(chip_tam, chip_tam)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor))
+		chip.add_stylebox_override("panel", _style_chip(cor))
 		panel.add_child(chip)
 
-		var nome_lbl := _label(nome, int(clampf(H * 0.078, 15.0, 20.0)), Color.WHITE, cor)
-		nome_lbl.position = Vector2(14, H * 0.75)
-		nome_lbl.size = Vector2(W - 28, H * 0.13)
+		var nome_lbl = _label(nome, int(clamp(H * 0.078, 15.0, 20.0)), Color.white, cor)
+		nome_lbl.rect_position = Vector2(14, H * 0.75)
+		nome_lbl.rect_size = Vector2(W - 28, H * 0.13)
 		nome_lbl.clip_text = true
 		panel.add_child(nome_lbl)
 
-		var gols_lbl := _label("%d GOLS NA FINAL" % gols, int(clampf(H * 0.055, 10.0, 13.0)), Color(0.82, 0.90, 1.0))
-		gols_lbl.position = Vector2(0, H * 0.88)
-		gols_lbl.size = Vector2(W, H * 0.10)
+		var gols_lbl = _label("%d GOLS NA FINAL" % gols, int(clamp(H * 0.055, 10.0, 13.0)), Color(0.82, 0.90, 1.0))
+		gols_lbl.rect_position = Vector2(0, H * 0.88)
+		gols_lbl.rect_size = Vector2(W, H * 0.10)
 		panel.add_child(gols_lbl)
 	else:
-		var indef := _label("A DEFINIR", int(clampf(H * 0.082, 15.0, 18.0)), Color(0.48, 0.54, 0.62))
-		indef.position = Vector2(0, H * 0.66)
-		indef.size = Vector2(W, H * 0.16)
+		var indef = _label("A DEFINIR", int(clamp(H * 0.082, 15.0, 18.0)), Color(0.48, 0.54, 0.62))
+		indef.rect_position = Vector2(0, H * 0.66)
+		indef.rect_size = Vector2(W, H * 0.16)
 		panel.add_child(indef)
 
 
@@ -2007,10 +2011,10 @@ func _criar_footer(vp: Vector2) -> void:
 	var cor: Color = COR_OK if prox_index >= 0 else COR_ALERTA
 
 	var painel := Panel.new()
-	painel.position = Vector2((vp.x - 900.0) / 2.0, footer_y)
-	painel.size = Vector2(900, 58)
+	painel.rect_position = Vector2((vp.x - 900.0) / 2.0, footer_y)
+	painel.rect_size = Vector2(900, 58)
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	painel.add_theme_stylebox_override(
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(cor, Color(0.012, 0.018, 0.030, 0.96), 0.42)
 	)
@@ -2053,9 +2057,9 @@ func _criar_footer(vp: Vector2) -> void:
 			else:
 				texto = "START ▶ VER PÓDIO          CUP ◀ FASE ANTERIOR"
 
-	var lbl := _label(texto, 20, Color.WHITE, cor)
-	lbl.position = Vector2.ZERO
-	lbl.size = Vector2(900, 58)
+	var lbl = _label(texto, 20, Color.white, cor)
+	lbl.rect_position = Vector2.ZERO
+	lbl.rect_size = Vector2(900, 58)
 	painel.add_child(lbl)
 
 
@@ -2066,33 +2070,33 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 	var grupo_encerrado: bool = _grupo_ja_fechou(str(grupo.get("grupo", "")))
 	
 	var panel := Panel.new()
-	panel.size = tam
+	panel.rect_size = tam
 	var cor_card: Color = COR_ALERTA if destaque_grupo else COR_NEON
 	var brilho_card: float = 0.55 if destaque_grupo else 0.18
 	var fundo_card: Color = Color(0.050, 0.040, 0.012, 0.98) if destaque_grupo else Color(0.018, 0.024, 0.035, 0.98)
 
-	panel.add_theme_stylebox_override("panel", _style_panel(cor_card, fundo_card, brilho_card))
+	panel.add_stylebox_override("panel", _style_panel(cor_card, fundo_card, brilho_card))
 
 	# =========================
 	# FAIXA SUPERIOR
 	# =========================
 	var faixa := Panel.new()
-	faixa.position = Vector2.ZERO
-	faixa.size = Vector2(tam.x, 50)
+	faixa.rect_position = Vector2.ZERO
+	faixa.rect_size = Vector2(tam.x, 50)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	faixa.add_theme_stylebox_override("panel", _style_faixa())
+	faixa.add_stylebox_override("panel", _style_faixa())
 	panel.add_child(faixa)
 
-	var titulo := _label("GRUPO %s" % grupo["grupo"], 23, Color.WHITE, COR_NEON)
-	titulo.position = Vector2(0, 0)
-	titulo.size = Vector2(tam.x, 50)
+	var titulo = _label("GRUPO %s" % grupo["grupo"], 23, Color.white, COR_NEON)
+	titulo.rect_position = Vector2(0, 0)
+	titulo.rect_size = Vector2(tam.x, 50)
 	panel.add_child(titulo)
 	
 	if destaque_grupo:
-		var jogando := _label("JOGA AGORA", 13, Color(1.0, 0.92, 0.25), COR_ALERTA)
-		jogando.position = Vector2(tam.x - 160, 0)
-		jogando.size = Vector2(145, 50)
-		jogando.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		var jogando = _label("JOGA AGORA", 13, Color(1.0, 0.92, 0.25), COR_ALERTA)
+		jogando.rect_position = Vector2(tam.x - 160, 0)
+		jogando.rect_size = Vector2(145, 50)
+		jogando.align = Label.ALIGN_RIGHT
 		panel.add_child(jogando)
 
 	# =========================
@@ -2120,41 +2124,41 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 	var header_y: float = 54.0
 	var header_h: float = 28.0
 
-	var h_pos := _label("POS", 12, Color(0.66, 0.73, 0.84))
-	h_pos.position = Vector2(pos_x, header_y)
-	h_pos.size = Vector2(44, header_h)
-	h_pos.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var h_pos = _label("POS", 12, Color(0.66, 0.73, 0.84))
+	h_pos.rect_position = Vector2(pos_x, header_y)
+	h_pos.rect_size = Vector2(44, header_h)
+	h_pos.align = Label.ALIGN_CENTER
 	panel.add_child(h_pos)
 
-	var h_jogador := _label("JOGADOR", 12, Color(0.66, 0.73, 0.84))
-	h_jogador.position = Vector2(nome_x, header_y)
-	h_jogador.size = Vector2(nome_w, header_h)
-	h_jogador.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var h_jogador = _label("JOGADOR", 12, Color(0.66, 0.73, 0.84))
+	h_jogador.rect_position = Vector2(nome_x, header_y)
+	h_jogador.rect_size = Vector2(nome_w, header_h)
+	h_jogador.align = Label.ALIGN_LEFT
 	panel.add_child(h_jogador)
 
-	var h_pts := _label("PTS", 12, Color(0.66, 0.73, 0.84))
-	h_pts.position = Vector2(pts_x, header_y)
-	h_pts.size = Vector2(pts_w, header_h)
-	h_pts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var h_pts = _label("PTS", 12, Color(0.66, 0.73, 0.84))
+	h_pts.rect_position = Vector2(pts_x, header_y)
+	h_pts.rect_size = Vector2(pts_w, header_h)
+	h_pts.align = Label.ALIGN_CENTER
 	panel.add_child(h_pts)
 
-	var h_j := _label("J", 12, Color(0.66, 0.73, 0.84))
-	h_j.position = Vector2(jogos_x, header_y)
-	h_j.size = Vector2(jogos_w, header_h)
-	h_j.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var h_j = _label("J", 12, Color(0.66, 0.73, 0.84))
+	h_j.rect_position = Vector2(jogos_x, header_y)
+	h_j.rect_size = Vector2(jogos_w, header_h)
+	h_j.align = Label.ALIGN_CENTER
 	panel.add_child(h_j)
 
-	var h_gols := _label("GOLS", 12, Color(0.66, 0.73, 0.84))
-	h_gols.position = Vector2(gols_x, header_y)
-	h_gols.size = Vector2(gols_w, header_h)
-	h_gols.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var h_gols = _label("GOLS", 12, Color(0.66, 0.73, 0.84))
+	h_gols.rect_position = Vector2(gols_x, header_y)
+	h_gols.rect_size = Vector2(gols_w, header_h)
+	h_gols.align = Label.ALIGN_CENTER
 	panel.add_child(h_gols)
 
 	# Linha sutil abaixo do cabeçalho
 	var linha_header := ColorRect.new()
 	linha_header.color = Color(1, 1, 1, 0.08)
-	linha_header.position = Vector2(18, 84)
-	linha_header.size = Vector2(tam.x - 36, 1)
+	linha_header.rect_position = Vector2(18, 84)
+	linha_header.rect_size = Vector2(tam.x - 36, 1)
 	linha_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(linha_header)
 
@@ -2172,8 +2176,8 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 		var y_row: float = linha_y + float(i) * linha_h
 
 		var row := Panel.new()
-		row.position = Vector2(14, y_row + 3)
-		row.size = Vector2(tam.x - 28, linha_h - 6)
+		row.rect_position = Vector2(14, y_row + 3)
+		row.rect_size = Vector2(tam.x - 28, linha_h - 6)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var cor_row: Color = COR_OK if classificado else Color(1, 1, 1, 0.10)
@@ -2185,25 +2189,25 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 			bg_row = Color(0.018, 0.019, 0.023, 0.96)
 			brilho_row = 0.0
 
-		row.add_theme_stylebox_override("panel", _style_panel(cor_row, bg_row, brilho_row))
+		row.add_stylebox_override("panel", _style_panel(cor_row, bg_row, brilho_row))
 		panel.add_child(row)
 
 		# POSIÇÃO
-		var pos_txt := "%dº" % (i + 1)
-		var pos := _label(pos_txt, 16, COR_OK if classificado else Color(0.72, 0.78, 0.88))
-		pos.position = Vector2(pos_x, y_row)
-		pos.size = Vector2(44, linha_h)
-		pos.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var pos_txt = "%dº" % (i + 1)
+		var pos = _label(pos_txt, 16, COR_OK if classificado else Color(0.72, 0.78, 0.88))
+		pos.rect_position = Vector2(pos_x, y_row)
+		pos.rect_size = Vector2(44, linha_h)
+		pos.align = Label.ALIGN_CENTER
 		panel.add_child(pos)
 
 		# CHIP DA COR
 		var cor_chip: Color = j["cor"] if j.has("cor") else Color(0.5, 0.5, 0.5)
 
 		var chip := Panel.new()
-		chip.position = Vector2(chip_x, y_row + (linha_h - 20.0) / 2.0)
-		chip.size = Vector2(20, 20)
+		chip.rect_position = Vector2(chip_x, y_row + (linha_h - 20.0) / 2.0)
+		chip.rect_size = Vector2(20, 20)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor_chip))
+		chip.add_stylebox_override("panel", _style_chip(cor_chip))
 		panel.add_child(chip)
 		
 		if eliminado:
@@ -2214,7 +2218,7 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 		if bool(j.get("boot", false)):
 			nome_txt += "  BOT"
 
-		var cor_nome_final: Color = Color.WHITE
+		var cor_nome_final: Color = Color.white
 
 		if bool(j.get("boot", false)):
 			cor_nome_final = COR_BOOT
@@ -2222,10 +2226,10 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 		if eliminado:
 			cor_nome_final = Color(0.46, 0.48, 0.52)
 
-		var nome := _label(nome_txt, 15, cor_nome_final)
-		nome.position = Vector2(nome_x, y_row)
-		nome.size = Vector2(nome_w, linha_h)
-		nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var nome = _label(nome_txt, 15, cor_nome_final)
+		nome.rect_position = Vector2(nome_x, y_row)
+		nome.rect_size = Vector2(nome_w, linha_h)
+		nome.align = Label.ALIGN_LEFT
 		nome.clip_text = true
 		panel.add_child(nome)
 
@@ -2235,10 +2239,10 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 		if eliminado:
 			cor_stats = Color(0.46, 0.48, 0.52)
 
-		var pts := _label(str(int(j.get("pontos", 0))), 15, cor_stats)
-		pts.position = Vector2(pts_x, y_row)
-		pts.size = Vector2(pts_w, linha_h)
-		pts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var pts = _label(str(int(j.get("pontos", 0))), 15, cor_stats)
+		pts.rect_position = Vector2(pts_x, y_row)
+		pts.rect_size = Vector2(pts_w, linha_h)
+		pts.align = Label.ALIGN_CENTER
 		panel.add_child(pts)
 
 		var cor_stats_jogos:Color = Color(0.86, 0.94, 1.0)
@@ -2246,10 +2250,10 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 			cor_stats_jogos = Color(0.46, 0.48, 0.52)
 		
 		# JOGOS
-		var jogos := _label(str(int(j.get("jogos", 0))), 15, cor_stats_jogos)
-		jogos.position = Vector2(jogos_x, y_row)
-		jogos.size = Vector2(jogos_w, linha_h)
-		jogos.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var jogos = _label(str(int(j.get("jogos", 0))), 15, cor_stats_jogos)
+		jogos.rect_position = Vector2(jogos_x, y_row)
+		jogos.rect_size = Vector2(jogos_w, linha_h)
+		jogos.align = Label.ALIGN_CENTER
 		panel.add_child(jogos)
 
 		# GOLS
@@ -2259,10 +2263,10 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 		if eliminado:
 			cor_status_gols = Color(0.46, 0.48, 0.52)
 			
-		var gols := _label(str(gols_total), 15, cor_status_gols)
-		gols.position = Vector2(gols_x, y_row)
-		gols.size = Vector2(gols_w, linha_h)
-		gols.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var gols = _label(str(gols_total), 15, cor_status_gols)
+		gols.rect_position = Vector2(gols_x, y_row)
+		gols.rect_size = Vector2(gols_w, linha_h)
+		gols.align = Label.ALIGN_CENTER
 		panel.add_child(gols)
 
 	return panel
@@ -2271,33 +2275,7 @@ func _criar_card_grupo(g_index: int, tam: Vector2, destaque_grupo: bool = false)
 func _jogadores_ordenados(jogadores: Array) -> Array:
 	var lista: Array = jogadores.duplicate(true)
 
-	lista.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var pontos_a: int = int(a.get("pontos", 0))
-		var pontos_b: int = int(b.get("pontos", 0))
-
-		if pontos_a != pontos_b:
-			return pontos_a > pontos_b
-
-		var gols_a: int = int(a.get("gols", a.get("gols_pro", 0)))
-		var gols_b: int = int(b.get("gols", b.get("gols_pro", 0)))
-
-		if gols_a != gols_b:
-			return gols_a > gols_b
-
-		var melhor_a: int = int(a.get("melhor_posicao", 99))
-		var melhor_b: int = int(b.get("melhor_posicao", 99))
-
-		if melhor_a != melhor_b:
-			return melhor_a < melhor_b
-
-		var ultima_a: int = int(a.get("ultima_posicao", 99))
-		var ultima_b: int = int(b.get("ultima_posicao", 99))
-
-		if ultima_a != ultima_b:
-			return ultima_a < ultima_b
-
-		return str(a.get("nome", "")) < str(b.get("nome", ""))
-	)
+	lista.sort_custom(self, "_ordem_1")
 
 	return lista
 
@@ -2340,7 +2318,7 @@ func _texto_status() -> String:
 # PÓDIO FINAL — TOP 3
 # ============================================================
 func _obter_podio_final() -> Array:
-	var nomes_podio: Array[String] = []
+	var nomes_podio: Array = []
 	var origem_por_nome: Dictionary = {}
 
 	var partida_final: Dictionary = {}
@@ -2357,7 +2335,7 @@ func _obter_podio_final() -> Array:
 		else:
 			partida_final = p
 
-	if not partida_final.is_empty() and bool(partida_final.get("finalizada", false)):
+	if not partida_final.empty() and bool(partida_final.get("finalizada", false)):
 		var rk_final: Array = partida_final.get("ranking", [])
 
 		if rk_final.size() > 0 and rk_final[0] is Dictionary:
@@ -2372,7 +2350,7 @@ func _obter_podio_final() -> Array:
 				nomes_podio.append(n2)
 				origem_por_nome[n2] = rk_final[1].duplicate(true)
 
-	if not partida_terceiro.is_empty() and bool(partida_terceiro.get("finalizada", false)):
+	if not partida_terceiro.empty() and bool(partida_terceiro.get("finalizada", false)):
 		var rk_terceiro: Array = partida_terceiro.get("ranking", [])
 
 		if rk_terceiro.size() > 0 and rk_terceiro[0] is Dictionary:
@@ -2387,7 +2365,7 @@ func _obter_podio_final() -> Array:
 	for i in range(min(3, nomes_podio.size())):
 		var nome: String = nomes_podio[i]
 
-		var origem_var: Variant = origem_por_nome.get(nome, {})
+		var origem_var = origem_por_nome.get(nome, {})
 		var origem: Dictionary = origem_var if origem_var is Dictionary else {}
 
 		var stat: Dictionary = {}
@@ -2458,9 +2436,9 @@ func _mostrar_podio(mostrar_modal_campeao: bool = true) -> void:
 		campeao = podio[0]
 		cor_campeao = _cor_jogador_dict(campeao)
 
-	var titulo := _label("🏆 PÓDIO DA COPA", 42, Color.WHITE, COR_ALERTA)
-	titulo.position = Vector2(0, 30)
-	titulo.size = Vector2(vp.x, 72)
+	var titulo = _label("🏆 PÓDIO DA COPA", 42, Color.white, COR_ALERTA)
+	titulo.rect_position = Vector2(0, 30)
+	titulo.rect_size = Vector2(vp.x, 72)
 	ui_root.add_child(titulo)
 
 	var sub_txt: String = ""
@@ -2471,13 +2449,13 @@ func _mostrar_podio(mostrar_modal_campeao: bool = true) -> void:
 			int(podio[0].get("vitorias_total", 0))
 		]
 
-	var subt := _label(sub_txt, 22, COR_OK)
-	subt.position = Vector2(0, 104)
-	subt.size = Vector2(vp.x, 38)
+	var subt = _label(sub_txt, 22, COR_OK)
+	subt.rect_position = Vector2(0, 104)
+	subt.rect_size = Vector2(vp.x, 38)
 	ui_root.add_child(subt)
 
 	var centro_x: float = vp.x / 2.0
-	var ped_w: float = minf(vp.x * 0.18, 280.0)
+	var ped_w: float = min(vp.x * 0.18, 280.0)
 	var gap: float = ped_w + 60.0
 	var base_y: float = vp.y - 110.0
 
@@ -2504,7 +2482,7 @@ func _mostrar_modal_campeao_com_contagem(campeao: Dictionary, cor_campeao: Color
 	add_child(modal_layer)
 
 	var overlay := ColorRect.new()
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.set_anchors_preset(Control.PRESET_WIDE)
 	overlay.color = Color(0.004, 0.007, 0.014, 0.92)
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	modal_layer.add_child(overlay)
@@ -2513,48 +2491,48 @@ func _mostrar_modal_campeao_com_contagem(campeao: Dictionary, cor_campeao: Color
 
 	for i in range(95):
 		var c := ColorRect.new()
-		c.size = Vector2(randf_range(5.0, 12.0), randf_range(9.0, 18.0))
-		c.position = Vector2(randf_range(0.0, vp.x), randf_range(-vp.y * 0.45, vp.y * 0.25))
-		c.rotation = randf_range(0.0, TAU)
+		c.rect_size = Vector2(rand_range(5.0, 12.0), rand_range(9.0, 18.0))
+		c.rect_position = Vector2(rand_range(0.0, vp.x), rand_range(-vp.y * 0.45, vp.y * 0.25))
+		c.rect_rotation = rand_range(0.0, 360.0)
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var cor_c: Color = cor_campeao
-		var tipo: int = randi_range(0, 4)
+		var tipo: int = Compat.randi_range(0, 4)
 
 		if tipo == 0:
 			cor_c = cor_campeao.lightened(0.35)
 		elif tipo == 1:
-			cor_c = Color.WHITE
+			cor_c = Color.white
 		elif tipo == 2:
 			cor_c = COR_ALERTA
 		elif tipo == 3:
 			cor_c = cor_campeao.darkened(0.18)
 
-		c.color = Color(cor_c.r, cor_c.g, cor_c.b, randf_range(0.76, 1.0))
+		c.color = Color(cor_c.r, cor_c.g, cor_c.b, rand_range(0.76, 1.0))
 		modal_layer.add_child(c)
 
 		confetes_modal.append({
 			"node": c,
-			"vel": Vector2(randf_range(-70.0, 70.0), randf_range(120.0, 260.0)),
-			"rot": randf_range(-6.0, 6.0),
-			"fase": randf_range(0.0, TAU),
-			"onda": randf_range(20.0, 62.0)
+			"vel": Vector2(rand_range(-70.0, 70.0), rand_range(120.0, 260.0)),
+			"rot": rand_range(-6.0, 6.0),
+			"fase": rand_range(0.0, TAU),
+			"onda": rand_range(20.0, 62.0)
 		})
 
-	var painel_w: float = minf(vp.x * 0.66, 880.0)
-	var painel_h: float = minf(vp.y * 0.70, 600.0)
+	var painel_w: float = min(vp.x * 0.66, 880.0)
+	var painel_h: float = min(vp.y * 0.70, 600.0)
 
-	painel_w = maxf(painel_w, 680.0)
-	painel_h = maxf(painel_h, 520.0)
+	painel_w = max(painel_w, 680.0)
+	painel_h = max(painel_h, 520.0)
 
 	var painel := Panel.new()
-	painel.size = Vector2(painel_w, painel_h)
-	painel.position = Vector2(
+	painel.rect_size = Vector2(painel_w, painel_h)
+	painel.rect_position = Vector2(
 		(vp.x - painel_w) * 0.5,
 		(vp.y - painel_h) * 0.5
 	)
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	painel.add_theme_stylebox_override(
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(
 			cor_campeao,
@@ -2564,75 +2542,75 @@ func _mostrar_modal_campeao_com_contagem(campeao: Dictionary, cor_campeao: Color
 	)
 	modal_layer.add_child(painel)
 
-	var W: float = painel.size.x
-	var H: float = painel.size.y
+	var W: float = painel.rect_size.x
+	var H: float = painel.rect_size.y
 
 	var brilho_fundo := ColorRect.new()
 	brilho_fundo.color = Color(cor_campeao.r, cor_campeao.g, cor_campeao.b, 0.10)
-	brilho_fundo.position = Vector2(24, 24)
-	brilho_fundo.size = Vector2(W - 48, H - 48)
+	brilho_fundo.rect_position = Vector2(24, 24)
+	brilho_fundo.rect_size = Vector2(W - 48, H - 48)
 	brilho_fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(brilho_fundo)
 
 	var faixa_top := ColorRect.new()
 	faixa_top.color = Color(cor_campeao.r, cor_campeao.g, cor_campeao.b, 0.92)
-	faixa_top.position = Vector2(54, 28)
-	faixa_top.size = Vector2(W - 108, 5)
+	faixa_top.rect_position = Vector2(54, 28)
+	faixa_top.rect_size = Vector2(W - 108, 5)
 	faixa_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(faixa_top)
 
-	var coroa := _label("👑", 64, Color.WHITE, COR_ALERTA)
-	coroa.position = Vector2(0, 38)
-	coroa.size = Vector2(W, 72)
+	var coroa = _label("👑", 64, Color.white, COR_ALERTA)
+	coroa.rect_position = Vector2(0, 38)
+	coroa.rect_size = Vector2(W, 72)
 	painel.add_child(coroa)
 
-	var parabens := _label("PARABÉNS!", 42, Color.WHITE, cor_campeao)
-	parabens.position = Vector2(0, 112)
-	parabens.size = Vector2(W, 58)
-	parabens.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	parabens.add_theme_constant_override("outline_size", 6)
+	var parabens = _label("PARABÉNS!", 42, Color.white, cor_campeao)
+	parabens.rect_position = Vector2(0, 112)
+	parabens.rect_size = Vector2(W, 58)
+	parabens.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(parabens, 6)
 	painel.add_child(parabens)
 
 	var nome_campeao: String = str(campeao.get("nome", "CAMPEÃO"))
 
-	var nome := _label(nome_campeao, 36, Color.WHITE, cor_campeao)
-	nome.position = Vector2(42, 178)
-	nome.size = Vector2(W - 84, 58)
+	var nome = _label(nome_campeao, 36, Color.white, cor_campeao)
+	nome.rect_position = Vector2(42, 178)
+	nome.rect_size = Vector2(W - 84, 58)
 	nome.clip_text = true
-	nome.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.96))
-	nome.add_theme_constant_override("outline_size", 6)
+	nome.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.96))
+	Compat.contorno(nome, 6)
 	painel.add_child(nome)
 
-	var subtitulo := _label("VOCÊ É O GRANDE CAMPEÃO DA COPA", 19, Color(0.86, 0.94, 1.0))
-	subtitulo.position = Vector2(42, 240)
-	subtitulo.size = Vector2(W - 84, 34)
+	var subtitulo = _label("VOCÊ É O GRANDE CAMPEÃO DA COPA", 19, Color(0.86, 0.94, 1.0))
+	subtitulo.rect_position = Vector2(42, 240)
+	subtitulo.rect_size = Vector2(W - 84, 34)
 	painel.add_child(subtitulo)
 
 	var chip_tam: float = 58.0
 
 	var chip := Panel.new()
-	chip.position = Vector2(W * 0.5 - chip_tam * 0.5, 286)
-	chip.size = Vector2(chip_tam, chip_tam)
+	chip.rect_position = Vector2(W * 0.5 - chip_tam * 0.5, 286)
+	chip.rect_size = Vector2(chip_tam, chip_tam)
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chip.add_theme_stylebox_override("panel", _style_chip(cor_campeao))
+	chip.add_stylebox_override("panel", _style_chip(cor_campeao))
 	painel.add_child(chip)
 
-	var contador := _label("CARREGANDO RESULTADOS EM 5", 20, COR_ALERTA, COR_ALERTA)
-	contador.position = Vector2(0, H - 82)
-	contador.size = Vector2(W, 36)
+	var contador = _label("CARREGANDO RESULTADOS EM 5", 20, COR_ALERTA, COR_ALERTA)
+	contador.rect_position = Vector2(0, H - 82)
+	contador.rect_size = Vector2(W, 36)
 	painel.add_child(contador)
 
 	var barra_bg := ColorRect.new()
 	barra_bg.color = Color(1, 1, 1, 0.12)
-	barra_bg.position = Vector2(80, H - 38)
-	barra_bg.size = Vector2(W - 160, 6)
+	barra_bg.rect_position = Vector2(80, H - 38)
+	barra_bg.rect_size = Vector2(W - 160, 6)
 	barra_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra_bg)
 
 	var barra := ColorRect.new()
 	barra.color = Color(cor_campeao.r, cor_campeao.g, cor_campeao.b, 1.0)
-	barra.position = barra_bg.position
-	barra.size = barra_bg.size
+	barra.rect_position = barra_bg.rect_position
+	barra.rect_size = barra_bg.rect_size
 	barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra)
 
@@ -2645,25 +2623,25 @@ func _mostrar_modal_campeao_com_contagem(campeao: Dictionary, cor_campeao: Color
 			return
 
 		var delta: float = 0.016
-		await get_tree().create_timer(delta).timeout
+		yield(get_tree().create_timer(delta), "timeout")
 		tempo_passado += delta
 
-		var restante: float = maxf(0.0, duracao_total - tempo_passado)
+		var restante: float = max(0.0, duracao_total - tempo_passado)
 		var numero: int = int(ceil(restante))
 
 		if numero != ultimo_numero:
 			ultimo_numero = numero
-			contador.text = "CARREGANDO RESULTADOS EM %d" % maxi(numero, 1)
+			contador.text = "CARREGANDO RESULTADOS EM %d" % int(max(numero, 1))
 
-		var progresso: float = clampf(restante / duracao_total, 0.0, 1.0)
-		barra.size.x = (W - 160) * progresso
+		var progresso: float = clamp(restante / duracao_total, 0.0, 1.0)
+		barra.rect_size.x = (W - 160) * progresso
 
 		for i in range(confetes_modal.size() - 1, -1, -1):
 			var item: Dictionary = confetes_modal[i]
 			var node: ColorRect = item.get("node", null)
 
 			if node == null or not is_instance_valid(node):
-				confetes_modal.remove_at(i)
+				confetes_modal.remove(i)
 				continue
 
 			var vel: Vector2 = item.get("vel", Vector2.ZERO)
@@ -2674,13 +2652,13 @@ func _mostrar_modal_campeao_com_contagem(campeao: Dictionary, cor_campeao: Color
 			fase += delta * 3.0
 			item["fase"] = fase
 
-			node.position.x += (vel.x + sin(fase) * onda) * delta
-			node.position.y += vel.y * delta
-			node.rotation += rot * delta
+			node.rect_position.x += (vel.x + sin(fase) * onda) * delta
+			node.rect_position.y += vel.y * delta
+			node.rect_rotation += rad2deg(rot) * delta
 
-			if node.position.y > vp.y + 60.0:
-				node.position.y = randf_range(-90.0, -20.0)
-				node.position.x = randf_range(0.0, vp.x)
+			if node.rect_position.y > vp.y + 60.0:
+				node.rect_position.y = rand_range(-90.0, -20.0)
+				node.rect_position.x = rand_range(0.0, vp.x)
 
 	if is_instance_valid(modal_layer):
 		modal_layer.queue_free()
@@ -2694,6 +2672,7 @@ func _mostrar_modal_campeao_com_contagem(campeao: Dictionary, cor_campeao: Color
 # 4) Retorno automático ao opening.tscn
 # ============================================================
 func _iniciar_sequencia_vitoria() -> void:
+	var _g3_estado = null
 	tela_modo = "SEQUENCIA"
 	em_sequencia_final = true
 	modal_campeao_exibido = true
@@ -2709,14 +2688,18 @@ func _iniciar_sequencia_vitoria() -> void:
 	_limpar_ui()
 
 	# 1) MODAL DO CAMPEÃO + BARRA.
-	if not campeao.is_empty():
-		await _mostrar_modal_campeao_com_contagem(campeao, cor_campeao)
+	if not campeao.empty():
+		_g3_estado = _mostrar_modal_campeao_com_contagem(campeao, cor_campeao)
+		if _g3_estado is GDScriptFunctionState:
+			_g3_estado = yield(_g3_estado, "completed")
 
 	if not em_sequencia_final or not is_inside_tree():
 		return
 
 	# 2) TABELA GERAL DA COMPETIÇÃO.
-	await _mostrar_tabela_geral_sequencia(9.0)
+	_g3_estado = _mostrar_tabela_geral_sequencia(9.0)
+	if _g3_estado is GDScriptFunctionState:
+		_g3_estado = yield(_g3_estado, "completed")
 
 	if not em_sequencia_final or not is_inside_tree():
 		return
@@ -2733,20 +2716,20 @@ func _mostrar_classificados_sequencia(segundos: float = 6.0) -> void:
 	
 	_criar_back_copa(false, 0.62, 0.070)
 
-	var titulo := _label("🏆 CLASSIFICAÇÃO FINAL DA COPA", 34, Color.WHITE, COR_ALERTA)
-	titulo.position = Vector2(0, 30)
-	titulo.size = Vector2(vp.x, 70)
+	var titulo = _label("🏆 CLASSIFICAÇÃO FINAL DA COPA", 34, Color.white, COR_ALERTA)
+	titulo.rect_position = Vector2(0, 30)
+	titulo.rect_size = Vector2(vp.x, 70)
 	ui_root.add_child(titulo)
 
-	var box_w: float = minf(vp.x - 100.0, 1100.0)
+	var box_w: float = min(vp.x - 100.0, 1100.0)
 	var box_h: float = vp.y - 240.0
 	var box_x: float = (vp.x - box_w) / 2.0
 	var box_y: float = 120.0
 
 	var painel := Panel.new()
-	painel.position = Vector2(box_x, box_y)
-	painel.size = Vector2(box_w, box_h)
-	painel.add_theme_stylebox_override(
+	painel.rect_position = Vector2(box_x, box_y)
+	painel.rect_size = Vector2(box_w, box_h)
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(COR_ALERTA, Color(0.018, 0.024, 0.035, 0.98), 0.24)
 	)
@@ -2755,9 +2738,9 @@ func _mostrar_classificados_sequencia(segundos: float = 6.0) -> void:
 	var y: float = 24.0
 
 	for g in grupos:
-		var lbl_g := _label("GRUPO %s" % str(g.get("grupo", "")), 22, COR_ALERTA)
-		lbl_g.position = Vector2(0, y)
-		lbl_g.size = Vector2(box_w, 34)
+		var lbl_g = _label("GRUPO %s" % str(g.get("grupo", "")), 22, COR_ALERTA)
+		lbl_g.rect_position = Vector2(0, y)
+		lbl_g.rect_size = Vector2(box_w, 34)
 		painel.add_child(lbl_g)
 
 		y += 42.0
@@ -2772,22 +2755,22 @@ func _mostrar_classificados_sequencia(segundos: float = 6.0) -> void:
 				int(j.get("pontos", 0))
 			]
 
-			var lbl := _label(texto, 19, Color.WHITE)
-			lbl.position = Vector2(90, y)
-			lbl.size = Vector2(box_w - 180, 32)
-			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			var lbl = _label(texto, 19, Color.white)
+			lbl.rect_position = Vector2(90, y)
+			lbl.rect_size = Vector2(box_w - 180, 32)
+			lbl.align = Label.ALIGN_LEFT
 			painel.add_child(lbl)
 
 			y += 34.0
 
 		y += 18.0
 
-	var aviso := _label("ABRINDO O PÓDIO...", 20, COR_NEON, COR_NEON)
-	aviso.position = Vector2(0, vp.y - 92)
-	aviso.size = Vector2(vp.x, 36)
+	var aviso = _label("ABRINDO O PÓDIO...", 20, COR_NEON, COR_NEON)
+	aviso.rect_position = Vector2(0, vp.y - 92)
+	aviso.rect_size = Vector2(vp.x, 36)
 	ui_root.add_child(aviso)
 
-	await get_tree().create_timer(segundos).timeout
+	yield(get_tree().create_timer(segundos), "timeout")
 
 
 func _mostrar_podio_final_com_retorno() -> void:
@@ -2821,7 +2804,7 @@ func _criar_hud_contagem_retorno_final() -> void:
 	add_child(final_timer_layer)
 
 	var root_timer := Control.new()
-	root_timer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root_timer.set_anchors_preset(Control.PRESET_WIDE)
 	root_timer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	final_timer_layer.add_child(root_timer)
 
@@ -2831,33 +2814,33 @@ func _criar_hud_contagem_retorno_final() -> void:
 	var box_y: float = vp.y - box_h - 18.0
 
 	var painel := Panel.new()
-	painel.position = Vector2(box_x, box_y)
-	painel.size = Vector2(box_w, box_h)
+	painel.rect_position = Vector2(box_x, box_y)
+	painel.rect_size = Vector2(box_w, box_h)
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	painel.add_theme_stylebox_override(
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(COR_NEON, Color(0.010, 0.016, 0.028, 0.94), 0.52)
 	)
 	root_timer.add_child(painel)
 
 	final_timer_label = _label("RETORNANDO À TELA INICIAL EM 21", 18, COR_NEON, COR_NEON)
-	final_timer_label.position = Vector2(18, 8)
-	final_timer_label.size = Vector2(box_w - 36, 34)
-	final_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	final_timer_label.rect_position = Vector2(18, 8)
+	final_timer_label.rect_size = Vector2(box_w - 36, 34)
+	final_timer_label.align = Label.ALIGN_RIGHT
 	painel.add_child(final_timer_label)
 
 	var barra_bg := ColorRect.new()
-	barra_bg.position = Vector2(24, 52)
-	barra_bg.size = Vector2(box_w - 48, 7)
+	barra_bg.rect_position = Vector2(24, 52)
+	barra_bg.rect_size = Vector2(box_w - 48, 7)
 	barra_bg.color = Color(1, 1, 1, 0.12)
 	barra_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra_bg)
 
-	final_timer_barra_w = barra_bg.size.x
+	final_timer_barra_w = barra_bg.rect_size.x
 
 	final_timer_barra = ColorRect.new()
-	final_timer_barra.position = barra_bg.position
-	final_timer_barra.size = barra_bg.size
+	final_timer_barra.rect_position = barra_bg.rect_position
+	final_timer_barra.rect_size = barra_bg.rect_size
 	final_timer_barra.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 1.0)
 	final_timer_barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(final_timer_barra)
@@ -2872,15 +2855,15 @@ func _processar_contagem_retorno_final() -> void:
 
 	var agora: float = float(Time.get_ticks_msec())
 	var passado: float = (agora - contagem_retorno_final_inicio_ms) / 1000.0
-	var restante: float = maxf(0.0, contagem_retorno_final_total - passado)
+	var restante: float = max(0.0, contagem_retorno_final_total - passado)
 	var numero: int = int(ceil(restante))
 
 	if final_timer_label != null and is_instance_valid(final_timer_label):
-		final_timer_label.text = "RETORNANDO À TELA INICIAL EM %d" % maxi(numero, 0)
+		final_timer_label.text = "RETORNANDO À TELA INICIAL EM %d" % int(max(numero, 0))
 
 	if final_timer_barra != null and is_instance_valid(final_timer_barra):
-		var frac: float = clampf(restante / contagem_retorno_final_total, 0.0, 1.0)
-		final_timer_barra.size.x = final_timer_barra_w * frac
+		var frac: float = clamp(restante / contagem_retorno_final_total, 0.0, 1.0)
+		final_timer_barra.rect_size.x = final_timer_barra_w * frac
 
 	if restante <= 0.0:
 		contagem_retorno_final_ativa = false
@@ -2912,7 +2895,7 @@ func _retornar_opening() -> void:
 	_fechar_ponte_lobby_leds()
 
 	# Limpa o estado da copa para a próxima começar do zero.
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null and cg.has_method("resetar_copa"):
 		cg.resetar_copa()
@@ -2930,10 +2913,10 @@ func _retornar_opening() -> void:
 		if get_tree().has_meta(chave):
 			get_tree().remove_meta(chave)
 
-	await get_tree().create_timer(0.18).timeout
+	yield(get_tree().create_timer(0.18), "timeout")
 
 	if ResourceLoader.exists(CENA_OPENING):
-		get_tree().change_scene_to_file(CENA_OPENING)
+		get_tree().change_scene(CENA_OPENING)
 	else:
 		_mostrar_modal_aviso(
 			"Cena opening.tscn não encontrada",
@@ -2953,7 +2936,7 @@ func _criar_pedestal(
 	cor: Color,
 	metal: String
 ) -> void:
-	var tem: bool = idx < podio.size() and not (podio[idx] as Dictionary).is_empty()
+	var tem: bool = idx < podio.size() and not (podio[idx] as Dictionary).empty()
 	var px: float = centro_x - ped_w / 2.0
 	var top_y: float = base_y - altura
 
@@ -2962,7 +2945,7 @@ func _criar_pedestal(
 	# ========================================================
 	var limite_top: float = 150.0
 	var card_gap: float = 14.0
-	var card_h: float = clampf(top_y - limite_top - card_gap, 92.0, 132.0)
+	var card_h: float = clamp(top_y - limite_top - card_gap, 92.0, 132.0)
 	var card_w: float = ped_w + 84.0
 	var card_x: float = centro_x - card_w * 0.5
 	var card_y: float = top_y - card_h - card_gap
@@ -2992,8 +2975,8 @@ func _criar_pedestal(
 			cor_chip = j["cor"]
 
 	var card := Panel.new()
-	card.position = Vector2(card_x, card_y)
-	card.size = Vector2(card_w, card_h)
+	card.rect_position = Vector2(card_x, card_y)
+	card.rect_size = Vector2(card_w, card_h)
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var card_style := StyleBoxFlat.new()
@@ -3004,20 +2987,20 @@ func _criar_pedestal(
 	card_style.shadow_color = Color(cor_chip.r, cor_chip.g, cor_chip.b, 0.42)
 	card_style.shadow_size = 18
 	card_style.shadow_offset = Vector2.ZERO
-	card.add_theme_stylebox_override("panel", card_style)
+	card.add_stylebox_override("panel", card_style)
 	ui_root.add_child(card)
 
 	var faixa := ColorRect.new()
-	faixa.position = Vector2(18, 10)
-	faixa.size = Vector2(card_w - 36, 3)
+	faixa.rect_position = Vector2(18, 10)
+	faixa.rect_size = Vector2(card_w - 36, 3)
 	faixa.color = Color(cor_chip.r, cor_chip.g, cor_chip.b, 0.90)
 	faixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(faixa)
 
 	if colocacao == 1:
-		var coroa := _label("👑", 34, Color.WHITE, COR_ALERTA)
-		coroa.position = Vector2(0, 10)
-		coroa.size = Vector2(card_w, 38)
+		var coroa = _label("👑", 34, Color.white, COR_ALERTA)
+		coroa.rect_position = Vector2(0, 10)
+		coroa.rect_size = Vector2(card_w, 38)
 		card.add_child(coroa)
 
 	var chip_tam: float = 32.0
@@ -3029,23 +3012,23 @@ func _criar_pedestal(
 		chip_y = 34.0
 
 	var chip := Panel.new()
-	chip.position = Vector2(22, chip_y)
-	chip.size = Vector2(chip_tam, chip_tam)
+	chip.rect_position = Vector2(22, chip_y)
+	chip.rect_size = Vector2(chip_tam, chip_tam)
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chip.add_theme_stylebox_override("panel", _style_chip(cor_chip))
+	chip.add_stylebox_override("panel", _style_chip(cor_chip))
 	card.add_child(chip)
 
 	var nome_font: int = 18
 	if colocacao == 1:
 		nome_font = 20
 
-	var nome_lbl := _label(nome, nome_font, Color.WHITE, cor_chip)
-	nome_lbl.position = Vector2(66, chip_y - 4)
-	nome_lbl.size = Vector2(card_w - 84, 34)
-	nome_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var nome_lbl = _label(nome, nome_font, Color.white, cor_chip)
+	nome_lbl.rect_position = Vector2(66, chip_y - 4)
+	nome_lbl.rect_size = Vector2(card_w - 84, 34)
+	nome_lbl.align = Label.ALIGN_LEFT
 	nome_lbl.clip_text = true
-	nome_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	nome_lbl.add_theme_constant_override("outline_size", 4)
+	nome_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(nome_lbl, 4)
 	card.add_child(nome_lbl)
 
 	var info_txt: String = "%d GOLS  •  %d JOGOS  •  %d VIT" % [
@@ -3054,10 +3037,10 @@ func _criar_pedestal(
 		vitorias
 	]
 
-	var info_lbl := _label(info_txt, 13, Color(0.82, 0.92, 1.0))
-	info_lbl.position = Vector2(66, chip_y + 30)
-	info_lbl.size = Vector2(card_w - 84, 26)
-	info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var info_lbl = _label(info_txt, 13, Color(0.82, 0.92, 1.0))
+	info_lbl.rect_position = Vector2(66, chip_y + 30)
+	info_lbl.rect_size = Vector2(card_w - 84, 26)
+	info_lbl.align = Label.ALIGN_LEFT
 	info_lbl.clip_text = true
 	card.add_child(info_lbl)
 
@@ -3065,12 +3048,12 @@ func _criar_pedestal(
 	# PEDESTAL
 	# ========================================================
 	var ped := Panel.new()
-	ped.position = Vector2(px, top_y)
-	ped.size = Vector2(ped_w, altura)
+	ped.rect_position = Vector2(px, top_y)
+	ped.rect_size = Vector2(ped_w, altura)
 	ped.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var brilho: float = 0.65 if colocacao == 1 else 0.30
-	ped.add_theme_stylebox_override(
+	ped.add_stylebox_override(
 		"panel",
 		_style_panel(
 			cor,
@@ -3082,27 +3065,27 @@ func _criar_pedestal(
 
 	# Brilho interno do pedestal.
 	var glow := ColorRect.new()
-	glow.position = Vector2(14, 14)
-	glow.size = Vector2(ped_w - 28, altura - 28)
+	glow.rect_position = Vector2(14, 14)
+	glow.rect_size = Vector2(ped_w - 28, altura - 28)
 	glow.color = Color(cor.r, cor.g, cor.b, 0.07)
 	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ped.add_child(glow)
 
 	# Número da colocação — subido e mais centralizado.
-	var num_font: int = int(clampf(altura * 0.18, 40.0, 72.0))
-	var num := _label("%dº" % colocacao, num_font, Color.WHITE, cor)
-	num.position = Vector2(0, altura * 0.18)
-	num.size = Vector2(ped_w, altura * 0.26)
-	num.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	num.add_theme_constant_override("outline_size", 5)
+	var num_font: int = int(clamp(altura * 0.18, 40.0, 72.0))
+	var num = _label("%dº" % colocacao, num_font, Color.white, cor)
+	num.rect_position = Vector2(0, altura * 0.18)
+	num.rect_size = Vector2(ped_w, altura * 0.26)
+	num.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(num, 5)
 	ped.add_child(num)
 
 	# Texto OURO / PRATA / BRONZE — também subido.
-	var metal_lbl := _label(metal, 16, cor, cor)
-	metal_lbl.position = Vector2(0, altura * 0.50)
-	metal_lbl.size = Vector2(ped_w, 28)
-	metal_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	metal_lbl.add_theme_constant_override("outline_size", 3)
+	var metal_lbl = _label(metal, 16, cor, cor)
+	metal_lbl.rect_position = Vector2(0, altura * 0.50)
+	metal_lbl.rect_size = Vector2(ped_w, 28)
+	metal_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(metal_lbl, 3)
 	ped.add_child(metal_lbl)
 
 	var resumo := ""
@@ -3117,9 +3100,9 @@ func _criar_pedestal(
 	else:
 		resumo = "A DEFINIR"
 
-	var resumo_lbl := _label(resumo, 13, Color(0.82, 0.90, 1.0))
-	resumo_lbl.position = Vector2(0, altura * 0.66)
-	resumo_lbl.size = Vector2(ped_w, 26)
+	var resumo_lbl = _label(resumo, 13, Color(0.82, 0.90, 1.0))
+	resumo_lbl.rect_position = Vector2(0, altura * 0.66)
+	resumo_lbl.rect_size = Vector2(ped_w, 26)
 	ped.add_child(resumo_lbl)
 	
 	if tem:
@@ -3162,12 +3145,12 @@ func _adicionar_stats_podio_no_pedestal(
 		_criar_mini_stat_podio(ped, "PTS", str(pontos), Vector2(margem + box_w + gap, y2), Vector2(box_w, box_h), cor)
 
 		if penaltis > 0:
-			var pen_lbl := _label("PÊNALTIS: %d" % penaltis, 10, Color(0.86, 0.92, 1.0))
-			pen_lbl.position = Vector2(0, altura - 24)
-			pen_lbl.size = Vector2(ped_w, 18)
+			var pen_lbl = _label("PÊNALTIS: %d" % penaltis, 10, Color(0.86, 0.92, 1.0))
+			pen_lbl.rect_position = Vector2(0, altura - 24)
+			pen_lbl.rect_size = Vector2(ped_w, 18)
 			ped.add_child(pen_lbl)
 	else:
-		var txt := "GOLS %d  •  JOGOS %d\nVIT %d  •  PTS %d" % [
+		var txt = "GOLS %d  •  JOGOS %d\nVIT %d  •  PTS %d" % [
 			gols,
 			jogos,
 			vitorias,
@@ -3177,12 +3160,12 @@ func _adicionar_stats_podio_no_pedestal(
 		if penaltis > 0:
 			txt += "  •  PÊN %d" % penaltis
 
-		var lbl := _label(txt, 10, Color(0.86, 0.92, 1.0))
-		lbl.position = Vector2(8, altura * 0.76)
-		lbl.size = Vector2(ped_w - 16, altura * 0.22)
-		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
-		lbl.add_theme_constant_override("outline_size", 3)
+		var lbl = _label(txt, 10, Color(0.86, 0.92, 1.0))
+		lbl.rect_position = Vector2(8, altura * 0.76)
+		lbl.rect_size = Vector2(ped_w - 16, altura * 0.22)
+		lbl.autowrap = true
+		lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.92))
+		Compat.contorno(lbl, 3)
 		ped.add_child(lbl)
 
 
@@ -3195,8 +3178,8 @@ func _criar_mini_stat_podio(
 	cor: Color
 ) -> void:
 	var box := Panel.new()
-	box.position = pos
-	box.size = tam
+	box.rect_position = pos
+	box.rect_size = tam
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var st := StyleBoxFlat.new()
@@ -3207,20 +3190,20 @@ func _criar_mini_stat_podio(
 	st.shadow_color = Color(cor.r, cor.g, cor.b, 0.16)
 	st.shadow_size = 5
 	st.shadow_offset = Vector2.ZERO
-	box.add_theme_stylebox_override("panel", st)
+	box.add_stylebox_override("panel", st)
 
 	parent.add_child(box)
 
-	var t := _label(titulo, 8, Color(0.68, 0.76, 0.86))
-	t.position = Vector2(0, 2)
-	t.size = Vector2(tam.x, 12)
+	var t = _label(titulo, 8, Color(0.68, 0.76, 0.86))
+	t.rect_position = Vector2(0, 2)
+	t.rect_size = Vector2(tam.x, 12)
 	box.add_child(t)
 
-	var v := _label(valor, 14, Color.WHITE, cor)
-	v.position = Vector2(0, 13)
-	v.size = Vector2(tam.x, 20)
-	v.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
-	v.add_theme_constant_override("outline_size", 3)
+	var v = _label(valor, 14, Color.white, cor)
+	v.rect_position = Vector2(0, 13)
+	v.rect_size = Vector2(tam.x, 20)
+	v.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.92))
+	Compat.contorno(v, 3)
 	box.add_child(v)
 
 
@@ -3256,7 +3239,7 @@ func _iniciar_partida(index: int) -> void:
 	elif fase_partida == FASE_FINAL:
 		permite_desempate_em_campo = true
 
-	var dados_partida := {
+	var dados_partida = {
 		"partida_index": index,
 		"fase": fase_partida,
 		"grupo_index": int(partida.get("grupo_index", -1)),
@@ -3268,7 +3251,7 @@ func _iniciar_partida(index: int) -> void:
 		"permite_prorrogacao_penaltis": permite_desempate_em_campo
 	}
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		cg.configurar_partida_atual(dados_partida, index, grupos, partidas)
@@ -3285,9 +3268,9 @@ func _iniciar_partida(index: int) -> void:
 		# A tela de DESTINO (cup_play) é a dona do loading.
 		# Aqui só cobrimos para não piscar cinza na troca.
 		_cobrir_tela_para_transicao()
-		await get_tree().process_frame
+		yield(get_tree(), "idle_frame")
 
-		get_tree().change_scene_to_file(CENA_CUP_PLAY)
+		get_tree().change_scene(CENA_CUP_PLAY)
 	else:
 		_mostrar_modal_aviso("Cena cup_play.tscn não encontrada", "Crie a cena:\nres://scenes/cup_play.tscn")
 
@@ -3326,17 +3309,17 @@ func _rebalancear_grupos_reais() -> void:
 		return
 
 	# Se já existe partida salva ou finalizada, não mexe mais nos grupos.
-	if not partidas.is_empty():
+	if not partidas.empty():
 		return
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		if cg.partidas_copa is Array and cg.partidas_copa.size() > 0:
 			return
 
 	if get_tree().has_meta("copa_partidas"):
-		var p_meta: Variant = get_tree().get_meta("copa_partidas")
+		var p_meta = get_tree().get_meta("copa_partidas")
 		if p_meta is Array and p_meta.size() > 0:
 			return
 
@@ -3379,7 +3362,7 @@ func _rebalancear_grupos_reais() -> void:
 	for i in range(NUM_GRUPOS):
 		var jogadores_do_grupo: Array = novos_grupos[i]["jogadores"]
 
-		while jogadores_do_grupo.size() < JOGADORES_POR_GRUPO and not todos_bots.is_empty():
+		while jogadores_do_grupo.size() < JOGADORES_POR_GRUPO and not todos_bots.empty():
 			jogadores_do_grupo.append(todos_bots.pop_front())
 
 	var boot_id: int = 1
@@ -3427,7 +3410,7 @@ func registrar_resultado_partida(partida_index: int, ranking_recebido: Array) ->
 	if partida_index < 0 or partida_index >= partidas.size():
 		return
 
-	if ranking_recebido.is_empty():
+	if ranking_recebido.empty():
 		return
 
 	var p: Dictionary = partidas[partida_index]
@@ -3549,7 +3532,7 @@ func _auto_resolver_partidas_so_boots() -> void:
 
 
 func _partida_tem_so_boots(p: Dictionary) -> bool:
-	if p.is_empty():
+	if p.empty():
 		return false
 
 	if not p.has("jogadores"):
@@ -3557,7 +3540,7 @@ func _partida_tem_so_boots(p: Dictionary) -> bool:
 
 	var jogadores: Array = p.get("jogadores", [])
 
-	if jogadores.is_empty():
+	if jogadores.empty():
 		return false
 
 	for j in jogadores:
@@ -3571,9 +3554,7 @@ func _criar_ranking_automatico_boots(jogadores: Array, rodada: int = 1) -> Array
 	var lista: Array = jogadores.duplicate(true)
 
 	# Ordem estável por nome para não ficar aleatório demais.
-	lista.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return str(a.get("nome", "")) < str(b.get("nome", ""))
-	)
+	lista.sort_custom(self, "_ordem_2")
 
 	# Na rodada 2, gira a ordem para não ficar sempre exatamente igual.
 	if rodada % 2 == 0 and lista.size() > 1:
@@ -3586,7 +3567,7 @@ func _criar_ranking_automatico_boots(jogadores: Array, rodada: int = 1) -> Array
 		var item: Dictionary = lista[i].duplicate(true)
 		var posicao: int = i + 1
 
-		var gols_auto: int = maxi(lista.size() - i, 1)
+		var gols_auto: int = int(max(lista.size() - i, 1))
 
 		item["posicao"] = posicao
 		item["gols"] = gols_auto
@@ -3661,7 +3642,7 @@ func _extrair_classificados_da_partida(fase: String, ranking_recebido: Array) ->
 		var nome: String = str(ranking[i].get("nome", ""))
 		var jogador: Dictionary = _buscar_jogador_por_nome(nome)
 
-		if not jogador.is_empty():
+		if not jogador.empty():
 			var jogador_classificado: Dictionary = jogador.duplicate(true)
 
 			# Mantém também os dados do resultado da partida.
@@ -3910,7 +3891,7 @@ func _finalizar_copa() -> void:
 			campeao = p["classificados"][0]
 			break
 
-	if not campeao.is_empty():
+	if not campeao.empty():
 		print("================================")
 		print("CAMPEÃO DA COPA: ", campeao.get("nome", ""))
 		print("================================")
@@ -3941,28 +3922,28 @@ func _mostrar_classificados() -> void:
 
 	var vp: Vector2 = get_viewport_rect().size
 
-	var titulo := _label("🏆 CLASSIFICADOS PARA A PRÓXIMA FASE", 34, Color.WHITE, COR_ALERTA)
-	titulo.position = Vector2(0, 30)
-	titulo.size = Vector2(vp.x, 70)
+	var titulo = _label("🏆 CLASSIFICADOS PARA A PRÓXIMA FASE", 34, Color.white, COR_ALERTA)
+	titulo.rect_position = Vector2(0, 30)
+	titulo.rect_size = Vector2(vp.x, 70)
 	ui_root.add_child(titulo)
 
-	var box_w: float = minf(vp.x - 100.0, 1100.0)
+	var box_w: float = min(vp.x - 100.0, 1100.0)
 	var box_h: float = vp.y - 190.0
 	var box_x: float = (vp.x - box_w) / 2.0
 	var box_y: float = 120.0
 
 	var painel := Panel.new()
-	painel.position = Vector2(box_x, box_y)
-	painel.size = Vector2(box_w, box_h)
-	painel.add_theme_stylebox_override("panel", _style_panel(COR_ALERTA, Color(0.018, 0.024, 0.035, 0.98), 0.24))
+	painel.rect_position = Vector2(box_x, box_y)
+	painel.rect_size = Vector2(box_w, box_h)
+	painel.add_stylebox_override("panel", _style_panel(COR_ALERTA, Color(0.018, 0.024, 0.035, 0.98), 0.24))
 	ui_root.add_child(painel)
 
 	var y: float = 24.0
 
 	for g in grupos:
-		var lbl_g := _label("GRUPO %s" % g["grupo"], 22, COR_ALERTA)
-		lbl_g.position = Vector2(0, y)
-		lbl_g.size = Vector2(box_w, 34)
+		var lbl_g = _label("GRUPO %s" % g["grupo"], 22, COR_ALERTA)
+		lbl_g.rect_position = Vector2(0, y)
+		lbl_g.rect_size = Vector2(box_w, 34)
 		painel.add_child(lbl_g)
 
 		y += 42.0
@@ -3971,20 +3952,20 @@ func _mostrar_classificados() -> void:
 
 		for i in range(2):
 			var j: Dictionary = ordenados[i]
-			var texto := "%dº  %s   —   %d pts" % [i + 1, j["nome"], int(j["pontos"])]
+			var texto = "%dº  %s   —   %d pts" % [i + 1, j["nome"], int(j["pontos"])]
 
-			var lbl := _label(texto, 19, Color.WHITE)
-			lbl.position = Vector2(90, y)
-			lbl.size = Vector2(box_w - 180, 32)
-			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			var lbl = _label(texto, 19, Color.white)
+			lbl.rect_position = Vector2(90, y)
+			lbl.rect_size = Vector2(box_w - 180, 32)
+			lbl.align = Label.ALIGN_LEFT
 			painel.add_child(lbl)
 
 			y += 34.0
 
 		y += 18.0
 
-	var btn_voltar := _botao_neon("◀ VOLTAR AO LOBBY", Vector2(44, vp.y - 76), Vector2(320, 56), COR_NEON)
-	btn_voltar.pressed.connect(_montar_tela_lobby)
+	var btn_voltar = _botao_neon("◀ VOLTAR AO LOBBY", Vector2(44, vp.y - 76), Vector2(320, 56), COR_NEON)
+	btn_voltar.connect("pressed", self, "_montar_tela_lobby")
 	ui_root.add_child(btn_voltar)
 
 
@@ -4002,20 +3983,20 @@ func _voltar_setup() -> void:
 func _input(event: InputEvent) -> void:
 	# Atalhos de sistema (fechar / bloquear).
 	if event is InputEventKey and event.pressed and not event.echo:
-		var vp_key := get_viewport()
+		var vp_key = get_viewport()
 
-		if event.ctrl_pressed and event.keycode == KEY_TAB:
+		if event.control and event.scancode == KEY_TAB:
 			if vp_key:
 				vp_key.set_input_as_handled()
 			_fechar_programa()
 			return
 
-		if event.keycode == KEY_ESCAPE:
+		if event.scancode == KEY_ESCAPE:
 			if vp_key:
 				vp_key.set_input_as_handled()
 			return
 
-		if event.alt_pressed and event.keycode in [KEY_F4, KEY_TAB]:
+		if event.alt and event.scancode in [KEY_F4, KEY_TAB]:
 			if vp_key:
 				vp_key.set_input_as_handled()
 			return
@@ -4060,7 +4041,7 @@ func _exit_tree() -> void:
 	_fechar_ponte_lobby_leds()
 
 func _notification(what: int) -> void:
-	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
+	if what in [MainLoop.NOTIFICATION_WM_QUIT_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
 		return
 
 
@@ -4068,10 +4049,8 @@ func _notification(what: int) -> void:
 # BASE VISUAL
 # ============================================================
 func _travar_arcade() -> void:
-	RenderingServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, true)
+	VisualServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
+	pass  # (Android: a janela ja e a tela cheia)
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 
@@ -4086,13 +4065,13 @@ func _criar_fundo() -> void:
 	add_child(cl)
 
 	var bg := ColorRect.new()
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.set_anchors_preset(Control.PRESET_WIDE)
 	bg.color = Color(0.010, 0.014, 0.022, 1.0)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(bg)
 
 	var glow := ColorRect.new()
-	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glow.set_anchors_preset(Control.PRESET_WIDE)
 	glow.color = Color(0.12, 0.58, 1.0, 0.035)
 	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(glow)
@@ -4104,7 +4083,7 @@ func _criar_ui_root() -> void:
 	add_child(ui_layer)
 
 	ui_root = Control.new()
-	ui_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ui_root.set_anchors_preset(Control.PRESET_WIDE)
 	ui_layer.add_child(ui_root)
 
 
@@ -4115,26 +4094,27 @@ func _criar_ponteiro() -> void:
 
 	ponteiro = Control.new()
 	ponteiro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ponteiro.visible = OS.get_name() != "Android"
 	ponteiro_layer.add_child(ponteiro)
 
 	var anel := Panel.new()
-	anel.size = Vector2(34, 34)
-	anel.position = Vector2(-17, -17)
+	anel.rect_size = Vector2(34, 34)
+	anel.rect_position = Vector2(-17, -17)
 	anel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	anel.add_theme_stylebox_override("panel", _style_mira())
+	anel.add_stylebox_override("panel", _style_mira())
 	ponteiro.add_child(anel)
 
 	var dot := Panel.new()
-	dot.size = Vector2(8, 8)
-	dot.position = Vector2(-4, -4)
+	dot.rect_size = Vector2(8, 8)
+	dot.rect_position = Vector2(-4, -4)
 	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var sd := StyleBoxFlat.new()
-	sd.bg_color = Color.WHITE
+	sd.bg_color = Color.white
 	sd.set_corner_radius_all(4)
 	sd.shadow_color = Color(0.20, 1.0, 0.85, 0.8)
 	sd.shadow_size = 6
-	dot.add_theme_stylebox_override("panel", sd)
+	dot.add_stylebox_override("panel", sd)
 	ponteiro.add_child(dot)
 	
 	_set_mouse_arcade_visivel(false)
@@ -4163,22 +4143,22 @@ func _criar_back_copa(abaixo_cabecalho: bool = true, escurecer: float = 0.56, br
 
 	# Base escura atrás da imagem.
 	var bg_base := ColorRect.new()
-	bg_base.position = Vector2(0, y_inicio)
-	bg_base.size = Vector2(vp.x, altura)
+	bg_base.rect_position = Vector2(0, y_inicio)
+	bg_base.rect_size = Vector2(vp.x, altura)
 	bg_base.color = Color(0.006, 0.010, 0.018, 1.0)
 	bg_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(bg_base)
 
 	if ResourceLoader.exists(IMAGEM_BACK_COPA):
 		var img := TextureRect.new()
-		img.position = Vector2(0, y_inicio)
-		img.size = Vector2(vp.x, altura)
+		img.rect_position = Vector2(0, y_inicio)
+		img.rect_size = Vector2(vp.x, altura)
 		img.texture = load(IMAGEM_BACK_COPA)
 
 		# IMPORTANTE:
 		# STRETCH_SCALE mostra a imagem completa, sem zoom e sem corte,
 		# preenchendo toda a área abaixo do cabeçalho.
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.expand = true
 		img.stretch_mode = TextureRect.STRETCH_SCALE
 
 		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -4188,47 +4168,47 @@ func _criar_back_copa(abaixo_cabecalho: bool = true, escurecer: float = 0.56, br
 
 	# Camada escura para as informações ficarem legíveis.
 	var escuro := ColorRect.new()
-	escuro.position = Vector2(0, y_inicio)
-	escuro.size = Vector2(vp.x, altura)
+	escuro.rect_position = Vector2(0, y_inicio)
+	escuro.rect_size = Vector2(vp.x, altura)
 	escuro.color = Color(0, 0, 0, escurecer)
 	escuro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(escuro)
 
 	# Brilho azul leve para combinar com o neon.
 	var glow := ColorRect.new()
-	glow.position = Vector2(0, y_inicio)
-	glow.size = Vector2(vp.x, altura)
+	glow.rect_position = Vector2(0, y_inicio)
+	glow.rect_size = Vector2(vp.x, altura)
 	glow.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, brilho_azul)
 	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(glow)
 
 	# Vinheta superior suave abaixo do cabeçalho.
 	var sombra_top := ColorRect.new()
-	sombra_top.position = Vector2(0, y_inicio)
-	sombra_top.size = Vector2(vp.x, 70)
+	sombra_top.rect_position = Vector2(0, y_inicio)
+	sombra_top.rect_size = Vector2(vp.x, 70)
 	sombra_top.color = Color(0, 0, 0, 0.30)
 	sombra_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(sombra_top)
 
 
 
-func _label(txt: String, tam: int, cor: Color, sombra: Color = Color.TRANSPARENT) -> Label:
+func _label(txt: String, tam: int, cor: Color, sombra: Color = Color.transparent) -> Label:
 	var l := Label.new()
 	l.text = txt
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.align = Label.ALIGN_CENTER
+	l.valign = Label.VALIGN_CENTER
 
 	if fonte_orbitron:
-		l.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(l, fonte_orbitron)
 
-	l.add_theme_font_size_override("font_size", tam)
-	l.add_theme_color_override("font_color", cor)
+	Compat.tamanho(l, tam)
+	l.add_color_override("font_color", cor)
 
 	if sombra.a > 0.0:
-		l.add_theme_color_override("font_shadow_color", sombra)
-		l.add_theme_constant_override("shadow_offset_x", 0)
-		l.add_theme_constant_override("shadow_offset_y", 0)
+		l.add_color_override("font_color_shadow", sombra)
+		l.add_constant_override("shadow_offset_x", 0)
+		l.add_constant_override("shadow_offset_y", 0)
 
 	return l
 
@@ -4236,21 +4216,21 @@ func _label(txt: String, tam: int, cor: Color, sombra: Color = Color.TRANSPARENT
 func _botao_neon(txt: String, pos: Vector2, tam: Vector2, cor: Color) -> Button:
 	var b := Button.new()
 	b.text = txt
-	b.position = pos
-	b.size = tam
-	b.custom_minimum_size = tam
+	b.rect_position = pos
+	b.rect_size = tam
+	b.rect_min_size = tam
 
 	if fonte_orbitron:
-		b.add_theme_font_override("font", fonte_orbitron)
+		Compat.fonte(b, fonte_orbitron)
 
-	b.add_theme_font_size_override("font_size", int(clamp(tam.y * 0.35, 15, 28)))
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_hover_color", Color.WHITE)
-	b.add_theme_color_override("font_pressed_color", cor)
-	b.add_theme_stylebox_override("normal", _style_botao(cor, 0.24))
-	b.add_theme_stylebox_override("hover", _style_botao(cor, 0.50))
-	b.add_theme_stylebox_override("pressed", _style_botao(cor, 0.78))
-	b.add_theme_stylebox_override("focus", _style_botao(cor, 0.50))
+	Compat.tamanho(b, int(clamp(tam.y * 0.35, 15, 28)))
+	b.add_color_override("font_color", Color.white)
+	b.add_color_override("font_color_hover", Color.white)
+	b.add_color_override("font_color_pressed", cor)
+	b.add_stylebox_override("normal", _style_botao(cor, 0.24))
+	b.add_stylebox_override("hover", _style_botao(cor, 0.50))
+	b.add_stylebox_override("pressed", _style_botao(cor, 0.78))
+	b.add_stylebox_override("focus", _style_botao(cor, 0.50))
 
 	return b
 
@@ -4268,7 +4248,7 @@ func _style_botao(cor: Color, intensidade: float) -> StyleBoxFlat:
 
 
 # StyleBox transparente para botões invisíveis sobre os cards de fase.
-func _style_transparente(alpha: float = 0.0, cor: Color = Color.WHITE) -> StyleBoxFlat:
+func _style_transparente(alpha: float = 0.0, cor: Color = Color.white) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(cor.r, cor.g, cor.b, alpha)
 	s.set_corner_radius_all(14)
@@ -4280,7 +4260,7 @@ func _style_transparente(alpha: float = 0.0, cor: Color = Color.WHITE) -> StyleB
 func _style_panel(cor_borda: Color, cor_fundo: Color, brilho: float) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = cor_fundo
-	s.border_color = Color(cor_borda.r, cor_borda.g, cor_borda.b, maxf(cor_borda.a, 0.18))
+	s.border_color = Color(cor_borda.r, cor_borda.g, cor_borda.b, max(cor_borda.a, 0.18))
 	s.set_border_width_all(2)
 	s.set_corner_radius_all(22)
 	s.shadow_color = Color(cor_borda.r, cor_borda.g, cor_borda.b, brilho)
@@ -4327,52 +4307,49 @@ func _mostrar_modal_aviso(titulo_txt: String, msg_txt: String) -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	var overlay := ColorRect.new()
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.set_anchors_preset(Control.PRESET_WIDE)
 	overlay.color = Color(0, 0, 0, 0.72)
 	ui_root.add_child(overlay)
 
 	var painel := Panel.new()
-	painel.size = Vector2(760, 320)
-	painel.position = (vp - painel.size) / 2.0
-	painel.add_theme_stylebox_override("panel", _style_panel(COR_ERRO, Color(0.018, 0.024, 0.035, 0.98), 0.34))
+	painel.rect_size = Vector2(760, 320)
+	painel.rect_position = (vp - painel.rect_size) / 2.0
+	painel.add_stylebox_override("panel", _style_panel(COR_ERRO, Color(0.018, 0.024, 0.035, 0.98), 0.34))
 	ui_root.add_child(painel)
 
-	var t := _label(titulo_txt, 28, Color.WHITE, COR_ERRO)
-	t.position = Vector2(0, 44)
-	t.size = Vector2(760, 48)
+	var t = _label(titulo_txt, 28, Color.white, COR_ERRO)
+	t.rect_position = Vector2(0, 44)
+	t.rect_size = Vector2(760, 48)
 	painel.add_child(t)
 
-	var m := _label(msg_txt, 18, Color(0.78, 0.84, 0.92))
-	m.position = Vector2(60, 116)
-	m.size = Vector2(640, 92)
-	m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var m = _label(msg_txt, 18, Color(0.78, 0.84, 0.92))
+	m.rect_position = Vector2(60, 116)
+	m.rect_size = Vector2(640, 92)
+	m.autowrap = true
 	painel.add_child(m)
 
-	var btn := _botao_neon("OK", Vector2(260, 238), Vector2(240, 52), COR_ERRO)
-	btn.pressed.connect(func():
-		overlay.queue_free()
-		painel.queue_free()
-	)
+	var btn = _botao_neon("OK", Vector2(260, 238), Vector2(240, 52), COR_ERRO)
+	btn.connect("pressed", self, "_g3_fechar_aviso", [overlay, painel])
 	painel.add_child(btn)
 
 
 func _verificar_resultado_pendente() -> void:
 	var resultado: Dictionary = {}
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null:
 		var r: Dictionary = cg.consumir_resultado_pendente()
-		if not r.is_empty():
+		if not r.empty():
 			resultado = r
 
-	if resultado.is_empty() and get_tree().has_meta("resultado_copa_pendente"):
-		var r_meta: Variant = get_tree().get_meta("resultado_copa_pendente")
+	if resultado.empty() and get_tree().has_meta("resultado_copa_pendente"):
+		var r_meta = get_tree().get_meta("resultado_copa_pendente")
 		if r_meta is Dictionary:
 			resultado = r_meta
 			get_tree().remove_meta("resultado_copa_pendente")
 
-	if resultado.is_empty():
+	if resultado.empty():
 		return
 
 	var partida_index: int = int(resultado["partida_index"])
@@ -4402,8 +4379,8 @@ func _criar_audios_cup() -> void:
 	if ResourceLoader.exists(MUSICA_CUP_LOBBY):
 		var stream: AudioStream = load(MUSICA_CUP_LOBBY)
 
-		if stream is AudioStreamMP3:
-			stream.loop = true
+		if stream is AudioStream:
+			Compat.laco(stream, true)
 
 		audio_cup_lobby.stream = stream
 		audio_cup_lobby.volume_db = -7.0
@@ -4469,9 +4446,9 @@ func _processar_leds_lobby(delta: float) -> void:
 
 	led_lobby_timer = 0.0
 
-	var cores_disponiveis: Array[Color] = _cores_jogadores_reais_ativos()
+	var cores_disponiveis: Array = _cores_jogadores_reais_ativos()
 
-	if cores_disponiveis.is_empty():
+	if cores_disponiveis.empty():
 		cores_disponiveis = [
 			Color(0.1, 0.75, 1.0),
 			Color(0.2, 1.0, 0.3),
@@ -4479,23 +4456,23 @@ func _processar_leds_lobby(delta: float) -> void:
 			Color(1.0, 0.85, 0.05)
 		]
 
-	var qtd_leds: int = randi_range(LEDS_LOBBY_MIN, LEDS_LOBBY_MAX)
+	var qtd_leds: int = Compat.randi_range(LEDS_LOBBY_MIN, LEDS_LOBBY_MAX)
 	qtd_leds = clamp(qtd_leds, 1, LEDS_TOTAL)
 
-	var indices: Array[int] = []
+	var indices: Array = []
 
 	while indices.size() < qtd_leds:
-		var novo: int = randi_range(0, LEDS_TOTAL - 1)
+		var novo: int = Compat.randi_range(0, LEDS_TOTAL - 1)
 
 		if not indices.has(novo):
 			indices.append(novo)
 
-	var partes: Array[String] = []
+	var partes: Array = []
 
 	for index_led in indices:
 		var letra: String = LEDS_LETRAS[index_led]
 		var cor: Color = cores_disponiveis[randi() % cores_disponiveis.size()]
-		var rgb: Array[int] = _cor_para_rgb255(cor)
+		var rgb: Array = _cor_para_rgb255(cor)
 
 		partes.append("%s=%d,%d,%d" % [
 			letra,
@@ -4504,17 +4481,17 @@ func _processar_leds_lobby(delta: float) -> void:
 			rgb[2]
 		])
 
-	if partes.is_empty():
+	if partes.empty():
 		_serial_write_lobby("OFF")
 		return
 
-	var comando: String = "SET:" + ";".join(partes)
+	var comando: String = "SET:" + PoolStringArray(partes).join(";")
 	_serial_write_lobby(comando)
 
 
 
-func _cores_jogadores_reais_ativos() -> Array[Color]:
-	var cores: Array[Color] = []
+func _cores_jogadores_reais_ativos() -> Array:
+	var cores: Array = []
 
 	var usar_classificados: bool = _todas_partidas_finalizadas()
 
@@ -4571,10 +4548,10 @@ func _normalizar_cor_player_led(c: Color) -> Color:
 	if b >= r and b >= g:
 		return Color(0.0, 0.0, 1.0)
 
-	return Color.WHITE
+	return Color.white
 
 
-func _cor_para_rgb255(c: Color) -> Array[int]:
+func _cor_para_rgb255(c: Color) -> Array:
 	# Converte a cor visual do player para RGB forte de LED.
 	# Isso evita vermelho rosado, azul claro ou verde apagado no NeoPixel.
 
@@ -4603,250 +4580,30 @@ func _cor_para_rgb255(c: Color) -> Array[int]:
 
 
 func _abrir_serial_lobby() -> void:
+	# TV Box: o Arduino Nano é do autoload Arduino (USB); não há ponte.
 	if not USAR_ARDUINO_LOBBY:
 		return
-
-	if not USAR_PONTE_POWERSHELL_LOBBY:
-		return
-
-	ponte_lobby_pronta = false
-
-	_matar_pontes_lobby_antigas()
-
-	await get_tree().create_timer(0.35).timeout
-
-	_iniciar_ponte_powershell_lobby()
-
-	await get_tree().create_timer(2.6).timeout
-
 	ponte_lobby_pronta = true
 	_serial_write_lobby("OFF")
 
-	print("================================")
-	print("ARDUINO LOBBY COPA PRONTO")
-	print("LEDs em modo atrativo com cores dos jogadores reais")
-	print("================================")
-
 
 func _matar_pontes_lobby_antigas() -> void:
-	var output: Array = []
-
-	var comando := """
-Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" |
-Where-Object {
-	$_.CommandLine -like '*arduino_bridge_cup_lobby.ps1*' -or
-	$_.CommandLine -like '*arduino_bridge_cup.ps1*' -or
-	$_.CommandLine -like '*arduino_bridge.ps1*'
-} |
-ForEach-Object {
-	try {
-		Stop-Process -Id $_.ProcessId -Force
-	} catch {}
-}
-"""
-
-	var args := [
-		"-NoProfile",
-		"-ExecutionPolicy",
-		"Bypass",
-		"-Command",
-		comando
-	]
-
-	OS.execute("powershell.exe", args, output, true, false)
-
-	print("PONTES POWERSHELL ANTIGAS DO LOBBY FINALIZADAS")
+	pass  # TV Box: sem PowerShell.
 
 
 func _iniciar_ponte_powershell_lobby() -> void:
-	caminho_log_arduino_lobby = ProjectSettings.globalize_path("user://arduino_log_cup_lobby.txt")
-	caminho_script_arduino_lobby = ProjectSettings.globalize_path("user://arduino_bridge_cup_lobby.ps1")
-	caminho_fila_arduino_lobby = ProjectSettings.globalize_path("user://arduino_queue_cup_lobby")
-
-	DirAccess.make_dir_recursive_absolute(caminho_fila_arduino_lobby)
-
-	var dir := DirAccess.open(caminho_fila_arduino_lobby)
-
-	if dir:
-		dir.list_dir_begin()
-		var nome := dir.get_next()
-
-		while nome != "":
-			if not dir.current_is_dir() and nome.ends_with(".cmd"):
-				dir.remove(nome)
-
-			nome = dir.get_next()
-
-		dir.list_dir_end()
-
-	var flog := FileAccess.open(caminho_log_arduino_lobby, FileAccess.WRITE)
-
-	if flog:
-		flog.store_string("INICIANDO LOG DA PONTE ARDUINO CUP LOBBY\n")
-		flog.close()
-
-	var script := """
-$ErrorActionPreference = 'Continue'
-
-$porta = '%s'
-$baud = %d
-$queueDir = '%s'
-$logFile = '%s'
-
-function Log($txt) {
-	$linha = ("{0} - {1}" -f (Get-Date -Format "HH:mm:ss.fff"), $txt)
-	Add-Content -Path $logFile -Value $linha
-	Write-Host $linha
-}
-
-Log "ABRINDO PORTA $porta / $baud"
-Log "FILA: $queueDir"
-
-try {
-	$port = New-Object System.IO.Ports.SerialPort $porta, $baud, 'None', 8, 'One'
-	$port.DtrEnable = $true
-	$port.RtsEnable = $true
-	$port.NewLine = "`n"
-	$port.Open()
-
-	Log "PORTA ABERTA"
-
-	Start-Sleep -Milliseconds 2300
-
-	$port.WriteLine("OFF")
-	Log "TX: OFF"
-
-	while ($true) {
-		if (-not (Test-Path $queueDir)) {
-			New-Item -ItemType Directory -Path $queueDir | Out-Null
-		}
-
-		$files = Get-ChildItem -Path $queueDir -Filter "*.cmd" | Sort-Object Name
-
-		foreach ($file in $files) {
-			$cmd = ""
-
-			try {
-				$cmd = Get-Content $file.FullName -Raw
-				$cmd = $cmd.Trim()
-				Remove-Item $file.FullName -Force
-			}
-			catch {
-				continue
-			}
-
-			if ($cmd.Length -le 0) {
-				continue
-			}
-
-			if ($cmd -eq "__EXIT__") {
-				Log "SAINDO"
-				$port.WriteLine("OFF")
-				Start-Sleep -Milliseconds 100
-				$port.Close()
-				Log "PORTA FECHADA"
-				exit
-			}
-
-			Log "TX: $cmd"
-			$port.WriteLine($cmd)
-			Start-Sleep -Milliseconds 25
-		}
-
-		Start-Sleep -Milliseconds 8
-	}
-}
-catch {
-	Log ("ERRO: " + $_.Exception.Message)
-}
-""" % [
-		SERIAL_PORTA_LOBBY,
-		SERIAL_BAUD_LOBBY,
-		caminho_fila_arduino_lobby.replace("\\", "\\\\"),
-		caminho_log_arduino_lobby.replace("\\", "\\\\")
-	]
-
-	var fs := FileAccess.open(caminho_script_arduino_lobby, FileAccess.WRITE)
-
-	if fs == null:
-		push_error("Não consegui criar script da ponte PowerShell do lobby.")
-		return
-
-	fs.store_string(script)
-	fs.close()
-
-	var args := [
-		"-NoProfile",
-		"-ExecutionPolicy",
-		"Bypass",
-		"-File",
-		caminho_script_arduino_lobby
-	]
-
-	ponte_ps_pid_lobby = OS.create_process("powershell.exe", args, false)
-
-	print("================================")
-	print("PONTE POWERSHELL CUP LOBBY INICIADA")
-	print("PID: ", ponte_ps_pid_lobby)
-	print("QUEUE: ", caminho_fila_arduino_lobby)
-	print("LOG FILE: ", caminho_log_arduino_lobby)
-	print("================================")
+	pass  # TV Box: sem PowerShell; o autoload Arduino cuida da USB.
 
 
 func _serial_write_lobby(texto: String) -> void:
 	if not USAR_ARDUINO_LOBBY:
 		return
-
-	var cmd := texto.strip_edges()
-
-	if cmd == "":
-		return
-
-	if not USAR_PONTE_POWERSHELL_LOBBY:
-		return
-
-	if caminho_fila_arduino_lobby == "":
-		return
-
-	DirAccess.make_dir_recursive_absolute(caminho_fila_arduino_lobby)
-
-	var nome_arquivo := "%020d_%06d.cmd" % [
-		Time.get_ticks_msec(),
-		randi() % 1000000
-	]
-
-	var caminho_temp := caminho_fila_arduino_lobby.path_join(nome_arquivo + ".tmp")
-	var caminho_final := caminho_fila_arduino_lobby.path_join(nome_arquivo)
-
-	var f := FileAccess.open(caminho_temp, FileAccess.WRITE)
-
-	if f == null:
-		push_warning("Não consegui criar comando temporário Arduino Lobby: " + caminho_temp)
-		return
-
-	f.store_string(cmd)
-	f.close()
-
-	var err := DirAccess.rename_absolute(caminho_temp, caminho_final)
-
-	if err != OK:
-		push_warning("Não consegui mover comando para fila Arduino Lobby. Erro: " + str(err))
+	Arduino.enviar(texto)
 
 
 func _fechar_ponte_lobby_leds() -> void:
 	ponte_lobby_pronta = false
-
 	_serial_write_lobby("OFF")
-
-	if USAR_PONTE_POWERSHELL_LOBBY and caminho_fila_arduino_lobby != "":
-		var nome_arquivo := "%020d_EXIT.cmd" % Time.get_ticks_msec()
-		var caminho_final := caminho_fila_arduino_lobby.path_join(nome_arquivo)
-
-		var f := FileAccess.open(caminho_final, FileAccess.WRITE)
-
-		if f:
-			f.store_string("__EXIT__")
-			f.close()
 
 
 func _iniciar_confetes_campeao(cor_base: Color) -> void:
@@ -4862,7 +4619,7 @@ func _iniciar_confetes_campeao(cor_base: Color) -> void:
 	var vp: Vector2 = get_viewport_rect().size
 
 	for i in range(120):
-		_criar_confete(Vector2(randf_range(0.0, vp.x), randf_range(-vp.y, 0.0)), true)
+		_criar_confete(Vector2(rand_range(0.0, vp.x), rand_range(-vp.y, 0.0)), true)
 
 
 func _criar_confete(pos: Vector2, inicial: bool = false) -> void:
@@ -4873,42 +4630,42 @@ func _criar_confete(pos: Vector2, inicial: bool = false) -> void:
 
 	var c := ColorRect.new()
 
-	var largura: float = randf_range(5.0, 12.0)
-	var altura: float = randf_range(9.0, 18.0)
+	var largura: float = rand_range(5.0, 12.0)
+	var altura: float = rand_range(9.0, 18.0)
 
-	c.size = Vector2(largura, altura)
-	c.position = pos
-	c.rotation = randf_range(0.0, TAU)
+	c.rect_size = Vector2(largura, altura)
+	c.rect_position = pos
+	c.rect_rotation = rand_range(0.0, 360.0)
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var cor: Color = confete_cor_base
 
-	var variacao: int = randi_range(0, 4)
+	var variacao: int = Compat.randi_range(0, 4)
 	if variacao == 0:
 		cor = confete_cor_base.lightened(0.35)
 	elif variacao == 1:
-		cor = Color.WHITE
+		cor = Color.white
 	elif variacao == 2:
 		cor = COR_ALERTA
 	elif variacao == 3:
 		cor = confete_cor_base.darkened(0.15)
 
-	c.color = Color(cor.r, cor.g, cor.b, randf_range(0.72, 1.0))
+	c.color = Color(cor.r, cor.g, cor.b, rand_range(0.72, 1.0))
 
 	confete_layer.add_child(c)
 
-	var velocidade_y: float = randf_range(95.0, 230.0)
-	var velocidade_x: float = randf_range(-55.0, 55.0)
+	var velocidade_y: float = rand_range(95.0, 230.0)
+	var velocidade_x: float = rand_range(-55.0, 55.0)
 
 	if inicial:
-		velocidade_y = randf_range(65.0, 190.0)
+		velocidade_y = rand_range(65.0, 190.0)
 
 	confetes.append({
 		"node": c,
 		"vel": Vector2(velocidade_x, velocidade_y),
-		"rot": randf_range(-5.0, 5.0),
-		"fase": randf_range(0.0, TAU),
-		"onda": randf_range(18.0, 55.0)
+		"rot": rand_range(-5.0, 5.0),
+		"fase": rand_range(0.0, TAU),
+		"onda": rand_range(18.0, 55.0)
 	})
 
 
@@ -4920,14 +4677,14 @@ func _processar_confetes(delta: float) -> void:
 
 	# Gera confete infinito.
 	for n in range(3):
-		_criar_confete(Vector2(randf_range(0.0, vp.x), randf_range(-40.0, -10.0)))
+		_criar_confete(Vector2(rand_range(0.0, vp.x), rand_range(-40.0, -10.0)))
 
 	for i in range(confetes.size() - 1, -1, -1):
 		var item: Dictionary = confetes[i]
 		var node: ColorRect = item.get("node", null)
 
 		if node == null or not is_instance_valid(node):
-			confetes.remove_at(i)
+			confetes.remove(i)
 			continue
 
 		var vel: Vector2 = item.get("vel", Vector2.ZERO)
@@ -4938,13 +4695,13 @@ func _processar_confetes(delta: float) -> void:
 		fase += delta * 3.0
 		item["fase"] = fase
 
-		node.position.x += (vel.x + sin(fase) * onda) * delta
-		node.position.y += vel.y * delta
-		node.rotation += rot * delta
+		node.rect_position.x += (vel.x + sin(fase) * onda) * delta
+		node.rect_position.y += vel.y * delta
+		node.rect_rotation += rad2deg(rot) * delta
 
-		if node.position.y > vp.y + 80.0:
+		if node.rect_position.y > vp.y + 80.0:
 			node.queue_free()
-			confetes.remove_at(i)
+			confetes.remove(i)
 
 
 func _parar_confetes() -> void:
@@ -4962,15 +4719,15 @@ func _mostrar_tela_carregamento_lobby(titulo_txt: String, sub_txt: String) -> Ca
 	add_child(layer)
 
 	var loading_root := Control.new()
-	loading_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	loading_root.set_anchors_preset(Control.PRESET_WIDE)
 	loading_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(loading_root)
 
-	var tela := get_viewport_rect().size
+	var tela = get_viewport_rect().size
 
 	# Fundo base escuro para preencher possíveis barras laterais/superiores.
 	var fundo_base := ColorRect.new()
-	fundo_base.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo_base.set_anchors_preset(Control.PRESET_WIDE)
 	fundo_base.color = Color(0.004, 0.007, 0.014, 1.0)
 	fundo_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	loading_root.add_child(fundo_base)
@@ -4978,9 +4735,9 @@ func _mostrar_tela_carregamento_lobby(titulo_txt: String, sub_txt: String) -> Ca
 	# Imagem de carregamento COMPLETA, sem zoom e sem corte.
 	if ResourceLoader.exists(IMAGEM_LOADING_COPA):
 		var img := TextureRect.new()
-		img.set_anchors_preset(Control.PRESET_FULL_RECT)
+		img.set_anchors_preset(Control.PRESET_WIDE)
 		img.texture = load(IMAGEM_LOADING_COPA)
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.expand = true
 
 		# Mostra a imagem inteira sem cortar.
 		# Se a proporção da imagem for diferente da tela, sobram barras escuras.
@@ -4992,13 +4749,13 @@ func _mostrar_tela_carregamento_lobby(titulo_txt: String, sub_txt: String) -> Ca
 		push_warning("Imagem de loading não encontrada: " + IMAGEM_LOADING_COPA)
 
 	var escuro := ColorRect.new()
-	escuro.set_anchors_preset(Control.PRESET_FULL_RECT)
+	escuro.set_anchors_preset(Control.PRESET_WIDE)
 	escuro.color = Color(0, 0, 0, 0.42)
 	escuro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	loading_root.add_child(escuro)
 
 	var glow := ColorRect.new()
-	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glow.set_anchors_preset(Control.PRESET_WIDE)
 	glow.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.070)
 	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	loading_root.add_child(glow)
@@ -5006,61 +4763,61 @@ func _mostrar_tela_carregamento_lobby(titulo_txt: String, sub_txt: String) -> Ca
 	# Rodapé com todas as imagens da pasta res://patro/
 
 	var painel := Panel.new()
-	painel.size = Vector2(minf(tela.x * 0.62, 860.0), 300)
+	painel.rect_size = Vector2(min(tela.x * 0.62, 860.0), 300)
 
 	# Sobe um pouco o painel para não brigar com os patrocinadores no rodapé.
-	painel.position = Vector2(
-		(tela.x - painel.size.x) * 0.5,
-		maxf(70.0, (tela.y - painel.size.y) * 0.5 - 42.0)
+	painel.rect_position = Vector2(
+		(tela.x - painel.rect_size.x) * 0.5,
+		max(70.0, (tela.y - painel.rect_size.y) * 0.5 - 42.0)
 	)
 
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	painel.add_theme_stylebox_override(
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(COR_NEON, Color(0.012, 0.018, 0.030, 0.965), 0.82)
 	)
 	loading_root.add_child(painel)
 
-	var W := painel.size.x
-	var H := painel.size.y
+	var W = painel.rect_size.x
+	var H = painel.rect_size.y
 
-	var titulo := _label(titulo_txt, 36, Color.WHITE, COR_NEON)
-	titulo.position = Vector2(30, 44)
-	titulo.size = Vector2(W - 60, 58)
+	var titulo = _label(titulo_txt, 36, Color.white, COR_NEON)
+	titulo.rect_position = Vector2(30, 44)
+	titulo.rect_size = Vector2(W - 60, 58)
 	painel.add_child(titulo)
 
-	var sub := _label(sub_txt, 19, Color(0.72, 0.84, 0.96))
-	sub.position = Vector2(30, 118)
-	sub.size = Vector2(W - 60, 36)
+	var sub = _label(sub_txt, 19, Color(0.72, 0.84, 0.96))
+	sub.rect_position = Vector2(30, 118)
+	sub.rect_size = Vector2(W - 60, 36)
 	painel.add_child(sub)
 
-	var pct := _label("CARREGANDO...", 28, COR_ALERTA, COR_ALERTA)
-	pct.position = Vector2(0, H - 118)
-	pct.size = Vector2(W, 40)
+	var pct = _label("CARREGANDO...", 28, COR_ALERTA, COR_ALERTA)
+	pct.rect_position = Vector2(0, H - 118)
+	pct.rect_size = Vector2(W, 40)
 	painel.add_child(pct)
 
 	var barra_bg := ColorRect.new()
-	barra_bg.position = Vector2(70, H - 70)
-	barra_bg.size = Vector2(W - 140, 10)
+	barra_bg.rect_position = Vector2(70, H - 70)
+	barra_bg.rect_size = Vector2(W - 140, 10)
 	barra_bg.color = Color(1, 1, 1, 0.12)
 	barra_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra_bg)
 
 	var barra := ColorRect.new()
-	barra.position = barra_bg.position
-	barra.size = Vector2(6, 10)
+	barra.rect_position = barra_bg.rect_position
+	barra.rect_size = Vector2(6, 10)
 	barra.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 1.0)
 	barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra)
 
-	var t := create_tween()
-	t.tween_property(barra, "size:x", barra_bg.size.x, 0.75).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	var t = create_tween()
+	t.tween_property(barra, "rect_size:x", barra_bg.rect_size.x, 0.75).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 	return layer
 
 
-func _listar_imagens_patrocinadores() -> Array[String]:
-	var imagens: Array[String] = []
+func _listar_imagens_patrocinadores() -> Array:
+	var imagens: Array = []
 
 	for caminho in PATROCINADORES_FIXOS:
 		if ResourceLoader.exists(caminho):
@@ -5096,8 +4853,8 @@ void fragment() {
 
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
-	mat.set_shader_parameter("tamanho", tamanho)
-	mat.set_shader_parameter("raio", raio)
+	mat.set_shader_param("tamanho", tamanho)
+	mat.set_shader_param("raio", raio)
 	return mat
 
 
@@ -5106,12 +4863,12 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	if alvo == null:
 		return
 
-	var imagens: Array[String] = _listar_imagens_patrocinadores()
+	var imagens: Array = _listar_imagens_patrocinadores()
 
-	if imagens.is_empty():
+	if imagens.empty():
 		return
 
-	var tela := get_viewport_rect().size
+	var tela = get_viewport_rect().size
 	var total: int = imagens.size()
 
 	# Flexível:
@@ -5126,10 +4883,10 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	else:
 		max_por_linha = 8
 
-	max_por_linha = maxi(max_por_linha, 1)
+	max_por_linha = int(max(max_por_linha, 1))
 
 	var linhas: int = int(ceil(float(total) / float(max_por_linha)))
-	linhas = maxi(linhas, 1)
+	linhas = int(max(linhas, 1))
 
 	var margem_x: float = 54.0
 	var gap: float = 18.0
@@ -5142,7 +4899,7 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	elif linhas >= 3:
 		card_h = 64.0
 
-	var footer_h: float = float(linhas) * card_h + float(maxi(linhas - 1, 0)) * row_gap + 34.0
+	var footer_h: float = float(linhas) * card_h + float(int(max(linhas - 1, 0))) * row_gap + 34.0
 	var footer_h_max: float = tela.y * 0.34
 
 	# Se tiver muitos logos, reduz proporcionalmente para caber.
@@ -5155,10 +4912,10 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	var footer_y: float = tela.y - footer_h - 14.0
 
 	var fundo := Panel.new()
-	fundo.position = Vector2(32.0, footer_y)
-	fundo.size = Vector2(tela.x - 64.0, footer_h)
+	fundo.rect_position = Vector2(32.0, footer_y)
+	fundo.rect_size = Vector2(tela.x - 64.0, footer_h)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fundo.clip_contents = true
+	fundo.rect_clip_content = true
 
 	var fundo_style := StyleBoxFlat.new()
 	fundo_style.bg_color = Color(0.004, 0.012, 0.020, 0.86)
@@ -5168,7 +4925,7 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	fundo_style.shadow_color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.36)
 	fundo_style.shadow_size = 24
 	fundo_style.shadow_offset = Vector2.ZERO
-	fundo.add_theme_stylebox_override("panel", fundo_style)
+	fundo.add_stylebox_override("panel", fundo_style)
 
 	alvo.add_child(fundo)
 
@@ -5178,88 +4935,88 @@ func _adicionar_rodape_patrocinadores_loading(alvo: Control) -> void:
 	# FOTO DE FUNDO DO FOOTER
 	if ResourceLoader.exists(IMAGEM_FUNDO_FOOTER_PATRO):
 		var foto := TextureRect.new()
-		foto.set_anchors_preset(Control.PRESET_FULL_RECT)
+		foto.set_anchors_preset(Control.PRESET_WIDE)
 		foto.texture = load(IMAGEM_FUNDO_FOOTER_PATRO)
-		foto.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		foto.expand = true
 		foto.stretch_mode = TextureRect.STRETCH_SCALE
 		foto.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		foto.modulate = Color(1, 1, 1, 0.55)
 		fundo.add_child(foto)
 
 		var escuro_foto := ColorRect.new()
-		escuro_foto.set_anchors_preset(Control.PRESET_FULL_RECT)
+		escuro_foto.set_anchors_preset(Control.PRESET_WIDE)
 		escuro_foto.color = Color(0, 0, 0, 0.42)
 		escuro_foto.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fundo.add_child(escuro_foto)
 	else:
 		# Fallback bonito se não tiver imagem de fundo.
 		var verde := ColorRect.new()
-		verde.set_anchors_preset(Control.PRESET_FULL_RECT)
+		verde.set_anchors_preset(Control.PRESET_WIDE)
 		verde.color = Color(0.00, 0.26, 0.10, 0.72)
 		verde.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fundo.add_child(verde)
 
 		var amarelo := ColorRect.new()
-		amarelo.position = Vector2(fundo.size.x * 0.50, 0)
-		amarelo.size = Vector2(fundo.size.x * 0.50, fundo.size.y)
+		amarelo.rect_position = Vector2(fundo.rect_size.x * 0.50, 0)
+		amarelo.rect_size = Vector2(fundo.rect_size.x * 0.50, fundo.rect_size.y)
 		amarelo.color = Color(1.0, 0.82, 0.06, 0.22)
 		amarelo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fundo.add_child(amarelo)
 
 	var brilho := ColorRect.new()
-	brilho.position = Vector2(24, 10)
-	brilho.size = Vector2(fundo.size.x - 48, 3)
+	brilho.rect_position = Vector2(24, 10)
+	brilho.rect_size = Vector2(fundo.rect_size.x - 48, 3)
 	brilho.color = Color(1, 1, 1, 0.14)
 	brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fundo.add_child(brilho)
 
 	for linha in range(linhas):
 		var inicio: int = linha * max_por_linha
-		var fim: int = mini(inicio + max_por_linha, total)
+		var fim: int = int(min(inicio + max_por_linha, total))
 		var qtd: int = fim - inicio
 
 		if qtd <= 0:
 			continue
 
-		var area_w: float = fundo.size.x - margem_x * 2.0
+		var area_w: float = fundo.rect_size.x - margem_x * 2.0
 		var card_w: float = (area_w - gap * float(qtd - 1)) / float(qtd)
 
 		# Logos maiores quando tem poucos patrocinadores.
 		if total <= 4:
-			card_w = clampf(card_w, 180.0, 310.0)
+			card_w = clamp(card_w, 180.0, 310.0)
 		elif total <= 8:
-			card_w = clampf(card_w, 135.0, 230.0)
+			card_w = clamp(card_w, 135.0, 230.0)
 		else:
-			card_w = clampf(card_w, 105.0, 190.0)
+			card_w = clamp(card_w, 105.0, 190.0)
 
 		var total_w: float = card_w * float(qtd) + gap * float(qtd - 1)
-		var x0: float = (fundo.size.x - total_w) * 0.5
+		var x0: float = (fundo.rect_size.x - total_w) * 0.5
 		var y0: float = 17.0 + float(linha) * (card_h + row_gap)
 
 		for i in range(qtd):
 			var caminho: String = imagens[inicio + i]
-			var card := _criar_card_patrocinador_footer_loading(
+			var card = _criar_card_patrocinador_footer_loading(
 				caminho,
 				Vector2(card_w, card_h)
 			)
 
-			card.position = Vector2(x0 + float(i) * (card_w + gap), y0)
+			card.rect_position = Vector2(x0 + float(i) * (card_w + gap), y0)
 			card.modulate = Color(1, 1, 1, 0)
-			card.scale = Vector2(0.94, 0.94)
+			card.rect_scale = Vector2(0.94, 0.94)
 			fundo.add_child(card)
 
 			var delay: float = float(inicio + i) * 0.025
-			var t := create_tween()
+			var t = create_tween()
 			t.set_parallel(true)
-			t.tween_property(card, "modulate", Color.WHITE, 0.22).set_delay(delay)
-			t.tween_property(card, "scale", Vector2.ONE, 0.22).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			t.tween_property(card, "modulate", Color.white, 0.22).set_delay(delay)
+			t.tween_property(card, Compat.prop(card, "scale"), Vector2.ONE, 0.22).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) -> Panel:
 	var card := Panel.new()
-	card.size = tamanho
-	card.custom_minimum_size = tamanho
+	card.rect_size = tamanho
+	card.rect_min_size = tamanho
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.clip_contents = true
+	card.rect_clip_content = true
 
 	var fundo_especial: Color = _fundo_logo_loading(caminho)
 	var tem_especial: bool = fundo_especial.a > 0.0
@@ -5273,15 +5030,15 @@ func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) 
 	st.shadow_color = Color(1.0, 0.82, 0.05, 0.42)
 	st.shadow_size = 14
 	st.shadow_offset = Vector2.ZERO
-	card.add_theme_stylebox_override("panel", st)
+	card.add_stylebox_override("panel", st)
 
 	var margem := 7.0
 
 	var inner := Panel.new()
-	inner.position = Vector2(margem, margem)
-	inner.size = tamanho - Vector2(margem * 2.0, margem * 2.0)
+	inner.rect_position = Vector2(margem, margem)
+	inner.rect_size = tamanho - Vector2(margem * 2.0, margem * 2.0)
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner.clip_contents = true
+	inner.rect_clip_content = true
 	card.add_child(inner)
 
 	var inner_st := StyleBoxFlat.new()
@@ -5296,32 +5053,32 @@ func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) 
 		inner_st.bg_color = Color(0.98, 0.86, 0.12, 1.0)
 		inner_st.border_color = Color(0.0, 0.42, 0.12, 0.95)
 
-	inner.add_theme_stylebox_override("panel", inner_st)
+	inner.add_stylebox_override("panel", inner_st)
 
 	# Fundo verde/amarelo apenas para logos sem fundo especial.
 	if not tem_especial:
 		var faixa_verde := ColorRect.new()
-		faixa_verde.position = Vector2.ZERO
-		faixa_verde.size = Vector2(inner.size.x * 0.50, inner.size.y)
+		faixa_verde.rect_position = Vector2.ZERO
+		faixa_verde.rect_size = Vector2(inner.rect_size.x * 0.50, inner.rect_size.y)
 		faixa_verde.color = Color(0.02, 0.42, 0.14, 1.0)
 		faixa_verde.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inner.add_child(faixa_verde)
 
 		var faixa_amarela := ColorRect.new()
-		faixa_amarela.position = Vector2(inner.size.x * 0.50, 0)
-		faixa_amarela.size = Vector2(inner.size.x * 0.50, inner.size.y)
+		faixa_amarela.rect_position = Vector2(inner.rect_size.x * 0.50, 0)
+		faixa_amarela.rect_size = Vector2(inner.rect_size.x * 0.50, inner.rect_size.y)
 		faixa_amarela.color = Color(1.0, 0.86, 0.10, 1.0)
 		faixa_amarela.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inner.add_child(faixa_amarela)
 
 	var brilho := ColorRect.new()
-	brilho.position = Vector2(10, 7)
-	brilho.size = Vector2(inner.size.x - 20, 2)
+	brilho.rect_position = Vector2(10, 7)
+	brilho.rect_size = Vector2(inner.rect_size.x - 20, 2)
 	brilho.color = Color(1, 1, 1, 0.08 if claro else 0.18)
 	brilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(brilho)
 
-	var tex := load(caminho) as Texture2D
+	var tex = load(caminho) as Texture
 
 	if tex != null:
 		var pad := 8.0
@@ -5331,21 +5088,21 @@ func _criar_card_patrocinador_footer_loading(caminho: String, tamanho: Vector2) 
 
 		# Logos bem maiores.
 		var img := TextureRect.new()
-		img.position = Vector2(pad, pad * 0.72)
-		img.size = inner.size - Vector2(pad * 2.0, pad * 1.44)
+		img.rect_position = Vector2(pad, pad * 0.72)
+		img.rect_size = inner.rect_size - Vector2(pad * 2.0, pad * 1.44)
 		img.texture = tex
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.expand = true
 		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inner.add_child(img)
 	else:
 		var erro := Label.new()
 		erro.text = "LOGO"
-		erro.set_anchors_preset(Control.PRESET_FULL_RECT)
-		erro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		erro.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		erro.add_theme_font_size_override("font_size", 14)
-		erro.add_theme_color_override("font_color", Color.RED)
+		erro.set_anchors_preset(Control.PRESET_WIDE)
+		erro.align = Label.ALIGN_CENTER
+		erro.valign = Label.VALIGN_CENTER
+		Compat.tamanho(erro, 14)
+		erro.add_color_override("font_color", Color.red)
 		inner.add_child(erro)
 
 	return card
@@ -5358,19 +5115,19 @@ func _fundo_logo_loading(caminho: String) -> Color:
 		return Color(0.0, 0.0, 0.0, 1.0)
 
 	# corona_logo.png -> fundo BRANCO
-	if base.contains("corona"):
+	if Compat.contem(base, "corona"):
 		return Color(1.0, 1.0, 1.0, 1.0)
 
 	# Michelob-Ultra -> fundo BRANCO
-	if base.contains("michelob"):
+	if Compat.contem(base, "michelob"):
 		return Color(1.0, 1.0, 1.0, 1.0)
 
 	# GA_Logo.png / Guaraná -> verde da marca
-	if base.begins_with("ga_") or base.contains("guaran"):
+	if base.begins_with("ga_") or Compat.contem(base, "guaran"):
 		return Color(0.0, 0.60, 0.28, 1.0)
 
 	# Stella -> dourado/amarelo
-	if base.contains("stella"):
+	if Compat.contem(base, "stella"):
 		return Color(0.79, 0.65, 0.18, 1.0)
 
 	# Budweiser -> vermelho
@@ -5406,9 +5163,9 @@ func _remover_tela_carregamento_lobby(layer: CanvasLayer) -> void:
 		root_loading = layer.get_child(0)
 
 	if root_loading != null and is_instance_valid(root_loading):
-		var t := create_tween()
+		var t = create_tween()
 		t.tween_property(root_loading, "modulate", Color(1, 1, 1, 0), 0.28)
-		await t.finished
+		yield(t, "finished")
 
 	if is_instance_valid(layer):
 		layer.queue_free()
@@ -5438,8 +5195,8 @@ func _tocar_campeao_cup() -> void:
 	if sfx_campeao_cup.stream == null:
 		return
 
-	if sfx_campeao_cup.stream is AudioStreamMP3:
-		sfx_campeao_cup.stream.loop = false
+	if sfx_campeao_cup.stream is AudioStream:
+		Compat.laco(sfx_campeao_cup.stream, false)
 
 	sfx_campeao_cup.stop()
 	sfx_campeao_cup.play()
@@ -5540,7 +5297,7 @@ func _mapa_estatisticas_gerais_competicao() -> Dictionary:
 		else:
 			partida_final = p
 
-	if not partida_final.is_empty() and bool(partida_final.get("finalizada", false)):
+	if not partida_final.empty() and bool(partida_final.get("finalizada", false)):
 		var rk_final: Array = partida_final.get("ranking", [])
 
 		if rk_final.size() > 0:
@@ -5553,7 +5310,7 @@ func _mapa_estatisticas_gerais_competicao() -> Dictionary:
 			if mapa.has(n2):
 				mapa[n2]["podio_pos"] = 2
 
-	if not partida_terceiro.is_empty() and bool(partida_terceiro.get("finalizada", false)):
+	if not partida_terceiro.empty() and bool(partida_terceiro.get("finalizada", false)):
 		var rk_terceiro: Array = partida_terceiro.get("ranking", [])
 
 		if rk_terceiro.size() > 0:
@@ -5568,39 +5325,7 @@ func _estatisticas_gerais_competicao() -> Array:
 	var mapa: Dictionary = _mapa_estatisticas_gerais_competicao()
 	var lista: Array = mapa.values()
 
-	lista.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var pod_a: int = int(a.get("podio_pos", 99))
-		var pod_b: int = int(b.get("podio_pos", 99))
-
-		if pod_a != pod_b:
-			return pod_a < pod_b
-
-		var fase_a: int = int(a.get("fase_valor", 0))
-		var fase_b: int = int(b.get("fase_valor", 0))
-
-		if fase_a != fase_b:
-			return fase_a > fase_b
-
-		var vit_a: int = int(a.get("vitorias_total", 0))
-		var vit_b: int = int(b.get("vitorias_total", 0))
-
-		if vit_a != vit_b:
-			return vit_a > vit_b
-
-		var gols_a: int = int(a.get("gols_total", 0))
-		var gols_b: int = int(b.get("gols_total", 0))
-
-		if gols_a != gols_b:
-			return gols_a > gols_b
-
-		var pts_a: int = int(a.get("pontos_grupo", 0))
-		var pts_b: int = int(b.get("pontos_grupo", 0))
-
-		if pts_a != pts_b:
-			return pts_a > pts_b
-
-		return str(a.get("nome", "")) < str(b.get("nome", ""))
-	)
+	lista.sort_custom(self, "_ordem_3")
 
 	for i in range(lista.size()):
 		lista[i]["colocacao_geral"] = i + 1
@@ -5661,17 +5386,17 @@ func _mostrar_tabela_geral_sequencia(segundos: float = 8.0) -> void:
 
 	_criar_back_copa(false, 0.62, 0.070)
 
-	var titulo := _label("🏆 CLASSIFICAÇÃO FINAL DA COPA", 38, Color.WHITE, COR_ALERTA)
-	titulo.position = Vector2(0, 22)
-	titulo.size = Vector2(vp.x, 56)
+	var titulo = _label("🏆 CLASSIFICAÇÃO FINAL DA COPA", 38, Color.white, COR_ALERTA)
+	titulo.rect_position = Vector2(0, 22)
+	titulo.rect_size = Vector2(vp.x, 56)
 	ui_root.add_child(titulo)
 
-	var subt := _label("TOP 10 DA COMPETIÇÃO  •  SOMENTE JOGADORES REAIS", 16, Color(0.72, 0.82, 0.94))
-	subt.position = Vector2(0, 78)
-	subt.size = Vector2(vp.x, 28)
+	var subt = _label("TOP 10 DA COMPETIÇÃO  •  SOMENTE JOGADORES REAIS", 16, Color(0.72, 0.82, 0.94))
+	subt.rect_position = Vector2(0, 78)
+	subt.rect_size = Vector2(vp.x, 28)
 	ui_root.add_child(subt)
 
-	var box_w: float = minf(vp.x - 90.0, 1260.0)
+	var box_w: float = min(vp.x - 90.0, 1260.0)
 	var box_x: float = (vp.x - box_w) * 0.5
 
 	var destaque_y: float = 116.0
@@ -5706,9 +5431,9 @@ func _mostrar_tabela_geral_sequencia(segundos: float = 8.0) -> void:
 	var painel_h: float = vp.y - painel_y - 118.0
 
 	var painel := Panel.new()
-	painel.position = Vector2(box_x, painel_y)
-	painel.size = Vector2(box_w, painel_h)
-	painel.add_theme_stylebox_override(
+	painel.rect_position = Vector2(box_x, painel_y)
+	painel.rect_size = Vector2(box_w, painel_h)
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(COR_NEON, Color(0.014, 0.020, 0.032, 0.985), 0.30)
 	)
@@ -5720,29 +5445,29 @@ func _mostrar_tabela_geral_sequencia(segundos: float = 8.0) -> void:
 	var header_h: float = 40.0
 
 	var header := ColorRect.new()
-	header.position = Vector2(18, 18)
-	header.size = Vector2(W - 36, header_h)
+	header.rect_position = Vector2(18, 18)
+	header.rect_size = Vector2(W - 36, header_h)
 	header.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 0.16)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(header)
 
 	_adicionar_header_tabela_geral(painel, W)
 
-	if tabela.is_empty():
-		var vazio := _label("NENHUM JOGADOR REAL ENCONTRADO NA CLASSIFICAÇÃO", 22, Color(0.70, 0.76, 0.86))
-		vazio.position = Vector2(0, H * 0.46)
-		vazio.size = Vector2(W, 50)
+	if tabela.empty():
+		var vazio = _label("NENHUM JOGADOR REAL ENCONTRADO NA CLASSIFICAÇÃO", 22, Color(0.70, 0.76, 0.86))
+		vazio.rect_position = Vector2(0, H * 0.46)
+		vazio.rect_size = Vector2(W, 50)
 		painel.add_child(vazio)
 
-		await get_tree().create_timer(segundos).timeout
+		yield(get_tree().create_timer(segundos), "timeout")
 		return
 
-	var max_linhas: int = mini(tabela.size(), 10)
+	var max_linhas: int = int(min(tabela.size(), 10))
 	var area_y: float = 68.0
 	var area_h: float = H - 94.0
 	var row_gap: float = 6.0
-	var row_h: float = (area_h - row_gap * float(max_linhas - 1)) / float(maxi(max_linhas, 1))
-	row_h = clampf(row_h, 34.0, 52.0)
+	var row_h: float = (area_h - row_gap * float(max_linhas - 1)) / float(int(max(max_linhas, 1)))
+	row_h = clamp(row_h, 34.0, 52.0)
 
 	for i in range(max_linhas):
 		var st: Dictionary = tabela[i]
@@ -5778,8 +5503,8 @@ func _mostrar_tabela_geral_sequencia(segundos: float = 8.0) -> void:
 		var y: float = area_y + float(i) * (row_h + row_gap)
 
 		var row := Panel.new()
-		row.position = Vector2(18, y)
-		row.size = Vector2(W - 36, row_h)
+		row.rect_position = Vector2(18, y)
+		row.rect_size = Vector2(W - 36, row_h)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var rs := StyleBoxFlat.new()
@@ -5790,7 +5515,7 @@ func _mostrar_tabela_geral_sequencia(segundos: float = 8.0) -> void:
 		rs.shadow_color = Color(borda.r, borda.g, borda.b, brilho)
 		rs.shadow_size = 16 if posicao <= 3 else 5
 		rs.shadow_offset = Vector2.ZERO
-		row.add_theme_stylebox_override("panel", rs)
+		row.add_stylebox_override("panel", rs)
 		painel.add_child(row)
 
 		var nome_txt: String = str(st.get("nome", "?"))
@@ -5804,39 +5529,39 @@ func _mostrar_tabela_geral_sequencia(segundos: float = 8.0) -> void:
 			medalha = "🥉 "
 
 		var chip := Panel.new()
-		chip.position = Vector2(72, y + row_h * 0.5 - 9.0)
-		chip.size = Vector2(18, 18)
+		chip.rect_position = Vector2(72, y + row_h * 0.5 - 9.0)
+		chip.rect_size = Vector2(18, 18)
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		chip.add_theme_stylebox_override("panel", _style_chip(cor_j))
+		chip.add_stylebox_override("panel", _style_chip(cor_j))
 		painel.add_child(chip)
 
-		_adicionar_celula_tabela_geral(painel, "%dº" % posicao, 20, y, 70, row_h, 15, cor_linha, HORIZONTAL_ALIGNMENT_CENTER)
-		_adicionar_celula_tabela_geral(painel, medalha + nome_txt, 104, y, W * 0.33, row_h, 15, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT)
-		_adicionar_celula_tabela_geral(painel, str(st.get("fase_nome", "GRUPOS")), W * 0.47, y, 150, row_h, 14, cor_linha, HORIZONTAL_ALIGNMENT_CENTER)
-		_adicionar_celula_tabela_geral(painel, str(int(st.get("jogos_total", 0))), W * 0.61, y, 70, row_h, 14, Color(0.86, 0.94, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
-		_adicionar_celula_tabela_geral(painel, str(int(st.get("vitorias_total", 0))), W * 0.69, y, 80, row_h, 14, COR_OK, HORIZONTAL_ALIGNMENT_CENTER)
-		_adicionar_celula_tabela_geral(painel, str(int(st.get("gols_total", 0))), W * 0.78, y, 90, row_h, 14, COR_ALERTA, HORIZONTAL_ALIGNMENT_CENTER)
-		_adicionar_celula_tabela_geral(painel, str(int(st.get("pontos_grupo", 0))), W * 0.89, y, 80, row_h, 14, Color(0.80, 0.88, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
+		_adicionar_celula_tabela_geral(painel, "%dº" % posicao, 20, y, 70, row_h, 15, cor_linha, Label.ALIGN_CENTER)
+		_adicionar_celula_tabela_geral(painel, medalha + nome_txt, 104, y, W * 0.33, row_h, 15, Color.white, Label.ALIGN_LEFT)
+		_adicionar_celula_tabela_geral(painel, str(st.get("fase_nome", "GRUPOS")), W * 0.47, y, 150, row_h, 14, cor_linha, Label.ALIGN_CENTER)
+		_adicionar_celula_tabela_geral(painel, str(int(st.get("jogos_total", 0))), W * 0.61, y, 70, row_h, 14, Color(0.86, 0.94, 1.0), Label.ALIGN_CENTER)
+		_adicionar_celula_tabela_geral(painel, str(int(st.get("vitorias_total", 0))), W * 0.69, y, 80, row_h, 14, COR_OK, Label.ALIGN_CENTER)
+		_adicionar_celula_tabela_geral(painel, str(int(st.get("gols_total", 0))), W * 0.78, y, 90, row_h, 14, COR_ALERTA, Label.ALIGN_CENTER)
+		_adicionar_celula_tabela_geral(painel, str(int(st.get("pontos_grupo", 0))), W * 0.89, y, 80, row_h, 14, Color(0.80, 0.88, 1.0), Label.ALIGN_CENTER)
 
-	var aviso := _label("ABRINDO O PÓDIO FINAL...", 20, COR_NEON, COR_NEON)
-	aviso.position = Vector2(0, vp.y - 74)
-	aviso.size = Vector2(vp.x, 34)
+	var aviso = _label("ABRINDO O PÓDIO FINAL...", 20, COR_NEON, COR_NEON)
+	aviso.rect_position = Vector2(0, vp.y - 74)
+	aviso.rect_size = Vector2(vp.x, 34)
 	ui_root.add_child(aviso)
 
-	await get_tree().create_timer(segundos).timeout
+	yield(get_tree().create_timer(segundos), "timeout")
 
 
 func _adicionar_header_tabela_geral(painel: Panel, W: float) -> void:
 	var y: float = 18.0
 	var h: float = 42.0
 
-	_adicionar_celula_tabela_geral(painel, "POS", 20, y, 70, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
-	_adicionar_celula_tabela_geral(painel, "JOGADOR", 104, y, W * 0.33, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_LEFT)
-	_adicionar_celula_tabela_geral(painel, "FASE", W * 0.47, y, 150, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
-	_adicionar_celula_tabela_geral(painel, "J", W * 0.61, y, 70, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
-	_adicionar_celula_tabela_geral(painel, "VIT", W * 0.69, y, 80, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
-	_adicionar_celula_tabela_geral(painel, "GOLS", W * 0.78, y, 90, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
-	_adicionar_celula_tabela_geral(painel, "PTS", W * 0.89, y, 80, h, 12, Color(0.70, 0.80, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
+	_adicionar_celula_tabela_geral(painel, "POS", 20, y, 70, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_CENTER)
+	_adicionar_celula_tabela_geral(painel, "JOGADOR", 104, y, W * 0.33, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_LEFT)
+	_adicionar_celula_tabela_geral(painel, "FASE", W * 0.47, y, 150, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_CENTER)
+	_adicionar_celula_tabela_geral(painel, "J", W * 0.61, y, 70, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_CENTER)
+	_adicionar_celula_tabela_geral(painel, "VIT", W * 0.69, y, 80, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_CENTER)
+	_adicionar_celula_tabela_geral(painel, "GOLS", W * 0.78, y, 90, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_CENTER)
+	_adicionar_celula_tabela_geral(painel, "PTS", W * 0.89, y, 80, h, 12, Color(0.70, 0.80, 0.92), Label.ALIGN_CENTER)
 
 
 func _adicionar_celula_tabela_geral(
@@ -5848,16 +5573,16 @@ func _adicionar_celula_tabela_geral(
 	h: float,
 	tam: int,
 	cor: Color,
-	align: HorizontalAlignment
+	align: int
 ) -> void:
-	var lbl := _label(txt, tam, cor)
-	lbl.position = Vector2(x, y)
-	lbl.size = Vector2(w, h)
-	lbl.horizontal_alignment = align
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var lbl = _label(txt, tam, cor)
+	lbl.rect_position = Vector2(x, y)
+	lbl.rect_size = Vector2(w, h)
+	lbl.align = align
+	lbl.valign = Label.VALIGN_CENTER
 	lbl.clip_text = true
-	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.90))
-	lbl.add_theme_constant_override("outline_size", 3)
+	lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.90))
+	Compat.contorno(lbl, 3)
 	pai.add_child(lbl)
 
 
@@ -5896,38 +5621,18 @@ func _filtrar_top10_jogadores_reais(tabela_completa: Array, limite: int = 10) ->
 
 
 func _obter_artilheiro_da_tabela(tabela: Array) -> Dictionary:
-	if tabela.is_empty():
+	if tabela.empty():
 		return {}
 
 	var lista: Array = tabela.duplicate(true)
 
-	lista.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var gols_a: int = int(a.get("gols_total", 0))
-		var gols_b: int = int(b.get("gols_total", 0))
-
-		if gols_a != gols_b:
-			return gols_a > gols_b
-
-		var vit_a: int = int(a.get("vitorias_total", 0))
-		var vit_b: int = int(b.get("vitorias_total", 0))
-
-		if vit_a != vit_b:
-			return vit_a > vit_b
-
-		var fase_a: int = int(a.get("fase_valor", 0))
-		var fase_b: int = int(b.get("fase_valor", 0))
-
-		if fase_a != fase_b:
-			return fase_a > fase_b
-
-		return str(a.get("nome", "")) < str(b.get("nome", ""))
-	)
+	lista.sort_custom(self, "_ordem_4")
 
 	return lista[0]
 
 
 func _obter_melhor_campanha_da_tabela(tabela: Array) -> Dictionary:
-	if tabela.is_empty():
+	if tabela.empty():
 		return {}
 
 	# A tabela já vem ordenada por pódio, fase, vitórias, gols e pontos.
@@ -5944,10 +5649,10 @@ func _criar_card_destaque_classificacao(
 	tipo: String
 ) -> void:
 	var card := Panel.new()
-	card.position = pos
-	card.size = tam
+	card.rect_position = pos
+	card.rect_size = tam
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.add_theme_stylebox_override(
+	card.add_stylebox_override(
 		"panel",
 		_style_panel(cor_base, Color(cor_base.r * 0.045, cor_base.g * 0.045, cor_base.b * 0.045, 0.985), 0.52)
 	)
@@ -5956,37 +5661,37 @@ func _criar_card_destaque_classificacao(
 	var W: float = tam.x
 	var H: float = tam.y
 
-	var titulo := _label(titulo_txt, 17, Color.WHITE, cor_base)
-	titulo.position = Vector2(18, 8)
-	titulo.size = Vector2(W - 36, 30)
-	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var titulo = _label(titulo_txt, 17, Color.white, cor_base)
+	titulo.rect_position = Vector2(18, 8)
+	titulo.rect_size = Vector2(W - 36, 30)
+	titulo.align = Label.ALIGN_LEFT
 	card.add_child(titulo)
 
-	if st.is_empty():
-		var vazio := _label("A DEFINIR", 22, Color(0.62, 0.68, 0.76))
-		vazio.position = Vector2(0, 44)
-		vazio.size = Vector2(W, 44)
+	if st.empty():
+		var vazio = _label("A DEFINIR", 22, Color(0.62, 0.68, 0.76))
+		vazio.rect_position = Vector2(0, 44)
+		vazio.rect_size = Vector2(W, 44)
 		card.add_child(vazio)
 		return
 
 	var cor_j: Color = _cor_jogador_dict(st)
 
 	var chip := Panel.new()
-	chip.position = Vector2(24, 54)
-	chip.size = Vector2(30, 30)
+	chip.rect_position = Vector2(24, 54)
+	chip.rect_size = Vector2(30, 30)
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chip.add_theme_stylebox_override("panel", _style_chip(cor_j))
+	chip.add_stylebox_override("panel", _style_chip(cor_j))
 	card.add_child(chip)
 
 	var nome_txt: String = str(st.get("nome", "?"))
 
-	var nome := _label(nome_txt, 24, Color.WHITE, cor_j)
-	nome.position = Vector2(70, 42)
-	nome.size = Vector2(W - 92, 36)
-	nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var nome = _label(nome_txt, 24, Color.white, cor_j)
+	nome.rect_position = Vector2(70, 42)
+	nome.rect_size = Vector2(W - 92, 36)
+	nome.align = Label.ALIGN_LEFT
 	nome.clip_text = true
-	nome.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	nome.add_theme_constant_override("outline_size", 4)
+	nome.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(nome, 4)
 	card.add_child(nome)
 
 	var info_txt: String = ""
@@ -6004,10 +5709,10 @@ func _criar_card_destaque_classificacao(
 			int(st.get("gols_total", 0))
 		]
 
-	var info := _label(info_txt, 15, Color(0.82, 0.91, 1.0))
-	info.position = Vector2(70, 78)
-	info.size = Vector2(W - 92, 28)
-	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var info = _label(info_txt, 15, Color(0.82, 0.91, 1.0))
+	info.rect_position = Vector2(70, 78)
+	info.rect_size = Vector2(W - 92, 28)
+	info.align = Label.ALIGN_LEFT
 	info.clip_text = true
 	card.add_child(info)
 
@@ -6034,52 +5739,7 @@ func _normalizar_ranking_lobby(fase_partida: String, ranking_recebido: Array) ->
 
 		ranking.append(j)
 
-	ranking.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var total_a: int = int(a.get("gols", a.get("score", 0)))
-		var total_b: int = int(b.get("gols", b.get("score", 0)))
-
-		if total_a != total_b:
-			return total_a > total_b
-
-		var normal_a: int = int(a.get("gols_normais", total_a))
-		var normal_b: int = int(b.get("gols_normais", total_b))
-
-		if normal_a != normal_b:
-			return normal_a > normal_b
-
-		var prorro_a: int = int(a.get("gols_prorrogacao", 0))
-		var prorro_b: int = int(b.get("gols_prorrogacao", 0))
-
-		if prorro_a != prorro_b:
-			return prorro_a > prorro_b
-
-		var pen_a: int = int(a.get("penaltis", 0))
-		var pen_b: int = int(b.get("penaltis", 0))
-
-		if pen_a != pen_b:
-			return pen_a > pen_b
-
-		var gols_hist_a: int = _gols_acumulados_para_criterio_lobby(str(a.get("nome", "")))
-		var gols_hist_b: int = _gols_acumulados_para_criterio_lobby(str(b.get("nome", "")))
-
-		if gols_hist_a != gols_hist_b:
-			return gols_hist_a > gols_hist_b
-
-		var vit_a: int = _vitorias_para_criterio_lobby(str(a.get("nome", "")))
-		var vit_b: int = _vitorias_para_criterio_lobby(str(b.get("nome", "")))
-
-		if vit_a != vit_b:
-			return vit_a > vit_b
-
-		var bot_a: bool = bool(a.get("boot", false))
-		var bot_b: bool = bool(b.get("boot", false))
-
-		if bot_a != bot_b:
-			return bot_b
-
-		# Último critério: nome.
-		return str(a.get("nome", "")) < str(b.get("nome", ""))
-	)
+	ranking.sort_custom(self, "_ordem_5")
 
 	for i in range(ranking.size()):
 		var posicao: int = i + 1
@@ -6118,7 +5778,7 @@ func _pontos_grupo_por_empate(index: int, ranking: Array) -> int:
 func _gols_acumulados_para_criterio_lobby(nome: String) -> int:
 	var j: Dictionary = _buscar_jogador_por_nome(nome)
 
-	if j.is_empty():
+	if j.empty():
 		return 0
 
 	return int(j.get("gols", j.get("gols_pro", 0)))
@@ -6127,7 +5787,7 @@ func _gols_acumulados_para_criterio_lobby(nome: String) -> int:
 func _vitorias_para_criterio_lobby(nome: String) -> int:
 	var j: Dictionary = _buscar_jogador_por_nome(nome)
 
-	if j.is_empty():
+	if j.empty():
 		return 0
 
 	return int(j.get("vitorias", 0))
@@ -6140,7 +5800,7 @@ func _cobrir_tela_para_transicao() -> void:
 	add_child(cl)
 
 	var cover := ColorRect.new()
-	cover.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cover.set_anchors_preset(Control.PRESET_WIDE)
 	cover.color = Color(0.004, 0.007, 0.014, 1.0)   # mesma cor base do loading, nunca cinza
 	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(cover)
@@ -6159,11 +5819,11 @@ func _salvar_copa_finalizada_no_mural() -> void:
 
 	var podio: Array = _obter_podio_final()
 
-	if podio.is_empty():
+	if podio.empty():
 		push_warning("Mural de Campeões: Copa finalizada sem pódio. Nada foi salvo.")
 		return
 
-	var db := get_node_or_null("/root/ChampionsDB")
+	var db = get_node_or_null("/root/ChampionsDB")
 
 	if db == null or not db.has_method("registrar_copa"):
 		push_warning("Mural de Campeões: Autoload ChampionsDB não encontrado.")
@@ -6199,7 +5859,7 @@ func _salvar_copa_finalizada_no_mural() -> void:
 
 	var artilheiro: Dictionary = {}
 
-	if not top10_reais.is_empty():
+	if not top10_reais.empty():
 		var art: Dictionary = _obter_artilheiro_da_tabela(top10_reais)
 		artilheiro = _normalizar_jogador_para_mural(art, int(art.get("colocacao_geral", 0)))
 
@@ -6264,15 +5924,15 @@ func _normalizar_jogador_para_mural(j: Dictionary, posicao: int) -> Dictionary:
 
 
 func _cor_para_hex_mural(c: Color) -> String:
-	var r: int = int(clampf(c.r, 0.0, 1.0) * 255.0)
-	var g: int = int(clampf(c.g, 0.0, 1.0) * 255.0)
-	var b: int = int(clampf(c.b, 0.0, 1.0) * 255.0)
+	var r: int = int(clamp(c.r, 0.0, 1.0) * 255.0)
+	var g: int = int(clamp(c.g, 0.0, 1.0) * 255.0)
+	var b: int = int(clamp(c.b, 0.0, 1.0) * 255.0)
 
 	return "#%02x%02x%02x" % [r, g, b]
 
 
 func _formatar_data_hora_br_mural() -> String:
-	var d := Time.get_datetime_dict_from_system()
+	var d = Time.get_datetime_dict_from_system()
 
 	return "%02d/%02d/%04d às %02d:%02d:%02d" % [
 		int(d["day"]),
@@ -6285,7 +5945,7 @@ func _formatar_data_hora_br_mural() -> String:
 
 
 func _gerar_id_copa_mural_fallback() -> String:
-	var d := Time.get_datetime_dict_from_system()
+	var d = Time.get_datetime_dict_from_system()
 
 	return "CUP-%04d%02d%02d-%02d%02d%02d-%04d" % [
 		int(d["year"]),
@@ -6294,7 +5954,7 @@ func _gerar_id_copa_mural_fallback() -> String:
 		int(d["hour"]),
 		int(d["minute"]),
 		int(d["second"]),
-		randi_range(1000, 9999)
+		Compat.randi_range(1000, 9999)
 	]
 
 
@@ -6344,19 +6004,19 @@ func _contar_partidas_finalizadas_mural() -> int:
 
 
 func _garantir_id_copa_atual() -> void:
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if cg != null and cg.has_meta("copa_id_atual"):
 		copa_id_atual = str(cg.get_meta("copa_id_atual"))
 	elif get_tree().has_meta("copa_id_atual"):
 		copa_id_atual = str(get_tree().get_meta("copa_id_atual"))
 	else:
-		var db := get_node_or_null("/root/ChampionsDb")
+		var db = get_node_or_null("/root/ChampionsDb")
 
 		if db != null and db.has_method("criar_id_copa"):
 			copa_id_atual = str(db.criar_id_copa())
 		else:
-			var d := Time.get_datetime_dict_from_system()
+			var d = Time.get_datetime_dict_from_system()
 			copa_id_atual = "CUP_%04d%02d%02d_%02d%02d%02d_%06d" % [
 				int(d["year"]),
 				int(d["month"]),
@@ -6377,7 +6037,7 @@ func _registrar_copa_no_mural() -> void:
 	if copa_id_atual == "":
 		_garantir_id_copa_atual()
 
-	var cg := get_node_or_null("/root/CupGlobal")
+	var cg = get_node_or_null("/root/CupGlobal")
 
 	if get_tree().has_meta("copa_mural_salva_id"):
 		if str(get_tree().get_meta("copa_mural_salva_id")) == copa_id_atual:
@@ -6387,7 +6047,7 @@ func _registrar_copa_no_mural() -> void:
 		if str(cg.get_meta("copa_mural_salva_id")) == copa_id_atual:
 			return
 
-	var db := get_node_or_null("/root/ChampionsDb")
+	var db = get_node_or_null("/root/ChampionsDb")
 
 	if db == null:
 		push_warning("Mural de Campeões não salvou: ChampionsDb não está no Autoload.")
@@ -6399,7 +6059,7 @@ func _registrar_copa_no_mural() -> void:
 
 	var registro: Dictionary = _criar_registro_mural_copa()
 
-	if registro.is_empty():
+	if registro.empty():
 		push_warning("Mural de Campeões não salvou: registro vazio.")
 		return
 
@@ -6420,10 +6080,10 @@ func _registrar_copa_no_mural() -> void:
 func _criar_registro_mural_copa() -> Dictionary:
 	var podio: Array = _obter_podio_final()
 
-	if podio.is_empty():
+	if podio.empty():
 		return {}
 
-	var d := Time.get_datetime_dict_from_system()
+	var d = Time.get_datetime_dict_from_system()
 	var unix: float = Time.get_unix_time_from_system()
 
 	var top3: Array = []
@@ -6461,7 +6121,7 @@ func _criar_registro_mural_copa() -> Dictionary:
 			if not bool(j.get("boot", false)):
 				jogadores_reais += 1
 
-	var registro := {
+	var registro = {
 		"id": copa_id_atual,
 		"schema_version": 1,
 		"titulo": "Copa %02d/%02d/%04d %02d:%02d" % [
@@ -6564,7 +6224,7 @@ func _on_cup_lobby() -> void:
 
 
 func _fases_acessiveis_ordenadas() -> Array:
-	var ordem: Array[String] = [FASE_GRUPOS, FASE_OITAVAS, FASE_SEMIFINAL, FASE_FINAL]
+	var ordem: Array = [FASE_GRUPOS, FASE_OITAVAS, FASE_SEMIFINAL, FASE_FINAL]
 	var saida: Array = []
 
 	for f in ordem:
@@ -6634,8 +6294,8 @@ func _atualizar_hold_podio() -> void:
 	if podio_hold_barra == null or not is_instance_valid(podio_hold_barra):
 		return
 
-	var frac: float = clampf(podio_hold_start / PODIO_HOLD_SEGUNDOS, 0.0, 1.0)
-	podio_hold_barra.size.x = podio_hold_barra_w * frac
+	var frac: float = clamp(podio_hold_start / PODIO_HOLD_SEGUNDOS, 0.0, 1.0)
+	podio_hold_barra.rect_size.x = podio_hold_barra_w * frac
 
 	if podio_hold_label and is_instance_valid(podio_hold_label):
 		if frac > 0.02:
@@ -6651,32 +6311,32 @@ func _criar_hud_hold_podio(vp: Vector2) -> void:
 	var box_y: float = vp.y - box_h - 14.0
 
 	var painel := Panel.new()
-	painel.position = Vector2(box_x, box_y)
-	painel.size = Vector2(box_w, box_h)
+	painel.rect_position = Vector2(box_x, box_y)
+	painel.rect_size = Vector2(box_w, box_h)
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	painel.add_theme_stylebox_override(
+	painel.add_stylebox_override(
 		"panel",
 		_style_panel(COR_NEON, Color(0.010, 0.016, 0.028, 0.94), 0.52)
 	)
 	ui_root.add_child(painel)
 
 	podio_hold_label = _label("SEGURE START PARA VOLTAR À TELA INICIAL", 17, COR_NEON, COR_NEON)
-	podio_hold_label.position = Vector2(18, 8)
-	podio_hold_label.size = Vector2(box_w - 36, 30)
+	podio_hold_label.rect_position = Vector2(18, 8)
+	podio_hold_label.rect_size = Vector2(box_w - 36, 30)
 	painel.add_child(podio_hold_label)
 
 	var barra_bg := ColorRect.new()
-	barra_bg.position = Vector2(24, 48)
-	barra_bg.size = Vector2(box_w - 48, 8)
+	barra_bg.rect_position = Vector2(24, 48)
+	barra_bg.rect_size = Vector2(box_w - 48, 8)
 	barra_bg.color = Color(1, 1, 1, 0.12)
 	barra_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(barra_bg)
 
-	podio_hold_barra_w = barra_bg.size.x
+	podio_hold_barra_w = barra_bg.rect_size.x
 
 	podio_hold_barra = ColorRect.new()
-	podio_hold_barra.position = barra_bg.position
-	podio_hold_barra.size = Vector2(0, 8)
+	podio_hold_barra.rect_position = barra_bg.rect_position
+	podio_hold_barra.rect_size = Vector2(0, 8)
 	podio_hold_barra.color = Color(COR_NEON.r, COR_NEON.g, COR_NEON.b, 1.0)
 	podio_hold_barra.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.add_child(podio_hold_barra)
@@ -6736,17 +6396,17 @@ func _adicionar_placar_knockout_profissional(
 	var tem_extra: bool = jogou_ot or jogou_pen
 
 	var box := Panel.new()
-	box.position = pos
-	box.size = tam
+	box.rect_position = pos
+	box.rect_size = tam
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.clip_contents = true
+	box.rect_clip_content = true
 
 	var st := StyleBoxFlat.new()
 
 	if eliminado:
 		st.bg_color = Color(0.025, 0.026, 0.030, 0.92)
 		st.border_color = Color(0.30, 0.31, 0.35, 0.90)
-		st.shadow_color = Color.TRANSPARENT
+		st.shadow_color = Color.transparent
 	else:
 		st.bg_color = Color(cor_j.r * 0.10, cor_j.g * 0.10, cor_j.b * 0.10, 0.92)
 		st.border_color = Color(cor_j.r, cor_j.g, cor_j.b, 0.78)
@@ -6756,22 +6416,22 @@ func _adicionar_placar_knockout_profissional(
 	st.set_corner_radius_all(8)
 	st.shadow_size = 6
 	st.shadow_offset = Vector2.ZERO
-	box.add_theme_stylebox_override("panel", st)
+	box.add_stylebox_override("panel", st)
 	pai.add_child(box)
 
-	var cor_texto: Color = Color.WHITE
+	var cor_texto: Color = Color.white
 	var sombra: Color = cor_j
 
 	if eliminado:
 		cor_texto = Color(0.52, 0.54, 0.58)
-		sombra = Color.TRANSPARENT
+		sombra = Color.transparent
 
 	if not tem_extra:
-		var unico := _label(str(total), int(clampf(tam.y * 0.56, 12.0, 22.0)), cor_texto, sombra)
-		unico.position = Vector2.ZERO
-		unico.size = tam
-		unico.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-		unico.add_theme_constant_override("outline_size", 3)
+		var unico = _label(str(total), int(clamp(tam.y * 0.56, 12.0, 22.0)), cor_texto, sombra)
+		unico.rect_position = Vector2.ZERO
+		unico.rect_size = tam
+		unico.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+		Compat.contorno(unico, 3)
 		box.add_child(unico)
 		return
 
@@ -6784,17 +6444,163 @@ func _adicionar_placar_knockout_profissional(
 	elif jogou_pen:
 		detalhe = "P%d" % pen
 
-	var total_lbl := _label(str(total), int(clampf(tam.y * 0.42, 11.0, 18.0)), cor_texto, sombra)
-	total_lbl.position = Vector2(0, -2)
-	total_lbl.size = Vector2(tam.x, tam.y * 0.55)
-	total_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	total_lbl.add_theme_constant_override("outline_size", 3)
+	var total_lbl = _label(str(total), int(clamp(tam.y * 0.42, 11.0, 18.0)), cor_texto, sombra)
+	total_lbl.rect_position = Vector2(0, -2)
+	total_lbl.rect_size = Vector2(tam.x, tam.y * 0.55)
+	total_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.95))
+	Compat.contorno(total_lbl, 3)
 	box.add_child(total_lbl)
 
-	var det_lbl := _label(detalhe, int(clampf(tam.y * 0.24, 8.0, 11.0)), Color(0.78, 0.88, 1.0))
-	det_lbl.position = Vector2(2, tam.y * 0.48)
-	det_lbl.size = Vector2(tam.x - 4, tam.y * 0.48)
+	var det_lbl = _label(detalhe, int(clamp(tam.y * 0.24, 8.0, 11.0)), Color(0.78, 0.88, 1.0))
+	det_lbl.rect_position = Vector2(2, tam.y * 0.48)
+	det_lbl.rect_size = Vector2(tam.x - 4, tam.y * 0.48)
 	det_lbl.clip_text = true
-	det_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
-	det_lbl.add_theme_constant_override("outline_size", 2)
+	det_lbl.add_color_override("font_outline_modulate", Color(0, 0, 0, 0.92))
+	Compat.contorno(det_lbl, 2)
 	box.add_child(det_lbl)
+
+
+func _ordem_1(a, b) -> bool:
+	var pontos_a: int = int(a.get("pontos", 0))
+	var pontos_b: int = int(b.get("pontos", 0))
+
+	if pontos_a != pontos_b:
+		return pontos_a > pontos_b
+
+	var gols_a: int = int(a.get("gols", a.get("gols_pro", 0)))
+	var gols_b: int = int(b.get("gols", b.get("gols_pro", 0)))
+
+	if gols_a != gols_b:
+		return gols_a > gols_b
+
+	var melhor_a: int = int(a.get("melhor_posicao", 99))
+	var melhor_b: int = int(b.get("melhor_posicao", 99))
+
+	if melhor_a != melhor_b:
+		return melhor_a < melhor_b
+
+	var ultima_a: int = int(a.get("ultima_posicao", 99))
+	var ultima_b: int = int(b.get("ultima_posicao", 99))
+
+	if ultima_a != ultima_b:
+		return ultima_a < ultima_b
+
+	return str(a.get("nome", "")) < str(b.get("nome", ""))
+
+
+func _ordem_2(a, b) -> bool:
+	return str(a.get("nome", "")) < str(b.get("nome", ""))
+
+
+func _ordem_3(a, b) -> bool:
+	var pod_a: int = int(a.get("podio_pos", 99))
+	var pod_b: int = int(b.get("podio_pos", 99))
+
+	if pod_a != pod_b:
+		return pod_a < pod_b
+
+	var fase_a: int = int(a.get("fase_valor", 0))
+	var fase_b: int = int(b.get("fase_valor", 0))
+
+	if fase_a != fase_b:
+		return fase_a > fase_b
+
+	var vit_a: int = int(a.get("vitorias_total", 0))
+	var vit_b: int = int(b.get("vitorias_total", 0))
+
+	if vit_a != vit_b:
+		return vit_a > vit_b
+
+	var gols_a: int = int(a.get("gols_total", 0))
+	var gols_b: int = int(b.get("gols_total", 0))
+
+	if gols_a != gols_b:
+		return gols_a > gols_b
+
+	var pts_a: int = int(a.get("pontos_grupo", 0))
+	var pts_b: int = int(b.get("pontos_grupo", 0))
+
+	if pts_a != pts_b:
+		return pts_a > pts_b
+
+	return str(a.get("nome", "")) < str(b.get("nome", ""))
+
+
+func _ordem_4(a, b) -> bool:
+	var gols_a: int = int(a.get("gols_total", 0))
+	var gols_b: int = int(b.get("gols_total", 0))
+
+	if gols_a != gols_b:
+		return gols_a > gols_b
+
+	var vit_a: int = int(a.get("vitorias_total", 0))
+	var vit_b: int = int(b.get("vitorias_total", 0))
+
+	if vit_a != vit_b:
+		return vit_a > vit_b
+
+	var fase_a: int = int(a.get("fase_valor", 0))
+	var fase_b: int = int(b.get("fase_valor", 0))
+
+	if fase_a != fase_b:
+		return fase_a > fase_b
+
+	return str(a.get("nome", "")) < str(b.get("nome", ""))
+
+
+func _ordem_5(a, b) -> bool:
+	var total_a: int = int(a.get("gols", a.get("score", 0)))
+	var total_b: int = int(b.get("gols", b.get("score", 0)))
+
+	if total_a != total_b:
+		return total_a > total_b
+
+	var normal_a: int = int(a.get("gols_normais", total_a))
+	var normal_b: int = int(b.get("gols_normais", total_b))
+
+	if normal_a != normal_b:
+		return normal_a > normal_b
+
+	var prorro_a: int = int(a.get("gols_prorrogacao", 0))
+	var prorro_b: int = int(b.get("gols_prorrogacao", 0))
+
+	if prorro_a != prorro_b:
+		return prorro_a > prorro_b
+
+	var pen_a: int = int(a.get("penaltis", 0))
+	var pen_b: int = int(b.get("penaltis", 0))
+
+	if pen_a != pen_b:
+		return pen_a > pen_b
+
+	var gols_hist_a: int = _gols_acumulados_para_criterio_lobby(str(a.get("nome", "")))
+	var gols_hist_b: int = _gols_acumulados_para_criterio_lobby(str(b.get("nome", "")))
+
+	if gols_hist_a != gols_hist_b:
+		return gols_hist_a > gols_hist_b
+
+	var vit_a: int = _vitorias_para_criterio_lobby(str(a.get("nome", "")))
+	var vit_b: int = _vitorias_para_criterio_lobby(str(b.get("nome", "")))
+
+	if vit_a != vit_b:
+		return vit_a > vit_b
+
+	var bot_a: bool = bool(a.get("boot", false))
+	var bot_b: bool = bool(b.get("boot", false))
+
+	if bot_a != bot_b:
+		return bot_b
+
+	# Último critério: nome.
+	return str(a.get("nome", "")) < str(b.get("nome", ""))
+
+func _g3_ver_fase(fase_alvo) -> void:
+	_tocar_select_cup()
+	fase_visualizada = fase_alvo
+	_montar_tela_lobby()
+
+func _g3_fechar_aviso(overlay, painel) -> void:
+	if is_instance_valid(overlay):
+		overlay.queue_free()
+	if is_instance_valid(painel):
+		painel.queue_free()
