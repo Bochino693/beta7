@@ -69,6 +69,8 @@ cabo USB (o mesmo cabo de gravar o Arduino).
 
 4) GERAR O APK E INSTALAR (sempre assim)
 ----------------------------------------
+  - O zip vem em DUAS partes (PARTE1 e PARTE2): extraia as duas na MESMA
+    pasta (a PARTE2 tem as imagens: fundos, images, branding).
   - No PC: de dois cliques em GERAR_APK_AGORA.bat.
     Na primeira vez ele baixa o Godot 3.6.2 e os modelos (demora).
   - Sai em build\android\GolFlashArena-S905L.apk
