@@ -2482,6 +2482,13 @@ func _confetes_vencedor(panel: Panel, cor: Color) -> void:
 
 
 func _reiniciar_partida() -> void:
+	# Em modo crédito, cada nova partida exige outro crédito no menu.
+	if ArcadeData.modo_operacao == "credito":
+		_voltar_ao_opening()
+		return
+
+	# No modo livre, o replay também conta como uma nova utilização.
+	ArcadeData.registrar_partida("arcade")
 	_final_token += 1
 	pode_reiniciar = false
 

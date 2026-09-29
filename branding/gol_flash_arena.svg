@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#123b63"/>
+      <stop offset="0.62" stop-color="#071625"/>
+      <stop offset="1" stop-color="#02060d"/>
+    </radialGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#dfff38"/><stop offset="1" stop-color="#38d900"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="18" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
+  <circle cx="512" cy="488" r="326" fill="none" stroke="#4fe9ff" stroke-width="28" opacity=".22"/>
+  <circle cx="512" cy="488" r="285" fill="none" stroke="url(#green)" stroke-width="26" filter="url(#glow)"/>
+  <circle cx="512" cy="488" r="206" fill="#f7f8f4" stroke="#ffffff" stroke-width="16"/>
+  <path d="M512 282l112 82-43 132H443l-43-132z" fill="#09111a"/>
+  <path d="M443 496l-116 79 40 126 145 48 0-122zM581 496l116 79-40 126-145 48V627zM400 364l-118 4-55 124 100 83 116-79zM624 364l118 4 55 124-100 83-116-79z" fill="#0b1520"/>
+  <path d="M512 282V190M282 368l-75-54M742 368l75-54M327 701l-70 61M697 701l70 61" stroke="#8fff17" stroke-width="24" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M196 856h632" stroke="#4fe9ff" stroke-width="10" stroke-linecap="round" opacity=".8"/>
+  <text x="512" y="913" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="80" font-style="italic" font-weight="900" fill="#ffffff">GOL FLASH</text>
+  <text x="512" y="969" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="700" letter-spacing="16" fill="#8fff17">ARENA</text>
+</svg>

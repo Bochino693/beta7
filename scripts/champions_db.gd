@@ -94,6 +94,15 @@ func salvar() -> void:
 	])
 
 
+func limpar_tudo() -> void:
+	dados = {
+		"schema_version": SCHEMA_VERSION,
+		"copas": []
+	}
+	salvar()
+	banco_atualizado.emit()
+
+
 func criar_id_copa() -> String:
 	var d := Time.get_datetime_dict_from_system()
 	var tick: int = int(Time.get_ticks_msec() % 1000000)

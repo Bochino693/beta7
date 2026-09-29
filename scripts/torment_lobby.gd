@@ -4167,7 +4167,7 @@ func _mostrar_loading_resultados_torment(titulo_txt: String, sub_txt: String) ->
 
 	# Rodapé de patrocinadores (igual ao play). Retorna o Y do topo
 	# do rodapé para encaixar a barra/status logo acima.
-	var rodape_top: float = _adicionar_rodape_patrocinadores_lobby(loading_result_root)
+	var rodape_top: float = get_viewport_rect().size.y
 	var base_y: float = rodape_top if rodape_top > 0.0 else tela.y - 24.0
 
 	var topo: ColorRect = ColorRect.new()

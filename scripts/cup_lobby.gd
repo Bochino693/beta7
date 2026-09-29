@@ -5004,7 +5004,6 @@ func _mostrar_tela_carregamento_lobby(titulo_txt: String, sub_txt: String) -> Ca
 	loading_root.add_child(glow)
 
 	# Rodapé com todas as imagens da pasta res://patro/
-	_adicionar_rodape_patrocinadores_loading(loading_root)
 
 	var painel := Panel.new()
 	painel.size = Vector2(minf(tela.x * 0.62, 860.0), 300)

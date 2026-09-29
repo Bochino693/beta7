@@ -3338,7 +3338,6 @@ func _criar_tela_carregamento(titulo_txt: String, sub_txt: String) -> void:
 	escuro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	loading_root.add_child(escuro)
 
-	_adicionar_rodape_patrocinadores_loading(loading_root)
 
 	var tela := get_viewport().get_visible_rect().size
 

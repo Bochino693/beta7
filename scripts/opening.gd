@@ -134,6 +134,7 @@ var _alterna_som_modo: int = 0
 var modos_jogo: Array[Dictionary] = []
 var modo_focado: int = 0
 var carrossel_root: Control = null
+var arcade_status_label: Label = null
 
 const TEMPO_ESCOLHA: float = 12.0
 const TEMPO_TELA_INICIANDO: float = 1.8
@@ -304,7 +305,7 @@ func _ready() -> void:
 	# ABERTURA NORMAL DO JOGO
 	# Aqui continua mostrando loading + patrocinadores.
 	# =========================================================
-	_criar_loading_opening("OLHO NO LANCE", "ENTRANDO EM CAMPO...")
+	_criar_loading_opening("GOL FLASH ARENA", "ENTRANDO EM CAMPO...")
 	_set_loading_opening(0.10, "ENTRANDO EM CAMPO...", 0.12)
 
 	await get_tree().process_frame
@@ -343,12 +344,7 @@ func _ready() -> void:
 
 	await get_tree().create_timer(0.08).timeout
 
-	await _mostrar_patrocinadores_depois_do_loading()
-
-	await get_tree().create_timer(0.10).timeout
 	await _remover_loading_opening()
-
-	_iniciar_timer_patrocinadores_automatico()
 
 
 
@@ -376,9 +372,6 @@ func _ready_retorno_direto_sem_loading() -> void:
 
 	_arduino_opening_pronto = true
 	_leds_atrativo_abertura_forte()
-
-	# Continua o ciclo automático normal depois de 40 segundos.
-	_iniciar_timer_patrocinadores_automatico()
 
 	print("================================")
 	print("OPENING: RETORNO DIRETO DO MURAL/RANKING")
@@ -434,6 +427,11 @@ func _process(delta: float) -> void:
 	var start_segurando: bool = Input.is_action_pressed("input_start")
 	var cup_segurando: bool = cup_acao and Input.is_action_pressed("input_cup")
 	var agora_ms: int = Time.get_ticks_msec()
+
+	# L3 é a entrada física do moedeiro/crédito.
+	if InputMap.has_action("input_credit") and Input.is_action_just_pressed("input_credit"):
+		ArcadeData.adicionar_credito()
+		_atualizar_status_arcade("CRÉDITO ADICIONADO")
 
 	if start_just:
 		combo_start_pressed_ms = agora_ms
@@ -542,8 +540,8 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if event.pressed and not event.echo:
 
-			# F10 abre a tela de configurações
-			if event.keycode == KEY_F10:
+			# F9 abre a tela de configurações (não aparece no menu público).
+			if event.keycode == KEY_F9:
 				var viewport := get_viewport()
 				if viewport:
 					viewport.set_input_as_handled()
@@ -706,6 +704,7 @@ func _criar_tela() -> void:
 
 	_criar_botoes()
 	_criar_painel_mural_ranking()
+	_criar_status_arcade()
 	# Botão de mouse do Mural REMOVIDO de propósito.
 	# O Mural agora abre segurando START + CUP juntos (combo).
 
@@ -2995,15 +2994,12 @@ func _criar_loading_opening(titulo_txt: String, sub_txt: String) -> void:
 	opening_loading_root.add_child(vinheta)
 
 
-	opening_patro_panel = Panel.new()
-	opening_patro_panel.name = "ModalGrandePatrocinadoresLoading"
-	opening_patro_panel.size = Vector2(tela.x * LOADING_MODAL_W_RATIO, tela.y * LOADING_MODAL_H_RATIO)
-	opening_patro_panel.position = Vector2(
-		(tela.x - opening_patro_panel.size.x) * 0.5,
-		(tela.y - opening_patro_panel.size.y) * 0.5 - 8.0
-	)
-	opening_patro_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	opening_loading_root.add_child(opening_patro_panel)
+	# Painel limpo de carregamento, sem logos ou apresentação de patrocinadores.
+	var loading_panel := Panel.new()
+	loading_panel.size = Vector2(tela.x * 0.70, 230.0)
+	loading_panel.position = Vector2((tela.x - loading_panel.size.x) * 0.5, (tela.y - loading_panel.size.y) * 0.5)
+	loading_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	opening_loading_root.add_child(loading_panel)
 
 	var st := StyleBoxFlat.new()
 	st.bg_color = Color(0.02, 0.26, 0.10, 1.0)
@@ -3013,68 +3009,21 @@ func _criar_loading_opening(titulo_txt: String, sub_txt: String) -> void:
 	st.shadow_color = Color(1.0, 0.82, 0.05, 0.55)
 	st.shadow_size = 36
 	st.shadow_offset = Vector2.ZERO
-	opening_patro_panel.add_theme_stylebox_override("panel", st)
+	loading_panel.add_theme_stylebox_override("panel", st)
 
-	# Foto de fundo do modal verde (atrás do título, info e cards dos patrocinadores).
-	if ResourceLoader.exists(IMAGEM_FUNDO_MODAL_VERDE):
-		var fundo_modal_verde := TextureRect.new()
-		fundo_modal_verde.position = Vector2(4, 4)
-		fundo_modal_verde.size = opening_patro_panel.size - Vector2(8, 8)
-		fundo_modal_verde.texture = load(IMAGEM_FUNDO_MODAL_VERDE)
-		fundo_modal_verde.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		fundo_modal_verde.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		fundo_modal_verde.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		opening_patro_panel.add_child(fundo_modal_verde)
+	opening_loading_label = _label_loading_opening(titulo_txt, 42, Color.WHITE, Color(0.1, 0.75, 1.0))
+	opening_loading_label.position = Vector2(20, 42)
+	opening_loading_label.size = Vector2(loading_panel.size.x - 40, 62)
+	loading_panel.add_child(opening_loading_label)
 
-	var titulo_patro := Label.new()
-	titulo_patro.text = "PREPARANDO A ARENA"
-	titulo_patro.name = "TituloPatroLoading"
-	titulo_patro.position = Vector2(0, 16)
-	titulo_patro.size = Vector2(opening_patro_panel.size.x, 50)
-	titulo_patro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	titulo_patro.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	titulo_patro.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	titulo_patro.add_theme_font_size_override("font_size", 18)
-	titulo_patro.add_theme_color_override("font_color", Color.WHITE)
-	titulo_patro.add_theme_color_override("font_shadow_color", Color(1.0, 0.85, 0.05))
-	titulo_patro.add_theme_constant_override("shadow_offset_x", 0)
-	titulo_patro.add_theme_constant_override("shadow_offset_y", 0)
-
-	if fonte_orbitron:
-		titulo_patro.add_theme_font_override("font", fonte_orbitron)
-
-	opening_patro_panel.add_child(titulo_patro)
-
-	opening_patro_info = Label.new()
-	opening_patro_info.text = "VAI COMEÇAR!"
-	opening_patro_info.position = Vector2(0, opening_patro_panel.size.y * 0.5 - 22.0)
-	opening_patro_info.size = Vector2(opening_patro_panel.size.x, 44)
-	opening_patro_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	opening_patro_info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	opening_patro_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	opening_patro_info.add_theme_font_size_override("font_size", 30)
-	opening_patro_info.add_theme_color_override("font_color", Color.WHITE)
-	opening_patro_info.add_theme_color_override("font_shadow_color", Color(1.0, 0.85, 0.05))
-	opening_patro_info.add_theme_constant_override("shadow_offset_x", 0)
-	opening_patro_info.add_theme_constant_override("shadow_offset_y", 0)
-
-	if fonte_orbitron:
-		opening_patro_info.add_theme_font_override("font", fonte_orbitron)
-
-	opening_patro_panel.add_child(opening_patro_info)
-
-	opening_patro_stage = Control.new()
-	opening_patro_stage.name = "StagePatrocinadoresLoading"
-	opening_patro_stage.position = Vector2(28, 72)
-	opening_patro_stage.size = Vector2(opening_patro_panel.size.x - 56, opening_patro_panel.size.y - 116)
-	opening_patro_stage.clip_contents = true
-	opening_patro_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	opening_patro_panel.add_child(opening_patro_stage)
+	opening_loading_sub = _label_loading_opening(sub_txt, 20, Color(0.82, 0.92, 1.0))
+	opening_loading_sub.position = Vector2(20, 126)
+	opening_loading_sub.size = Vector2(loading_panel.size.x - 40, 38)
+	loading_panel.add_child(opening_loading_sub)
 
 	# Loading visual limpo:
 	# sem texto embaixo, sem barra e sem porcentagem.
 	# A porcentagem continua existindo internamente para controlar o fluxo.
-	opening_loading_sub = null
 	opening_loading_pct = null
 	opening_loading_barra = null
 	opening_loading_barra_max_w = 0.0
@@ -3905,13 +3854,6 @@ func _definir_modos() -> void:
 			"sub": "8 – 16 PLAYERS",
 			"cor": COR_COPA,
 			"acao": "copa"
-		},
-		{
-			"id": "TORNEIO",
-			"titulo": "TORNEIO",
-			"sub": "13 – 36 PLAYERS",
-			"cor": COR_TORNEIO,
-			"acao": "torneio"
 		}
 		# NOVOS MODOS AQUI
 	]
@@ -4150,8 +4092,17 @@ func _confirmar_modo_focado() -> void:
 		return
 
 	var modo: Dictionary = modos_jogo[modo_focado]
+	var acao: String = str(modo.get("acao", ""))
 
-	match str(modo.get("acao", "")):
+	if not ArcadeData.consumir_credito():
+		_atualizar_status_arcade("SEM CRÉDITO • PRESSIONE L3")
+		_set_leds_todos_rgb([255, 0, 0])
+		_reiniciar_led_atrativo(0.8)
+		return
+	ArcadeData.registrar_partida(acao)
+	_atualizar_status_arcade("PARTIDA LIBERADA")
+
+	match acao:
 		"arcade":
 			_abrir_modal_players()
 		"copa":
@@ -4160,6 +4111,39 @@ func _confirmar_modo_focado() -> void:
 			_entrar_torneio_direto()
 		_:
 			push_warning("Modo sem ação definida: " + str(modo.get("id", "")))
+
+
+func _criar_status_arcade() -> void:
+	arcade_status_label = Label.new()
+	arcade_status_label.position = Vector2(24, 18)
+	arcade_status_label.size = Vector2(650, 42)
+	arcade_status_label.add_theme_font_size_override("font_size", 20)
+	arcade_status_label.add_theme_color_override("font_color", Color.WHITE)
+	arcade_status_label.add_theme_color_override("font_shadow_color", Color(0.1, 0.75, 1.0))
+	arcade_status_label.add_theme_constant_override("shadow_offset_x", 2)
+	arcade_status_label.add_theme_constant_override("shadow_offset_y", 2)
+	arcade_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(arcade_status_label)
+	_atualizar_status_arcade()
+
+
+func _atualizar_status_arcade(aviso: String = "") -> void:
+	if arcade_status_label == null or not is_instance_valid(arcade_status_label):
+		return
+	var texto := ""
+	if ArcadeData.modo_operacao == "credito":
+		if ArcadeData.creditos <= 0:
+			texto = "MODO CRÉDITO  •  SEM CRÉDITOS  •  PRESSIONE L3"
+			arcade_status_label.add_theme_color_override("font_color", Color(1.0, 0.30, 0.24))
+		else:
+			texto = "MODO CRÉDITO  •  CRÉDITOS DISPONÍVEIS: %d" % ArcadeData.creditos
+			arcade_status_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.14))
+	else:
+		texto = "MODO LIVRE  •  PARTIDAS JOGADAS: %d" % ArcadeData.partidas_total
+		arcade_status_label.add_theme_color_override("font_color", Color(0.22, 1.0, 0.48))
+	if aviso != "":
+		texto += "  •  " + aviso
+	arcade_status_label.text = texto
 
 
 

@@ -10,17 +10,20 @@ config_version=5
 
 [application]
 
-config/name="beta7"
+config/name="Gol Flash Arena"
+config/description="Gol Flash Arena - jogo arcade de futebol da Lazer & Sport Games"
 run/main_scene="uid://bmvwkecuhv101"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-boot_splash/show_image=false
-config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.003, 0.008, 0.016, 1)
+boot_splash/image="res://branding/splash_gol_flash_arena.png"
+config/icon="res://gol_flash_arena_oficial.png"
 
 [autoload]
 
 PlayersGlobal="*uid://bkh2eiv3pk7gb"
 CupGlobal="*uid://bwmkltvnd15vw"
 ChampionsDb="*uid://vkuq2fbw4bkw"
+ArcadeData="*res://scripts/arcade_data.gd"
 
 [display]
 
@@ -71,6 +74,11 @@ input_led_g={
 input_cup={
 "deadzone": 0.2,
 "events": [Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":4,"pressure":0.0,"pressed":true,"script":null)
+]
+}
+input_credit={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":7,"pressure":0.0,"pressed":true,"script":null)
 ]
 }
 

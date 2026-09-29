@@ -1,0 +1,42 @@
+ATUALIZAÇÃO BETA-7 — CONFIGURAÇÃO, CRÉDITOS E CONTADORES
+
+1. Feche o Godot.
+2. Extraia este ZIP dentro da pasta beta-7.
+3. Confirme a substituição dos arquivos existentes.
+4. Abra project.godot no Godot 4.6 e execute o projeto.
+
+FUNCIONAMENTO
+- O modo Torneio de 36 jogadores foi ocultado do menu, sem apagar seus arquivos.
+- Todos os patrocinadores foram retirados da abertura, do carregamento da Copa, do carregamento das partidas e das apresentações automáticas do menu.
+- O carregamento agora mostra somente o nome do jogo e o andamento da inicialização.
+- O menu mostra somente Arcade e Copa.
+- A Configuração fica oculta e abre exclusivamente pela tecla F9.
+- A Central da Máquina foi redesenhada em formato de aplicativo e enquadrada para telas a partir de 1280x720.
+- O retorno por botão, F9 ou ESC agora usa uma saída segura sem travar ou duplicar a troca de tela.
+- Dentro de Configuração é possível:
+  * escolher modo Livre ou Crédito;
+  * testar individualmente LEDs e sensores A até G;
+  * testar todos os LEDs;
+  * visualizar e zerar o contador de partidas;
+  * resetar o Mural de Campeões.
+- L3 adiciona 1 crédito.
+- No modo Crédito, Arcade e Copa exigem e consomem 1 crédito.
+- No menu, o modo Crédito mostra o saldo disponível e avisa claramente quando for necessário pressionar L3.
+- No modo Livre, não há bloqueio por crédito.
+- Os créditos, o modo escolhido e os contadores ficam salvos mesmo após fechar o jogo.
+
+ARDUINO
+- O código Arduino informado continua compatível e não precisa ser substituído.
+- A tela de testes usa COM5, 9600 baud e os comandos SET/OFF já aceitos pelo Arduino.
+
+MAPEAMENTO
+- input_credit = botão 7 do joystick/encoder (L3, clique do analógico esquerdo).
+
+IDENTIDADE DO EXECUTÁVEL
+- Nome do projeto e da janela: Gol Flash Arena.
+- Nome exportado: Gol Flash Arena.exe.
+- Ícone oficial criado somente por recorte quadrado da própria capa Gol Flash Arena, sem desenho ou símbolo alternativo.
+- O arquivo usa o novo caminho res://gol_flash_arena_oficial.png para impedir o reaproveitamento do ícone antigo pelo cache.
+- Tela de inicialização usa a capa oficial completa do próprio jogo.
+- O ícone padrão do Godot foi totalmente substituído.
+- Metadados do Windows identificam Gol Flash Arena e Lazer & Sport Games.

@@ -488,7 +488,6 @@ func _criar_tela_carregamento(titulo_txt: String, sub_txt: String) -> void:
 	_criar_fundo_imagem_loading(loading_root)
 
 	# Rodapé automático com todos patrocinadores da pasta res://patro/
-	_adicionar_rodape_patrocinadores_loading(loading_root)
 
 	var painel := Panel.new()
 	painel.size = Vector2(minf(tela.x * 0.62, 860.0), 300)
