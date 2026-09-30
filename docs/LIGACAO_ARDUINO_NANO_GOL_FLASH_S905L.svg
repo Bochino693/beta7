@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1150" viewBox="0 0 1600 1150">
+  <defs>
+    <style>
+      .bg{fill:#0e1118}.panel{fill:#171c27;stroke:#68738a;stroke-width:3}.title{fill:#fff;font:bold 34px Arial}.h{fill:#ffd34d;font:bold 24px Arial}.t{fill:#eef2f8;font:19px Arial}.small{fill:#bfc8d8;font:16px Arial}.pin{fill:#111621;stroke:#dce3ef;stroke-width:2}.sig{stroke:#ffd34d;stroke-width:6;fill:none}.pwr{stroke:#ff4b55;stroke-width:6;fill:none}.gnd{stroke:#69a7ff;stroke-width:6;fill:none}.led{stroke:#53e0c1;stroke-width:6;fill:none}.usb{stroke:#53e0c1;stroke-width:8;fill:none}.warn{fill:#ffdfdf;font:bold 18px Arial}.badge{fill:#7b2330}.node{fill:#252c3a;stroke:#8995ac;stroke-width:2}.sw{fill:#2d3444;stroke:#8995ac;stroke-width:2}.dot{fill:#dce3ef}
+    </style>
+    <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" refX="14" refY="10" orient="auto"><path d="M0,0 L0,20 L18,10 z" fill="#53e0c1"/></marker>
+  </defs>
+  <rect class="bg" width="1600" height="1150"/>
+  <text class="title" x="60" y="60">GOL FLASH ARENA — LIGAÇÃO TV BOX ANDROID 7.1 + ARDUINO NANO</text>
+  <text class="small" x="60" y="92">Firmware: gol_flash_arena_nano.ino • sensores e botões usam INPUT_PULLUP (fecham no GND, sem resistor) • 115200 baud • todos os GNDs em comum</text>
+  <rect class="panel" x="610" y="135" width="380" height="830" rx="28"/>
+  <text class="h" x="706" y="178">ARDUINO NANO</text>
+  <rect class="node" x="690" y="205" width="220" height="740" rx="18"/>
+  <text class="t" x="722" y="236">USB → TV BOX</text>
+  <rect class="panel" x="60" y="140" width="450" height="495" rx="20"/>
+  <text class="h" x="90" y="182">SENSORES DOS ALVOS (A até G)</text>
+  <text class="small" x="90" y="210">contato / módulo que fecha no GND ao detectar</text>
+  <text class="t" x="92" y="277">SENSOR A</text>
+  <path class="gnd" d="M240,270 H300"/>
+  <path class="sig" d="M340,270 H625"/>
+  <circle class="dot" cx="300" cy="270" r="6"/><circle class="dot" cx="340" cy="270" r="6"/>
+  <path d="M300,270 L336,254" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="250" width="95" height="40"/><text class="t" x="672" y="277" text-anchor="middle">D9</text>
+  <text class="t" x="92" y="329">SENSOR B</text>
+  <path class="gnd" d="M240,322 H300"/>
+  <path class="sig" d="M340,322 H625"/>
+  <circle class="dot" cx="300" cy="322" r="6"/><circle class="dot" cx="340" cy="322" r="6"/>
+  <path d="M300,322 L336,306" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="302" width="95" height="40"/><text class="t" x="672" y="329" text-anchor="middle">D10</text>
+  <text class="t" x="92" y="381">SENSOR C</text>
+  <path class="gnd" d="M240,374 H300"/>
+  <path class="sig" d="M340,374 H625"/>
+  <circle class="dot" cx="300" cy="374" r="6"/><circle class="dot" cx="340" cy="374" r="6"/>
+  <path d="M300,374 L336,358" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="354" width="95" height="40"/><text class="t" x="672" y="381" text-anchor="middle">D11</text>
+  <text class="t" x="92" y="433">SENSOR D</text>
+  <path class="gnd" d="M240,426 H300"/>
+  <path class="sig" d="M340,426 H625"/>
+  <circle class="dot" cx="300" cy="426" r="6"/><circle class="dot" cx="340" cy="426" r="6"/>
+  <path d="M300,426 L336,410" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="406" width="95" height="40"/><text class="t" x="672" y="433" text-anchor="middle">D12</text>
+  <text class="t" x="92" y="485">SENSOR E</text>
+  <path class="gnd" d="M240,478 H300"/>
+  <path class="sig" d="M340,478 H625"/>
+  <circle class="dot" cx="300" cy="478" r="6"/><circle class="dot" cx="340" cy="478" r="6"/>
+  <path d="M300,478 L336,462" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="458" width="95" height="40"/><text class="t" x="672" y="485" text-anchor="middle">A0</text>
+  <text class="t" x="92" y="537">SENSOR F</text>
+  <path class="gnd" d="M240,530 H300"/>
+  <path class="sig" d="M340,530 H625"/>
+  <circle class="dot" cx="300" cy="530" r="6"/><circle class="dot" cx="340" cy="530" r="6"/>
+  <path d="M300,530 L336,514" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="510" width="95" height="40"/><text class="t" x="672" y="537" text-anchor="middle">A1</text>
+  <text class="t" x="92" y="589">SENSOR G</text>
+  <path class="gnd" d="M240,582 H300"/>
+  <path class="sig" d="M340,582 H625"/>
+  <circle class="dot" cx="300" cy="582" r="6"/><circle class="dot" cx="340" cy="582" r="6"/>
+  <path d="M300,582 L336,566" stroke="#dce3ef" stroke-width="3"/>
+  <rect class="pin" x="625" y="562" width="95" height="40"/><text class="t" x="672" y="589" text-anchor="middle">A2</text>
+  <rect class="panel" x="60" y="655" width="450" height="310" rx="20"/>
+  <text class="h" x="90" y="695">BOTÕES</text>
+  <text class="t" x="95" y="727">START</text>
+  <path class="gnd" d="M240,720 H275"/>
+  <path class="sig" d="M325,720 H625"/>
+  <circle class="sw" cx="300" cy="720" r="24"/>
+  <rect class="pin" x="625" y="700" width="95" height="40"/><text class="t" x="672" y="727" text-anchor="middle">A3</text>
+  <text class="t" x="95" y="787">SELECT</text>
+  <path class="gnd" d="M240,780 H275"/>
+  <path class="sig" d="M325,780 H625"/>
+  <circle class="sw" cx="300" cy="780" r="24"/>
+  <rect class="pin" x="625" y="760" width="95" height="40"/><text class="t" x="672" y="787" text-anchor="middle">A4</text>
+  <text class="t" x="95" y="847">CRÉDITO</text>
+  <path class="gnd" d="M240,840 H275"/>
+  <path class="sig" d="M325,840 H625"/>
+  <circle class="sw" cx="300" cy="840" r="24"/>
+  <rect class="pin" x="625" y="820" width="95" height="40"/><text class="t" x="672" y="847" text-anchor="middle">A5</text>
+  <text class="small" x="255" y="695">normalmente aberto (NA)</text>
+  <text class="small" x="340" y="868">opcional (moedeiro)</text>
+  <text class="small" x="340" y="886">toque = +1 crédito</text>
+  <text class="small" x="340" y="904">segurar 5 s = Configuração</text>
+  <rect class="pin" x="625" y="900" width="95" height="40"/><text class="t" x="672" y="927" text-anchor="middle">GND</text>
+  <path class="gnd" d="M240,270 V920 H625"/>
+  <rect class="panel" x="1060" y="140" width="480" height="580" rx="20"/>
+  <text class="h" x="1090" y="182">LEDS DOS ALVOS (WS2812B)</text>
+  <text class="small" x="1090" y="210">fita/anel de cada alvo com o seu próprio fio de DADO</text>
+  <rect class="pin" x="880" y="250" width="95" height="40"/><text class="t" x="927" y="277" text-anchor="middle">D2</text>
+  <path class="led" d="M975,270 H1075"/>
+  <text class="t" x="1090" y="277">Alvo A  DIN ← 330 Ω ← D2</text>
+  <rect class="pin" x="880" y="302" width="95" height="40"/><text class="t" x="927" y="329" text-anchor="middle">D3</text>
+  <path class="led" d="M975,322 H1075"/>
+  <text class="t" x="1090" y="329">Alvo B  DIN ← 330 Ω ← D3</text>
+  <rect class="pin" x="880" y="354" width="95" height="40"/><text class="t" x="927" y="381" text-anchor="middle">D4</text>
+  <path class="led" d="M975,374 H1075"/>
+  <text class="t" x="1090" y="381">Alvo C  DIN ← 330 Ω ← D4</text>
+  <rect class="pin" x="880" y="406" width="95" height="40"/><text class="t" x="927" y="433" text-anchor="middle">D5</text>
+  <path class="led" d="M975,426 H1075"/>
+  <text class="t" x="1090" y="433">Alvo D  DIN ← 330 Ω ← D5</text>
+  <rect class="pin" x="880" y="458" width="95" height="40"/><text class="t" x="927" y="485" text-anchor="middle">D6</text>
+  <path class="led" d="M975,478 H1075"/>
+  <text class="t" x="1090" y="485">Alvo E  DIN ← 330 Ω ← D6</text>
+  <rect class="pin" x="880" y="510" width="95" height="40"/><text class="t" x="927" y="537" text-anchor="middle">D7</text>
+  <path class="led" d="M975,530 H1075"/>
+  <text class="t" x="1090" y="537">Alvo F  DIN ← 330 Ω ← D7</text>
+  <rect class="pin" x="880" y="562" width="95" height="40"/><text class="t" x="927" y="589" text-anchor="middle">D8</text>
+  <path class="led" d="M975,582 H1075"/>
+  <text class="t" x="1090" y="589">Alvo G  DIN ← 330 Ω ← D8</text>
+  <text class="t" x="1090" y="632">+5 V ← fonte externa 5 V (da máquina)</text>
+  <text class="t" x="1090" y="670">GND ← fonte + GND do Nano</text>
+  <text class="small" x="1090" y="700">Capacitor 1000 µF entre +5 V e GND junto às fitas.</text>
+  <rect class="pin" x="880" y="900" width="95" height="40"/><text class="t" x="927" y="927" text-anchor="middle">GND</text>
+  <path class="gnd" d="M975,920 H1030 V663 H1075"/>
+  <rect class="panel" x="1060" y="735" width="480" height="215" rx="20"/>
+  <text class="h" x="1090" y="772">AJUSTES NO FIRMWARE (.ino)</text>
+  <text class="t" x="1090" y="808">PIXELS_POR_ALVO = LEDs de cada alvo (16)</text>
+  <text class="t" x="1090" y="838">BRILHO = 0 a 255 (255)</text>
+  <text class="small" x="1090" y="864">Sem mensagem da TV Box por 10 s: LEDs apagam.</text>
+  <rect class="badge" x="1085" y="878" width="432" height="58" rx="10"/>
+  <text class="warn" x="1100" y="902">NUNCA alimente as fitas pelo 5 V do Nano.</text>
+  <text class="warn" x="1100" y="926">Livres: D0/D1 (USB), D13, A6/A7 — não usar.</text>
+  <path class="usb" d="M800,965 V1000" marker-end="url(#arrow)"/>
+  <rect class="panel" x="60" y="1015" width="1480" height="110" rx="20"/>
+  <text class="h" x="90" y="1052">TV BOX ANDROID 7.1 (S905L) — SEM ZERO DELAY</text>
+  <text class="t" x="90" y="1085">TV Box → cabo USB do Nano (o mesmo de gravar). Na 1ª vez, marque “Usar por padrão” e OK. O jogo reconecta sozinho.</text>
+  <text class="small" x="90" y="1111">Sensor com módulo próprio (infravermelho etc.): VCC → 5 V, GND → GND, saída → pino do alvo (tem que ir para o GND ao detectar).</text>
+</svg>

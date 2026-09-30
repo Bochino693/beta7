@@ -27,6 +27,9 @@ branding/gol_flash_arena_icon.png
 branding/gol_flash_arena_icon.png.import
 branding/splash_gol_flash_arena.png
 branding/splash_gol_flash_arena.png.import
+docs/.gdignore
+docs/LIGACAO_ARDUINO_NANO_GOL_FLASH_S905L.png
+docs/LIGACAO_ARDUINO_NANO_GOL_FLASH_S905L.svg
 export_presets.cfg
 fonts/Bungee-Regular.ttf
 fonts/Orbitron-Bold.ttf

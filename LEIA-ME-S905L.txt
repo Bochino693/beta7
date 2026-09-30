@@ -22,6 +22,8 @@ cabo USB (o mesmo cabo de gravar o Arduino).
 
 2) LIGACOES NO NANO
 -------------------
+  Desenho completo: docs\LIGACAO_ARDUINO_NANO_GOL_FLASH_S905L.png
+
     Alvo   LED (fio de DADO do NeoPixel)   Sensor
      A          D2                          D9
      B          D3                          D10
