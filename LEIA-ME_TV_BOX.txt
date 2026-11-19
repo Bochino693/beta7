@@ -1,0 +1,102 @@
+GOL FLASH ARENA — TV BOX / TV ANDROID, CONTROLE REMOTO E ARDUINO
+================================================================
+
+O QUE TEM AQUI
+- GERAR_APK.bat ............. gera o APK no Windows (2 cliques)
+- APK-Pronto\GolFlashArena.apk  onde o APK sai
+- arduino\ .................. código do Arduino + desenho da montagem
+- LEIA-ME_TV_BOX.txt ........ este arquivo
+
+O jogo no PC (Windows, COM5, placa Zero Delay) continua igual a antes.
+
+
+1. GERAR O APK (Windows 64 bits, com internet)
+----------------------------------------------
+Dois cliques em GERAR_APK.bat e espere. Ele baixa sozinho o que faltar
+(Godot 4.6.1, Java, Android SDK) numa pasta C:\GolFlashBuild.
+  1ª vez: 15 a 40 minutos.   Depois: 2 a 5 minutos.
+O APK sai em APK-Pronto\GolFlashArena.apk (uns 215 MB).
+Se falhar, envie o arquivo build\android\GERACAO-COMPLETA.log.
+(Linux: bash tools/android/montar_apk.sh)
+
+O APK serve para TV Box e para TV Android (aparece na tela de apps da
+Android TV com o banner do jogo). Android 7.0 ou mais novo.
+
+
+2. INSTALAR NA TV
+-----------------
+Copie o APK para um pendrive, abra pelo gerenciador de arquivos da TV e
+instale (permita "fontes desconhecidas"). Abra o Gol Flash Arena.
+
+Na PRIMEIRA vez o Android pergunta duas coisas, uma vez só cada:
+  a) "Permitir que o Gol Flash Arena acesse o dispositivo USB?"
+     -> marque "Usar por padrão" e OK. (aparece ao ligar o Arduino)
+  b) Tela inicial ("Selecionar app de início" / "Usar como app inicial")
+     -> escolha GOL FLASH ARENA e "SEMPRE".
+Pronto: daí em diante, ligou a TV (na tomada ou pelo controle), o jogo
+abre sozinho. Se a janela (b) não aparecer ou você escolher errado:
+MENU do controle -> Central da Máquina -> "ABRIR SOZINHO AO LIGAR A TV".
+
+Para SAIR do jogo para a tela normal da TV (operador):
+  Central da Máquina -> "SAIR PARA A TELA DA TV", ou
+  HOME do controle 5 vezes seguidas.
+
+
+3. CONTROLE REMOTO
+------------------
+  OK (centro) ......... START (começa, confirma, adiciona jogador)
+  ◀ ▶ ................. SELECT (troca ARCADE / COPA)
+  OK + ▶ segurados .... Mural de Campeões (START + SELECT, como na máquina)
+  ▶ segurado .......... Ranking (segurar SELECT)
+  ▲ ▼ ................. marcam os botões da tela (moldura amarela);
+                        com um botão marcado, as 4 setas andam e OK aperta
+  VOLTAR .............. desmarca / fecha / volta
+  MENU ................ Central da Máquina (configuração)
+                        controle sem tecla MENU: VOLTAR 5 vezes seguidas
+
+NOMES (modo Copa): as setas andam pelos campos, OK abre o TECLADO NA TELA,
+setas + OK escrevem, "PRONTO" fecha. Depois desça até "SORTEAR GRUPOS".
+Campo vazio vira Boot automático. Mouse sem fio e teclado USB também
+funcionam, se quiser.
+
+
+4. ARDUINO (tudo por ele, sem relé e sem placa Zero Delay na TV)
+----------------------------------------------------------------
+Desenho completo: arduino\ligacao_gol_flash_arena.pdf (ou .png)
+Código: arduino\gol_flash_arena\gol_flash_arena.ino
+Passo a passo: arduino\LEIA-ME.txt
+
+  ALVO   LED (DIN)   SENSOR          START .... A3
+   A       D2          D9            SELECT ... A4
+   B       D3          D10           FICHA .... A5 (moedeiro, opcional)
+   C       D4          D11
+   D       D5          D12
+   E       D6          A0
+   F       D7          A1
+   G       D8          A2
+
+Um cabo USB do Arduino na TV Box: leva os comandos dos LEDs e traz os
+sensores, o START, o SELECT e a ficha.
+
+
+5. TESTAR A MÁQUINA
+-------------------
+MENU -> Central da Máquina:
+  - em cima, à direita: o estado do Arduino ("ARDUINO CONECTADO ...");
+  - "DIAGNÓSTICO DOS 7 ALVOS": marque um alvo e OK = o LED acende;
+    bata no alvo = o quadro dele acende na tela;
+  - "TESTAR TODOS OS LEDS";
+  - modo LIVRE ou CRÉDITO, contador de partidas, limpar o mural.
+
+
+SE ALGO NÃO FUNCIONAR
+---------------------
+- "Arduino não encontrado": cabo USB (tem cabo que só carrega) ou a TV
+  Box não tem USB OTG naquela porta: troque de porta.
+- "Arduino no USB: aceite a janela do Android": Central da Máquina abre
+  a janela de novo.
+- LEDs não acendem mas o Arduino conecta: fonte 5 V dos LEDs, GND da fonte
+  junto com o GND do Arduino, LEDS_POR_ALVO e TIPO_FITA no .ino.
+- Sensor não marca: Central da Máquina mostra cada batida; confira o fio
+  no pino e o outro no GND.
+- O jogo não abre sozinho: Central da Máquina -> "ABRIR SOZINHO AO LIGAR".

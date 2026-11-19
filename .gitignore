@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+# saídas do gerador de APK
+build/
+APK-Pronto/
+*.apk
+*.idsig
+# cache do plugin Android (jars para compilar)
+tools/android/StrikeSerial/.cache/

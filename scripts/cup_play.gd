@@ -1900,6 +1900,8 @@ func registrar_erro(penalidade: int = 0) -> void:
 	if not partida_ativa:
 		return
 
+	Efeitos.erro()
+
 	if penalidade > 0:
 		scores[player_atual] -= penalidade
 
@@ -2041,6 +2043,9 @@ func registrar_ponto(valor: int = 1) -> void:
 
 	if player_atual < 0 or player_atual >= total_players:
 		return
+
+	# comemoração na tela (clarão, onda e confete na cor do jogador)
+	Efeitos.gol(player_atual)
 
 	var score_antes: int = scores[player_atual]
 
@@ -4415,6 +4420,11 @@ func _tocar_audio(player: AudioStreamPlayer) -> void:
 # ARDUINO / POWERSHELL
 # ============================================================
 func _abrir_serial_arduino() -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		await ArduinoBridge.preparar()
+		return
+
 	if not USAR_ARDUINO:
 		print("Arduino desativado por USAR_ARDUINO = false")
 		return
@@ -4439,6 +4449,9 @@ func _abrir_serial_arduino() -> void:
 
 
 func _matar_pontes_powershell_antigas() -> void:
+	if ArduinoBridge.ativo():
+		return
+
 	var output: Array = []
 
 	var comando := """
@@ -4600,6 +4613,11 @@ catch {
 
 
 func _serial_write(texto: String) -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		ArduinoBridge.enviar(texto)
+		return
+
 	if not USAR_ARDUINO:
 		return
 

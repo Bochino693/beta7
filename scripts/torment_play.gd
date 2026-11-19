@@ -1454,6 +1454,9 @@ func registrar_ponto(valor: int = 1) -> void:
 	if player_atual < 0 or player_atual >= total_players:
 		return
 
+	# comemoração na tela (clarão, onda e confete na cor do jogador)
+	Efeitos.gol(player_atual)
+
 	scores[player_atual] += valor
 
 	if sfx_ponto and sfx_ponto.stream:
@@ -3853,6 +3856,11 @@ func _animar_score(index: int) -> void:
 # ARDUINO
 # ============================================================
 func _abrir_serial_arduino() -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		await ArduinoBridge.preparar()
+		return
+
 	if not USAR_ARDUINO:
 		return
 
@@ -3871,6 +3879,9 @@ func _abrir_serial_arduino() -> void:
 
 
 func _matar_pontes_powershell_antigas() -> void:
+	if ArduinoBridge.ativo():
+		return
+
 	var output: Array = []
 
 	var comando := """
@@ -4021,6 +4032,11 @@ catch {
 
 
 func _serial_write(texto: String) -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		ArduinoBridge.enviar(texto)
+		return
+
 	if not USAR_ARDUINO:
 		return
 

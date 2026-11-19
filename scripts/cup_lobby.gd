@@ -4603,6 +4603,12 @@ func _cor_para_rgb255(c: Color) -> Array[int]:
 
 
 func _abrir_serial_lobby() -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		await ArduinoBridge.preparar()
+		ponte_lobby_pronta = true
+		return
+
 	if not USAR_ARDUINO_LOBBY:
 		return
 
@@ -4629,6 +4635,9 @@ func _abrir_serial_lobby() -> void:
 
 
 func _matar_pontes_lobby_antigas() -> void:
+	if ArduinoBridge.ativo():
+		return
+
 	var output: Array = []
 
 	var comando := """
@@ -4794,6 +4803,11 @@ catch {
 
 
 func _serial_write_lobby(texto: String) -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		ArduinoBridge.enviar(texto)
+		return
+
 	if not USAR_ARDUINO_LOBBY:
 		return
 
