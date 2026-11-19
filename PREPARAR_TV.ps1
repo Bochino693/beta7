@@ -9,7 +9,8 @@
 # sozinho (sem root). Faz, sem nada aparecer na TV (so "Permitir depuracao?"
 # na 1a conexao):
 #  - instala o APK de APK-Pronto (se existir);
-#  - o jogo vira a TELA INICIAL: ligou a TV Box, abre o jogo;
+#  - o jogo vira a UNICA TELA INICIAL (a tela da ROM e desligada): ligou a
+#    TV Box, abre direto o jogo, sem passar pela tela da ROM;
 #  - permite o jogo abrir de fundo (Android 10+) e deixa a TV sempre ligada.
 # Na TV Box, antes: Configuracoes > Sobre > clique 7 vezes em "Numero da
 # versao" > Opcoes do desenvolvedor > Depuracao USB LIGADA (e "Depuracao por
@@ -52,7 +53,12 @@ if ($estado -notmatch "device") { throw "a TV Box nao respondeu ao adb ($estado)
 $sdk = [int]((Adb @("shell", "getprop", "ro.build.version.sdk")) -replace '[^0-9]', '')
 Write-Host ("TV Box: Android " + (Adb @("shell", "getprop", "ro.build.version.release")) + " (API $sdk) - " + (Adb @("shell", "getprop", "ro.product.model")))
 
+$Anotadas = "/data/local/tmp/golflash_telas_desligadas.txt"
 if ($DevolverTv) {
+    # religa as telas da TV que foram desligadas e desliga a tela inicial do jogo
+    $lista = (Adb @("shell", "cat", $Anotadas)) -split "\s+" | Where-Object { $_ -match '^[A-Za-z0-9_.]+$' } | Select-Object -Unique
+    foreach ($x in $lista) { Write-Host "  religando $x"; [void](Adb @("shell", "pm", "enable", $x)) }
+    [void](Adb @("shell", "rm", "-f", $Anotadas))
     [void](Adb @("shell", "pm", "disable", $Inicio))
     Write-Host "PRONTO: a tela inicial voltou a ser a da TV (o jogo continua instalado)." -ForegroundColor Green
     exit 0
@@ -78,13 +84,38 @@ if ($sdk -ge 29) { [void](Adb @("shell", "cmd", "role", "add-role-holder", "andr
 foreach ($s in @("secure screensaver_enabled 0", "secure sleep_timeout -1", "secure attentive_timeout -1", "system screen_off_timeout 2147483647")) {
     [void](Adb (@("shell", "settings", "put") + $s.Split(" ")))
 }
+foreach ($s in @("window_animation_scale 0", "transition_animation_scale 0", "animator_duration_scale 0", "stay_on_while_plugged_in 3")) {
+    [void](Adb (@("shell", "settings", "put", "global") + $s.Split(" ")))
+}
+# A TV BOX E SO DO JOGO: as outras telas iniciais (a da ROM) saem, para a
+# caixa ligar direto no jogo. So com a tela inicial do jogo instalada (sem
+# nenhuma, a TV nao abriria nada); ficam anotadas para o -DevolverTv.
+$telas = Adb @("shell", "cmd", "package", "query-activities", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
+if ($telas -match "StrikeInicioAtivo") {
+    $outras = @()
+    foreach ($linha in ($telas -split "`n")) {
+        if ($linha -match '^\s*([A-Za-z0-9_.]+)/') {
+            $pk = $Matches[1]
+            if ($pk -ne $Pacote -and $pk -ne "android" -and $pk -notmatch '^com\.android\.(tv\.)?settings$' -and $outras -notcontains $pk) { $outras += $pk }
+        }
+    }
+    foreach ($x in $outras) {
+        Write-Host "  desligando a tela inicial da TV: $x"
+        $r = Adb @("shell", "pm", "disable-user", "--user", "0", $x)
+        if ($r -match "disabled") { [void](Adb @("shell", "sh", "-c", "'echo $x >> $Anotadas'")) }
+    }
+    [void](Adb @("shell", "cmd", "package", "set-home-activity", $Inicio))
+} else {
+    Write-Host "  AVISO: a tela inicial do jogo nao apareceu na TV Box (APK antigo?): nada foi desligado." -ForegroundColor Yellow
+}
 $casa = Adb @("shell", "cmd", "package", "resolve-activity", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
 [void](Adb @("shell", "monkey", "-p", $Pacote, "-c", "android.intent.category.LEANBACK_LAUNCHER", "1"))
 [void](Adb @("shell", "monkey", "-p", $Pacote, "-c", "android.intent.category.LAUNCHER", "1"))
 Write-Host ""
 if ($casa -match [Regex]::Escape($Pacote)) {
     Write-Host "TV PRONTA: tire a TV Box da tomada, espere 10 s e ligue - abre o jogo." -ForegroundColor Green
-    Write-Host "Para usar a TV: HOME 5 vezes seguidas no controle (um HOME volta ao jogo)."
+    Write-Host "A tela da ROM foi desligada: a caixa e so do jogo. NAO desinstale o jogo sem"
+    Write-Host "antes rodar o -DevolverTv (a caixa ficaria sem tela inicial)."
     Write-Host "Para desfazer: PREPARAR_TV.bat -DevolverTv"
 } else {
     Write-Host "A TV Box nao aceitou o jogo como tela inicial pelo adb:" -ForegroundColor Yellow

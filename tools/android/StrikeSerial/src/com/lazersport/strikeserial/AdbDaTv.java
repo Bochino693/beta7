@@ -256,9 +256,16 @@ final class AdbDaTv implements Closeable {
 				+ "settings put secure screensaver_enabled 0; settings put secure screensaver_activate_on_sleep 0; "
 				+ "settings put secure screensaver_activate_on_dock 0; settings put secure sleep_timeout -1; "
 				+ "settings put secure attentive_timeout -1; settings put system screen_off_timeout 2147483647; "
+				// A TV BOX É SÓ DO JOGO: com a tela inicial do jogo instalada, as
+				// outras telas iniciais (a da ROM) saem - a caixa liga direto no
+				// jogo, sem passar pela tela da ROM. Ficam anotadas para o
+				// PREPARAR_TV.bat -DevolverTv religar. Sem animações de janela.
+				+ "settings put global window_animation_scale 0; settings put global transition_animation_scale 0; "
+				+ "settings put global animator_duration_scale 0; settings put global stay_on_while_plugged_in 3; "
 				+ "if cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.HOME | grep -q StrikeInicioAtivo; then "
 				+ "for X in $L; do if pm list packages | grep -q \"^package:$X$\"; then "
-				+ "pm disable-user --user 0 $X >/dev/null 2>&1 && echo $X >> " + anotar + "; fi; done; echo TV_PRONTA; "
+				+ "pm disable-user --user 0 $X >/dev/null 2>&1 && echo $X >> " + anotar + "; fi; done; "
+				+ "cmd package set-home-activity $A >/dev/null 2>&1; echo TV_PRONTA; "
 				+ "else echo SEM_TELA_DO_JOGO; fi";
 	}
 

@@ -320,12 +320,33 @@ final class InicioDaTv {
 		}
 	}
 
+	private static final String[] TELAS_DO_GOOGLE = {"com.google.android.apps.tv.launcherx",
+			"com.google.android.tungsten.setupwraith", "com.google.android.tvlauncher"};
+
 	/**
-	 * A ROM da TV NÃO é desligada: continua instalada (lista vazia para o
-	 * AdbDaTv); o jogo só passa a ser a primeira tela.
+	 * As outras telas iniciais da TV (menos o jogo, os Ajustes e as de fundo,
+	 * com prioridade negativa) e as do Google TV. SÓ são desligadas se a TV
+	 * não aceitar o jogo como tela inicial (AdbDaTv.comandoPreparar): aí é o
+	 * único jeito de ela ligar no jogo. O PREPARAR_TV.bat -DevolverTv religa.
 	 */
 	static List<String> outrasTelasIniciais(Context c) {
-		return new ArrayList<String>();
+		List<String> lista = new ArrayList<String>();
+		for (ResolveInfo r : c.getPackageManager().queryIntentActivities(home(), PackageManager.MATCH_DEFAULT_ONLY)) {
+			if (r.activityInfo == null || r.priority < 0) {
+				continue;
+			}
+			String p = r.activityInfo.packageName;
+			if (p.equals(c.getPackageName()) || p.equals("android") || p.matches("com\\.android\\.(tv\\.)?settings") || lista.contains(p)) {
+				continue;
+			}
+			lista.add(p);
+		}
+		for (String g : TELAS_DO_GOOGLE) {
+			if (!lista.contains(g)) {
+				lista.add(g);
+			}
+		}
+		return lista;
 	}
 
 	/** Os comandos do PREPARAR_TV.bat para esta TV (AdbDaTv.comandoPreparar). */

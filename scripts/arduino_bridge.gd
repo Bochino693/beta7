@@ -59,6 +59,7 @@ var _pedidos: ConfigFile
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_carimbo()
 	_imagem_da_tv()
 	for l in LETRAS:
 		contagem[l] = 0
@@ -105,10 +106,14 @@ var _abriu_em := 0
 
 
 func _inicio_pronto(d: Dictionary) -> bool:
-	if str(d.get("tela_inicial", "")) == "jogo":
-		return true
-	# Android 10+: com "Sobrepor" permitido o aviso de "ligou" e o guarda abrem o jogo
-	return int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "sim"
+	# preparada pelo root / adb (o jogo é a única tela inicial): pronto
+	if str(d.get("root", "")) == "pronta" or str(d.get("adb", "")) == "pronta":
+		return str(d.get("tela_inicial", "")) == "jogo"
+	# Android 10+: só vale com "Sobrepor" permitido (sem ele o Android barra o
+	# jogo de abrir sozinho, mesmo marcado como tela inicial em algumas caixas)
+	if int(d.get("sdk", "0")) >= 29:
+		return str(d.get("sobrepor", "")) == "sim"
+	return str(d.get("tela_inicial", "")) == "jogo"
 
 
 func _olhar_inicio(agora: int) -> void:
@@ -125,10 +130,17 @@ func _olhar_inicio(agora: int) -> void:
 	if bool(_plugin.call("permissao_pendente")):
 		return   # uma janela do Android por vez: primeiro a do USB
 	var d := inicio_estado()
+	if _carimbo_label != null:
+		_carimbo_label.text = "%s  •  Android %s  •  abrir ao ligar: %s" % [VERSAO, d.get("android", "?"), "PRONTO" if _inicio_pronto(d) else "PENDENTE"]
 	if _inicio_pronto(d):
 		_inicio_resolvido = true
-		if _inicio_pediu:
-			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
+		var cfg0 := ConfigFile.new()
+		cfg0.load(PERMISSOES)
+		if _inicio_pediu or not bool(cfg0.get_value("inicio", "avisou_pronto", false)):
+			cfg0.set_value("inicio", "avisou_pronto", true)
+			cfg0.save(PERMISSOES)
+			_pedidos = null
+			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 6000, false)
 		return
 	if _inicio_pediu:
 		# voltou da tela do Android sem escolher: pede de novo na próxima abertura
@@ -239,6 +251,28 @@ func confirmar_aviso() -> void:
 		if abriu == "":
 			abriu = str(_plugin.call("escolher_tela_inicial"))
 	print("ABRIR AO LIGAR: tela do Android aberta = ", abriu if abriu != "" else "nenhuma")
+
+
+## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
+## TV Box. Mude a cada APK entregue.
+const VERSAO := "TV 9"
+var _carimbo_label: Label
+
+
+func _carimbo() -> void:
+	if OS.get_name() != "Android":
+		return
+	var camada := CanvasLayer.new()
+	camada.layer = 119
+	add_child(camada)
+	_carimbo_label = Label.new()
+	_carimbo_label.text = VERSAO
+	_carimbo_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_carimbo_label.position = Vector2(8, -24)
+	_carimbo_label.add_theme_font_size_override("font_size", 13)
+	_carimbo_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
+	_carimbo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	camada.add_child(_carimbo_label)
 
 
 ## IMAGEM LISA NA TV BOX: o jogo é desenhado em 720 linhas e a própria TV

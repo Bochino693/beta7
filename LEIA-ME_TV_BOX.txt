@@ -33,49 +33,54 @@ DEPOIS DE INSTALAR, ABRA O JOGO UMA VEZ (botão "Abrir" no fim da
 instalação). O Android não entrega nada a um app que nunca foi aberto: essa
 primeira abertura é obrigatória em qualquer aparelho.
 
-COMO O JOGO PASSA A ABRIR SOZINHO (a TV Box fica só do jogo)
-Na primeira abertura o jogo tenta se preparar SOZINHO, sem perguntar nada:
-  - pela conta de administrador da TV Box (root), que muitas TV Box têm; ou
-  - pelo adb da própria TV Box, se a "Depuração USB" estiver ligada
-    (Configurações > Sobre > 7 cliques em "Número da versão" > Opções do
-    desenvolvedor > Depuração USB). Se a TV perguntar "Permitir depuração?",
-    marque "Sempre permitir" e OK.
-Dando certo, o jogo vira a tela inicial da TV Box: ligou, abre o jogo, sem
-janela nenhuma. (A tela da ROM continua instalada: HOME 5 vezes seguidas no
-controle abre ela; um HOME volta ao jogo.)
+A TV BOX SÓ DO JOGO (liga direto no jogo) - O CAMINHO CERTO
+============================================================
+Ligue a DEPURAÇÃO na TV Box, UMA VEZ:
+  Configurações > Sobre > clique 7 vezes em "Número da versão" (ou "Build")
+  > volte > Opções do desenvolvedor > DEPURAÇÃO USB: LIGADA
+  (se existir "Depuração de rede" / "ADB pela rede", ligue também).
+Depois abra o jogo. Ele entra sozinho na depuração da própria caixa e:
+  - vira a ÚNICA tela inicial: a tela da ROM é desligada, a caixa liga
+    direto no jogo, sem passar por ela;
+  - ganha a permissão de abrir sozinho; a TV fica sempre ligada (sem
+    descanso de tela) e sem animações de janela.
+Se a TV perguntar "Permitir depuração?", marque "SEMPRE PERMITIR" e OK.
+O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
+o jogo.
 
-SE A TV BOX NÃO DEIXAR (sem root e sem depuração) - O PEDIDO, UMA VEZ:
-Uns 10 segundos depois de o menu aparecer, o jogo mostra um aviso grande:
-"PARA O JOGO ABRIR SOZINHO AO LIGAR". Aperte OK.
-  - Android 10 ou mais novo (ex.: ProEletronic SmartPro): abre a tela
-    "Sobrepor a outros apps" (ou "Aparecer sobre outros apps"). Deixe GOL
-    FLASH ARENA PERMITIDO (ligado) e aperte VOLTAR.
-  - Android 9 ou mais antigo: abre a escolha da tela inicial. Escolha GOL
-    FLASH ARENA e, se aparecer, SEMPRE.
-Ao voltar, o jogo mostra "PRONTO!" e nunca mais pede. Voltou sem aceitar:
-o pedido aparece de novo nas próximas aberturas (até 4 vezes; depois, só
-pela Central da Máquina).
-Embaixo de cada aviso vai uma linha cinza (ANDROID ... TELA INICIAL ...
-SOBREPOR ... LIGOU ...): se algo não funcionar, mande uma foto dela.
-Não existe jeito de pular essa confirmação sem root: é trava do Android,
-vale para qualquer app.
+No canto de baixo da tela fica escrito, bem pequeno:
+    TV 9  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 9" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
-PELO PC, SEM DEPENDER DE NADA DISSO: PREPARAR_TV.bat (dois cliques, pede o
-IP da TV Box, com a Depuração USB ligada nela). Instala o APK e deixa a TV
-Box pronta de uma vez. É o caminho mais garantido para produzir em série.
+PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
+depuração ligada e PC e TV Box na mesma rede. Pede o IP da caixa, instala o
+APK e prepara tudo. É o melhor caminho para produzir várias caixas.
 
-CONFERIR: MENU do controle -> Central da Máquina. A linha de baixo mostra
-  ANDROID x • TELA INICIAL: O JOGO • SOBREPOR: SIM • LIGOU: 3x • ROOT • ADB
-"TELA INICIAL: O JOGO" = pronto. Se não abrir sozinho, me mande essa linha.
-O botão "ABRIR SOZINHO AO LIGAR A TV" tenta tudo de novo.
+DESFAZER (a caixa volta a ser TV): PREPARAR_TV.bat -DevolverTv.
+IMPORTANTE: com a tela da ROM desligada, NÃO desinstale o jogo antes de
+desfazer (a caixa ficaria sem tela inicial). Para atualizar, instale o APK
+novo POR CIMA.
 
-O Arduino no USB com "Usar por padrão" marcado também faz o Android abrir
-o jogo ao ligar. Desligar pelo controle (a TV só "dorme") e ligar de novo:
-o jogo volta sozinho.
+SEM DEPURAÇÃO (caixa que não tem Opções do desenvolvedor): uns 10 segundos
+depois de o menu aparecer o jogo mostra "PARA O JOGO ABRIR SOZINHO AO
+LIGAR". Aperte OK e, na tela do Android:
+  - Android 10 ou mais novo: deixe GOL FLASH ARENA PERMITIDO em "Sobrepor a
+    outros apps" e aperte VOLTAR;
+  - Android 9 ou mais antigo: escolha GOL FLASH ARENA como tela inicial e
+    marque SEMPRE.
+Nesse modo a tela da ROM aparece alguns segundos antes do jogo.
 
-Para SAIR do jogo para a tela da TV: HOME 5 vezes seguidas, ou Central da
-Máquina -> "SAIR PARA A TELA DA TV". Para desfazer tudo: PREPARAR_TV.bat
--DevolverTv.
+O que NÃO dá para fazer só instalando um APK: o Android não deixa nenhum app
+abrir sozinho sem uma dessas autorizações, e o tempo que a caixa leva para
+ligar (logo da marca, carregar o Android) é da caixa: o jogo só consegue
+tirar a tela da ROM do caminho.
+
+Depois de instalar, ABRA O JOGO UMA VEZ ("Abrir" no fim da instalação).
+O Arduino no USB: na 1ª vez marque "Usar por padrão" e OK.
+Central da Máquina (MENU do controle): a linha de baixo mostra o estado
+completo e o botão "ABRIR SOZINHO AO LIGAR A TV" tenta de novo.
+Sair para os ajustes da TV: Central da Máquina > "SAIR PARA A TELA DA TV".
 
 
 3. CONTROLE REMOTO

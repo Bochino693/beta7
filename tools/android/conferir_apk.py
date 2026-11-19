@@ -45,6 +45,7 @@ for classe in ("StrikeSerial", "InicioDaTv", "StrikeInicioAtivo", "StrikeLigou",
 confere("StrikeInicioAtivo" in manifesto and "android.intent.category.HOME" in manifesto.split("E: application")[-1], "tela inicial do jogo (HOME): o Android abre o jogo ao ligar")
 confere("android.permission.SYSTEM_ALERT_WINDOW" in manifesto, "permissão para abrir de fundo no Android 10+")
 confere("StrikeSempre" in manifesto and "FOREGROUND_SERVICE" in manifesto, "o guarda (serviço em primeiro plano)")
+confere("LOCKED_BOOT_COMPLETED" in manifesto and "MY_PACKAGE_REPLACED" in manifesto and "directBootAware" in manifesto, "aviso de \"ligou\" reforçado (boot direto, atualização)")
 confere("android.intent.action.BOOT_COMPLETED" in manifesto and "RECEIVE_BOOT_COMPLETED" in manifesto, "receptor de \"a TV ligou\" + permissão")
 confere("USB_DEVICE_ATTACHED" in manifesto, "filtro USB do Arduino (permissão guardada)")
 confere("android.intent.category.LEANBACK_LAUNCHER" in manifesto, "aparece na tela da Android TV (leanback)")
