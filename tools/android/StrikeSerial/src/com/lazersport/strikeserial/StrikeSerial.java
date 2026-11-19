@@ -592,6 +592,22 @@ public class StrikeSerial extends GodotPlugin {
 		}
 	}
 
+	/** Só as janelas de ESCOLHA da tela inicial (nunca páginas de ajustes soltas): "ja", "papel", "ajustes", "escolha" ou "". */
+	@UsedByGodot
+	public String pedir_tela_inicial() {
+		Activity a = getActivity();
+		if (a == null) {
+			return "";
+		}
+		try {
+			InicioDaTv.pausarGuarda(a, 3 * 60000L);
+			return InicioDaTv.escolher(a, true);
+		} catch (Throwable t) {
+			anotar("tela inicial: " + t);
+			return "";
+		}
+	}
+
 	/** Abre a tela "Sobrepor a outros apps" (Android 10+): true se abriu. */
 	@UsedByGodot
 	public boolean pedir_sobrepor() {

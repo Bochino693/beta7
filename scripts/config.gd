@@ -349,14 +349,7 @@ func _arduino_mudou() -> void:
 
 
 func _texto_inicio() -> String:
-	var d := ArduinoBridge.inicio_estado()
-	if d.is_empty():
-		return ""
-	var tela := str(d.get("tela_inicial", "?"))
-	return "ANDROID %s  •  TELA INICIAL: %s  •  SOBREPOR: %s  •  LIGOU: %sx  •  ROOT: %s  •  ADB: %s" % [
-		d.get("android", "?"), "O JOGO" if tela == "jogo" else tela.to_upper(), str(d.get("sobrepor", "?")).to_upper(),
-		d.get("ligou_vezes", "0"), d.get("root", "-") if str(d.get("root", "")) != "" else "-",
-		d.get("adb", "-") if str(d.get("adb", "")) != "" else "-"]
+	return ArduinoBridge.texto_inicio()
 
 
 func _escolher_tela_inicial() -> void:
@@ -374,9 +367,8 @@ func _escolher_tela_inicial() -> void:
 	_atualizar_inicio()
 	if str(d.get("tela_inicial", "")) == "jogo":
 		_mensagem("●  PRONTO: A TV ABRE O JOGO SOZINHA AO LIGAR")
-	elif int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao":
+	elif int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao" and ArduinoBridge.pedir_sobrepor():
 		_mensagem("●  DEIXE GOL FLASH ARENA PERMITIDO E APERTE VOLTAR")
-		ArduinoBridge.pedir_sobrepor()
 	else:
 		_mensagem("●  ESCOLHA GOL FLASH ARENA E \"SEMPRE\"")
 		ArduinoBridge.escolher_tela_inicial()

@@ -46,15 +46,17 @@ controle abre ela; um HOME volta ao jogo.)
 
 SE A TV BOX NÃO DEIXAR (sem root e sem depuração) - O PEDIDO, UMA VEZ:
 Uns 10 segundos depois de o menu aparecer, o jogo mostra um aviso grande:
-"PARA O JOGO ABRIR SOZINHO AO LIGAR". Aperte OK. Abre a tela do Android
-para escolher a tela inicial (app de início): escolha GOL FLASH ARENA e, se
-aparecer, marque SEMPRE. Ao voltar, o jogo mostra "PRONTO!". Daí em diante
-nunca mais pede e a TV Box liga direto no jogo, em qualquer versão do
-Android (é o próprio sistema que abre a tela inicial: nenhuma ROM bloqueia).
-  - Voltou sem escolher: o pedido aparece de novo nas próximas aberturas
-    (até 4 vezes; depois, só pela Central da Máquina).
-  - Android 10+ que não deixa trocar a tela inicial: na segunda vez o jogo
-    pede "Sobrepor a outros apps" (deixe permitido e aperte VOLTAR).
+"PARA O JOGO ABRIR SOZINHO AO LIGAR". Aperte OK.
+  - Android 10 ou mais novo (ex.: ProEletronic SmartPro): abre a tela
+    "Sobrepor a outros apps" (ou "Aparecer sobre outros apps"). Deixe GOL
+    FLASH ARENA PERMITIDO (ligado) e aperte VOLTAR.
+  - Android 9 ou mais antigo: abre a escolha da tela inicial. Escolha GOL
+    FLASH ARENA e, se aparecer, SEMPRE.
+Ao voltar, o jogo mostra "PRONTO!" e nunca mais pede. Voltou sem aceitar:
+o pedido aparece de novo nas próximas aberturas (até 4 vezes; depois, só
+pela Central da Máquina).
+Embaixo de cada aviso vai uma linha cinza (ANDROID ... TELA INICIAL ...
+SOBREPOR ... LIGOU ...): se algo não funcionar, mande uma foto dela.
 Não existe jeito de pular essa confirmação sem root: é trava do Android,
 vale para qualquer app.
 

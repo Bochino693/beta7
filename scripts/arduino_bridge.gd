@@ -107,7 +107,8 @@ var _abriu_em := 0
 func _inicio_pronto(d: Dictionary) -> bool:
 	if str(d.get("tela_inicial", "")) == "jogo":
 		return true
-	return _inicio_pediu and _inicio_modo == "sobrepor" and str(d.get("sobrepor", "")) == "sim"
+	# Android 10+: com "Sobrepor" permitido o aviso de "ligou" e o guarda abrem o jogo
+	return int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "sim"
 
 
 func _olhar_inicio(agora: int) -> void:
@@ -143,7 +144,11 @@ func _olhar_inicio(agora: int) -> void:
 	cfg.set_value("inicio", "pedidos", pedidos + 1)
 	cfg.save(PERMISSOES)
 	_pedidos = null
-	_inicio_modo = "sobrepor" if (pedidos % 2 == 1 and int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao") else "tela"
+	# Android 10+: 1o "Sobrepor a outros apps" (essas caixas quase nunca deixam
+	# trocar a tela inicial pelo menu); nas vezes pares, a tela inicial.
+	# Android 9 ou mais antigo: sempre a tela inicial.
+	var novo: bool = int(d.get("sdk", "0")) >= 29
+	_inicio_modo = "sobrepor" if (novo and str(d.get("sobrepor", "")) == "nao" and pedidos % 2 == 0) else "tela"
 	if _inicio_modo == "sobrepor":
 		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
 			"Na próxima tela, deixe  GOL FLASH ARENA  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
@@ -180,6 +185,14 @@ func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede
 		l.add_theme_font_size_override("font_size", int(int(item[1]) * k))
 		l.add_theme_color_override("font_color", item[2])
 		caixa.add_child(l)
+	var diag := texto_inicio()
+	if diag != "":
+		var ld := Label.new()
+		ld.text = diag
+		ld.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ld.add_theme_font_size_override("font_size", int(15 * k))
+		ld.add_theme_color_override("font_color", Color(0.55, 0.65, 0.78))
+		caixa.add_child(ld)
 	aviso_aberto = true
 	_aviso_pede = pede
 	_aviso_ate = Time.get_ticks_msec() + ms
@@ -215,12 +228,16 @@ func confirmar_aviso() -> void:
 		abriu = "sobrepor" if bool(_plugin.call("pedir_sobrepor")) else ""
 		if abriu == "":
 			_inicio_modo = "tela"
-			abriu = str(_plugin.call("escolher_tela_inicial"))
+			abriu = str(_plugin.call("pedir_tela_inicial"))
+			if abriu == "":
+				abriu = str(_plugin.call("escolher_tela_inicial"))
 	else:
-		abriu = str(_plugin.call("escolher_tela_inicial"))
-		if abriu == "":
+		abriu = str(_plugin.call("pedir_tela_inicial"))
+		if abriu == "" and int(inicio_estado().get("sdk", "0")) >= 29 and bool(_plugin.call("pedir_sobrepor")):
 			_inicio_modo = "sobrepor"
-			abriu = "sobrepor" if bool(_plugin.call("pedir_sobrepor")) else ""
+			abriu = "sobrepor"
+		if abriu == "":
+			abriu = str(_plugin.call("escolher_tela_inicial"))
 	print("ABRIR AO LIGAR: tela do Android aberta = ", abriu if abriu != "" else "nenhuma")
 
 
@@ -475,6 +492,19 @@ func inicio_estado() -> Dictionary:
 		if k > 0:
 			d[linha.substr(0, k)] = linha.substr(k + 1)
 	return d
+
+
+## O estado numa linha (Central da Máquina e avisos): é o que o suporte pede.
+func texto_inicio() -> String:
+	var d := inicio_estado()
+	if d.is_empty():
+		return ""
+	var tela := str(d.get("tela_inicial", "?"))
+	return "ANDROID %s (API %s)  •  TELA INICIAL: %s  •  SOBREPOR: %s  •  LIGOU: %sx  •  ROOT: %s  •  ADB: %s  •  %s" % [
+		d.get("android", "?"), d.get("sdk", "?"), "O JOGO" if tela == "jogo" else tela.to_upper(),
+		str(d.get("sobrepor", "?")).to_upper(), d.get("ligou_vezes", "0"),
+		str(d.get("root", "")) if str(d.get("root", "")) != "" else "-",
+		str(d.get("adb", "")) if str(d.get("adb", "")) != "" else "-", d.get("aparelho", "")]
 
 
 ## A TV já abre o jogo sozinha ao ligar?
