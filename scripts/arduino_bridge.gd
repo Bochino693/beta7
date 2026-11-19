@@ -73,6 +73,10 @@ func _ready() -> void:
 	if not Engine.has_singleton("StrikeSerial"):
 		status = "Arduino: este APK não tem o plugin USB — gere pelo GERAR_APK.bat"
 		set_process(false)
+		# sem o plugin nada da máquina funciona (Arduino, abrir ao ligar): avisa na tela
+		get_tree().create_timer(10.0, true, false, true).timeout.connect(func() -> void:
+			_mostrar_aviso("ESTE APK ESTÁ INCOMPLETO", "Ele foi gerado sem o plugin da máquina (o Gradle falhou):\no Arduino não funciona e o jogo não abre sozinho ao ligar.\n\nGere de novo pelo GERAR_APK.bat e envie o arquivo\nbuild\\android\\GERACAO-COMPLETA.log se falhar.", "", 20000, false)
+			get_tree().create_timer(20.0, true, false, true).timeout.connect(_fechar_aviso))
 		return
 	_plugin = Engine.get_singleton("StrikeSerial")
 	_abriu_em = Time.get_ticks_msec()
@@ -80,20 +84,30 @@ func _ready() -> void:
 
 ## ABRIR SOZINHO AO LIGAR A TV (a TV Box é só do jogo).
 ## Ao abrir, o plugin tenta se preparar em silêncio (root / adb da TV). Se a
-## caixa não deixar e for Android 10 ou mais novo, o jogo PEDE A PERMISSÃO
-## UMA VEZ, logo que o menu aparece: um aviso grande explica o que fazer, OK
-## abre a tela do Android ("Sobrepor a outros apps"), você deixa GOL FLASH
-## ARENA permitido e aperta VOLTAR. Aceito, nunca mais pede e o jogo abre
-## sempre que a TV Box liga. Não aceito, pede de novo na próxima abertura.
-## Android 9 ou mais antigo não precisa de permissão: nada é pedido.
+## caixa não deixar, o jogo PEDE UMA VEZ, uns 10 s depois de o menu
+## aparecer, em QUALQUER versão do Android: um aviso grande explica, OK abre
+## a tela do Android e você escolhe GOL FLASH ARENA como tela inicial
+## ("Sempre"). É o caminho que o próprio Android usa para abrir um app ao
+## ligar: nenhuma ROM bloqueia. Aceito, nunca mais pede. Não aceito, pede de
+## novo nas próximas aberturas (no máximo MAX_PEDIDOS; depois, só pela
+## Central da Máquina). No Android 10+ a segunda tentativa pede "Sobrepor a
+## outros apps" (para a caixa que não deixa trocar a tela inicial).
 const ESPERA_INICIO_MS := 9000
+const MAX_PEDIDOS := 4
 var aviso_aberto := false          # o ControleTv manda o OK para cá
 var _inicio_resolvido := false
 var _inicio_olhou := 0
 var _inicio_pediu := false
+var _inicio_modo := "tela"         # "tela" (tela inicial) ou "sobrepor"
 var _aviso: CanvasLayer
 var _aviso_ate := 0
 var _abriu_em := 0
+
+
+func _inicio_pronto(d: Dictionary) -> bool:
+	if str(d.get("tela_inicial", "")) == "jogo":
+		return true
+	return _inicio_pediu and _inicio_modo == "sobrepor" and str(d.get("sobrepor", "")) == "sim"
 
 
 func _olhar_inicio(agora: int) -> void:
@@ -110,19 +124,34 @@ func _olhar_inicio(agora: int) -> void:
 	if bool(_plugin.call("permissao_pendente")):
 		return   # uma janela do Android por vez: primeiro a do USB
 	var d := inicio_estado()
-	if str(d.get("tela_inicial", "")) == "jogo" or str(d.get("sobrepor", "")) != "nao":
+	if _inicio_pronto(d):
 		_inicio_resolvido = true
 		if _inicio_pediu:
 			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
 		return
 	if _inicio_pediu:
-		# voltou da tela do Android sem permitir: pede de novo na próxima abertura
+		# voltou da tela do Android sem escolher: pede de novo na próxima abertura
 		_inicio_resolvido = true
-		_mostrar_aviso("AINDA NÃO PERMITIDO", "Sem a permissão o jogo não abre sozinho ao ligar.\nEla será pedida de novo na próxima vez que o jogo abrir\n(ou agora: MENU > Central da Máquina > ABRIR SOZINHO AO LIGAR A TV).", "", 9000, false)
+		_mostrar_aviso("AINDA NÃO ESTÁ PRONTO", "O jogo ainda não é a tela inicial da TV Box.\nO pedido aparece de novo na próxima vez que o jogo abrir\n(ou agora: MENU > Central da Máquina > ABRIR SOZINHO AO LIGAR A TV).", "", 9000, false)
 		return
-	_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-		"Na próxima tela, deixe  GOL FLASH ARENA  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
-		"APERTE OK PARA CONTINUAR", 25000, true)
+	var cfg := ConfigFile.new()
+	cfg.load(PERMISSOES)
+	var pedidos := int(cfg.get_value("inicio", "pedidos", 0))
+	if pedidos >= MAX_PEDIDOS:
+		_inicio_resolvido = true
+		return
+	cfg.set_value("inicio", "pedidos", pedidos + 1)
+	cfg.save(PERMISSOES)
+	_pedidos = null
+	_inicio_modo = "sobrepor" if (pedidos % 2 == 1 and int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao") else "tela"
+	if _inicio_modo == "sobrepor":
+		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
+			"Na próxima tela, deixe  GOL FLASH ARENA  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
+			"APERTE OK PARA CONTINUAR", 25000, true)
+	else:
+		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
+			"Na próxima tela, escolha  GOL FLASH ARENA  como tela inicial\n(app de início) e, se aparecer, marque  SEMPRE.\n\nÉ só desta vez.",
+			"APERTE OK PARA CONTINUAR", 25000, true)
 
 
 func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede: bool) -> void:
@@ -171,7 +200,7 @@ func _fechar_aviso() -> void:
 	get_tree().paused = false
 
 
-## OK no controle (ControleTv), START ou o tempo do aviso: segue.
+## OK no controle (ControleTv) ou o tempo do aviso: abre a tela do Android.
 func confirmar_aviso() -> void:
 	if not aviso_aberto:
 		return
@@ -181,9 +210,18 @@ func confirmar_aviso() -> void:
 		return
 	_inicio_pediu = true
 	_inicio_olhou = Time.get_ticks_msec() + 4000   # dá tempo de a tela do Android abrir
-	if not bool(_plugin.call("pedir_sobrepor")):
-		# a TV Box não tem essa tela: a escolha da tela inicial ("Sempre")
-		print("ABRIR AO LIGAR: sem a tela de sobrepor; tela inicial: ", str(_plugin.call("escolher_tela_inicial")))
+	var abriu := ""
+	if _inicio_modo == "sobrepor":
+		abriu = "sobrepor" if bool(_plugin.call("pedir_sobrepor")) else ""
+		if abriu == "":
+			_inicio_modo = "tela"
+			abriu = str(_plugin.call("escolher_tela_inicial"))
+	else:
+		abriu = str(_plugin.call("escolher_tela_inicial"))
+		if abriu == "":
+			_inicio_modo = "sobrepor"
+			abriu = "sobrepor" if bool(_plugin.call("pedir_sobrepor")) else ""
+	print("ABRIR AO LIGAR: tela do Android aberta = ", abriu if abriu != "" else "nenhuma")
 
 
 ## IMAGEM LISA NA TV BOX: o jogo é desenhado em 720 linhas e a própria TV
