@@ -51,23 +51,35 @@
             android:noHistory="true"
             android:stateNotNeeded="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter>
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <!-- A TV LIGOU. directBootAware + LOCKED_BOOT_COMPLETED: o aviso chega
+             ja no comeco da inicializacao; prioridade maxima; QUICKBOOT: as
+             caixas com "inicializacao rapida"; MY_PACKAGE_REPLACED: depois
+             de instalar uma atualizacao o jogo abre sozinho. -->
         <receiver
             android:name="com.lazersport.strikeserial.StrikeLigou"
+            android:directBootAware="true"
+            android:enabled="true"
             android:exported="true">
-            <intent-filter>
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.REBOOT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
         <service
             android:name="com.lazersport.strikeserial.StrikeSempre"
+            android:directBootAware="true"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property

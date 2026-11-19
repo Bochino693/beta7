@@ -33,10 +33,10 @@ MAPEAMENTO
 - input_credit = botão 7 do joystick/encoder (L3, clique do analógico esquerdo).
 
 IDENTIDADE DO EXECUTÁVEL
-- Nome do projeto e da janela: Gol Flash Arena.
-- Nome exportado: Gol Flash Arena.exe.
-- Ícone oficial criado somente por recorte quadrado da própria capa Gol Flash Arena, sem desenho ou símbolo alternativo.
+- Nome do projeto e da janela: Olho no Lance.
+- Nome exportado: Olho no Lance.exe.
+- Ícone oficial criado somente por recorte quadrado da própria capa Olho no Lance, sem desenho ou símbolo alternativo.
 - O arquivo usa o novo caminho res://gol_flash_arena_oficial.png para impedir o reaproveitamento do ícone antigo pelo cache.
 - Tela de inicialização usa a capa oficial completa do próprio jogo.
 - O ícone padrão do Godot foi totalmente substituído.
-- Metadados do Windows identificam Gol Flash Arena e Lazer & Sport Games.
+- Metadados do Windows identificam Olho no Lance e Lazer & Sport Games.

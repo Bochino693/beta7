@@ -20,8 +20,8 @@ extends Node
 ## O firmware antigo (só LEDs) também funciona: os LEDs acendem, e os
 ## sensores continuam vindo pela placa Zero Delay.
 ##
-## PERMISSÃO USB: o Android pergunta UMA vez ("Permitir que o Gol Flash
-## Arena acesse o USB?"). Marque "Usar por padrão / Sempre" e OK: nunca mais
+## PERMISSÃO USB: o Android pergunta UMA vez ("Permitir que o Olho no
+## Lance acesse o USB?"). Marque "Usar por padrão / Sempre" e OK: nunca mais
 ## aparece, nem depois de desligar a TV.
 
 signal mudou
@@ -59,6 +59,7 @@ var _pedidos: ConfigFile
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_carimbo()
 	_imagem_da_tv()
 	for l in LETRAS:
 		contagem[l] = 0
@@ -86,14 +87,14 @@ func _ready() -> void:
 ## Ao abrir, o plugin tenta se preparar em silêncio (root / adb da TV). Se a
 ## caixa não deixar, o jogo PEDE UMA VEZ, uns 10 s depois de o menu
 ## aparecer, em QUALQUER versão do Android: um aviso grande explica, OK abre
-## a tela do Android e você escolhe GOL FLASH ARENA como tela inicial
+## a tela do Android e você escolhe OLHO NO LANCE como tela inicial
 ## ("Sempre"). É o caminho que o próprio Android usa para abrir um app ao
 ## ligar: nenhuma ROM bloqueia. Aceito, nunca mais pede. Não aceito, pede de
 ## novo nas próximas aberturas (no máximo MAX_PEDIDOS; depois, só pela
 ## Central da Máquina). No Android 10+ a segunda tentativa pede "Sobrepor a
 ## outros apps" (para a caixa que não deixa trocar a tela inicial).
 const ESPERA_INICIO_MS := 9000
-const MAX_PEDIDOS := 4
+const MAX_PEDIDOS := 6
 var aviso_aberto := false          # o ControleTv manda o OK para cá
 var _inicio_resolvido := false
 var _inicio_olhou := 0
@@ -105,9 +106,11 @@ var _abriu_em := 0
 
 
 func _inicio_pronto(d: Dictionary) -> bool:
+	# O JOGO É O PADRÃO (a tela inicial da TV Box): pronto, bola pra frente.
 	if str(d.get("tela_inicial", "")) == "jogo":
 		return true
-	return _inicio_pediu and _inicio_modo == "sobrepor" and str(d.get("sobrepor", "")) == "sim"
+	# sem ser a tela inicial: no Android 10+ vale "Sobrepor" permitido
+	return int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "sim"
 
 
 func _olhar_inicio(agora: int) -> void:
@@ -124,18 +127,30 @@ func _olhar_inicio(agora: int) -> void:
 	if bool(_plugin.call("permissao_pendente")):
 		return   # uma janela do Android por vez: primeiro a do USB
 	var d := inicio_estado()
-	if _inicio_pronto(d):
-		_inicio_resolvido = true
-		if _inicio_pediu:
-			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
-		return
-	if _inicio_pediu:
-		# voltou da tela do Android sem escolher: pede de novo na próxima abertura
-		_inicio_resolvido = true
-		_mostrar_aviso("AINDA NÃO ESTÁ PRONTO", "O jogo ainda não é a tela inicial da TV Box.\nO pedido aparece de novo na próxima vez que o jogo abrir\n(ou agora: MENU > Central da Máquina > ABRIR SOZINHO AO LIGAR A TV).", "", 9000, false)
-		return
 	var cfg := ConfigFile.new()
 	cfg.load(PERMISSOES)
+	# JÁ FICOU PRONTO UMA VEZ: nunca mais aparece aviso nenhum
+	var feito: bool = bool(cfg.get_value("inicio", "feito", false))
+	var pronto: bool = _inicio_pronto(d)
+	if _carimbo_label != null:
+		_carimbo_label.text = "%s  •  Android %s  •  abrir ao ligar: %s" % [VERSAO, d.get("android", "?"), "PRONTO" if pronto else "PENDENTE"]
+	if feito:
+		_inicio_resolvido = true
+		return
+	if pronto:
+		_inicio_resolvido = true
+		cfg.set_value("inicio", "feito", true)
+		cfg.save(PERMISSOES)
+		_pedidos = null
+		if bool(cfg.get_value("inicio", "avisou_pronto", false)):
+			return   # (já tinha confirmado numa versão anterior)
+		# a confirmação, UMA vez na vida (some sozinha em 5 s)
+		_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
+		return
+	if _inicio_pediu:
+		# voltou da tela do Android sem escolher: sem aviso; pede de novo na próxima abertura
+		_inicio_resolvido = true
+		return
 	var pedidos := int(cfg.get_value("inicio", "pedidos", 0))
 	if pedidos >= MAX_PEDIDOS:
 		_inicio_resolvido = true
@@ -143,15 +158,18 @@ func _olhar_inicio(agora: int) -> void:
 	cfg.set_value("inicio", "pedidos", pedidos + 1)
 	cfg.save(PERMISSOES)
 	_pedidos = null
-	_inicio_modo = "sobrepor" if (pedidos % 2 == 1 and int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao") else "tela"
+	# Android 10+: 1o "Sobrepor a outros apps"; nas vezes pares, a tela inicial.
+	# Android 9 ou mais antigo: sempre a tela inicial.
+	var novo: bool = int(d.get("sdk", "0")) >= 29
+	_inicio_modo = "sobrepor" if (novo and str(d.get("sobrepor", "")) == "nao" and pedidos % 2 == 0) else "tela"
 	if _inicio_modo == "sobrepor":
 		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-			"Na próxima tela, deixe  GOL FLASH ARENA  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
-			"APERTE OK PARA CONTINUAR", 25000, true)
+			"Na próxima tela, deixe  OLHO NO LANCE  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
+			"APERTE OK PARA CONTINUAR", 15000, true)
 	else:
 		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-			"Na próxima tela, escolha  GOL FLASH ARENA  como tela inicial\n(app de início) e, se aparecer, marque  SEMPRE.\n\nÉ só desta vez.",
-			"APERTE OK PARA CONTINUAR", 25000, true)
+			"Na próxima tela, escolha  OLHO NO LANCE  como tela inicial\n(app de início) e, se aparecer, marque  SEMPRE.\n\nÉ só desta vez.",
+			"APERTE OK PARA CONTINUAR", 15000, true)
 
 
 func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede: bool) -> void:
@@ -180,6 +198,14 @@ func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede
 		l.add_theme_font_size_override("font_size", int(int(item[1]) * k))
 		l.add_theme_color_override("font_color", item[2])
 		caixa.add_child(l)
+	var diag := texto_inicio()
+	if diag != "":
+		var ld := Label.new()
+		ld.text = diag
+		ld.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ld.add_theme_font_size_override("font_size", int(15 * k))
+		ld.add_theme_color_override("font_color", Color(0.55, 0.65, 0.78))
+		caixa.add_child(ld)
 	aviso_aberto = true
 	_aviso_pede = pede
 	_aviso_ate = Time.get_ticks_msec() + ms
@@ -215,13 +241,39 @@ func confirmar_aviso() -> void:
 		abriu = "sobrepor" if bool(_plugin.call("pedir_sobrepor")) else ""
 		if abriu == "":
 			_inicio_modo = "tela"
-			abriu = str(_plugin.call("escolher_tela_inicial"))
+			abriu = str(_plugin.call("pedir_tela_inicial"))
+			if abriu == "":
+				abriu = str(_plugin.call("escolher_tela_inicial"))
 	else:
-		abriu = str(_plugin.call("escolher_tela_inicial"))
-		if abriu == "":
+		abriu = str(_plugin.call("pedir_tela_inicial"))
+		if abriu == "" and int(inicio_estado().get("sdk", "0")) >= 29 and bool(_plugin.call("pedir_sobrepor")):
 			_inicio_modo = "sobrepor"
-			abriu = "sobrepor" if bool(_plugin.call("pedir_sobrepor")) else ""
+			abriu = "sobrepor"
+		if abriu == "":
+			abriu = str(_plugin.call("escolher_tela_inicial"))
 	print("ABRIR AO LIGAR: tela do Android aberta = ", abriu if abriu != "" else "nenhuma")
+
+
+## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
+## TV Box. Mude a cada APK entregue.
+const VERSAO := "TV 10"
+var _carimbo_label: Label
+
+
+func _carimbo() -> void:
+	if OS.get_name() != "Android":
+		return
+	var camada := CanvasLayer.new()
+	camada.layer = 119
+	add_child(camada)
+	_carimbo_label = Label.new()
+	_carimbo_label.text = VERSAO
+	_carimbo_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_carimbo_label.position = Vector2(8, -24)
+	_carimbo_label.add_theme_font_size_override("font_size", 13)
+	_carimbo_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
+	_carimbo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	camada.add_child(_carimbo_label)
 
 
 ## IMAGEM LISA NA TV BOX: o jogo é desenhado em 720 linhas e a própria TV
@@ -475,6 +527,19 @@ func inicio_estado() -> Dictionary:
 		if k > 0:
 			d[linha.substr(0, k)] = linha.substr(k + 1)
 	return d
+
+
+## O estado numa linha (Central da Máquina e avisos): é o que o suporte pede.
+func texto_inicio() -> String:
+	var d := inicio_estado()
+	if d.is_empty():
+		return ""
+	var tela := str(d.get("tela_inicial", "?"))
+	return "ANDROID %s (API %s)  •  TELA INICIAL: %s  •  SOBREPOR: %s  •  LIGOU: %sx  •  ROOT: %s  •  ADB: %s  •  %s" % [
+		d.get("android", "?"), d.get("sdk", "?"), "O JOGO" if tela == "jogo" else tela.to_upper(),
+		str(d.get("sobrepor", "?")).to_upper(), d.get("ligou_vezes", "0"),
+		str(d.get("root", "")) if str(d.get("root", "")) != "" else "-",
+		str(d.get("adb", "")) if str(d.get("adb", "")) != "" else "-", d.get("aparelho", "")]
 
 
 ## A TV já abre o jogo sozinha ao ligar?

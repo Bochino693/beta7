@@ -36,7 +36,7 @@ dex = b"".join(z.read(n) for n in nomes if re.fullmatch(r"classes\d*\.dex", n))
 
 m = re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'", cracha)
 confere(bool(m) and m.group(1) == "com.lazersport.golflasharena", "pacote com.lazersport.golflasharena (%s)" % (m.group(0) if m else "?"))
-confere("application-label:'Gol Flash Arena'" in cracha, "nome Gol Flash Arena")
+confere("application-label:'Olho no Lance'" in cracha, "nome Olho no Lance")
 for abi in ("arm64-v8a", "armeabi-v7a"):
     confere("lib/%s/libgodot_android.so" % abi in nomes, "motor do Godot para %s" % abi)
 confere("org.godotengine.plugin.v2.StrikeSerial" in manifesto, "plugin StrikeSerial registrado (v2)")
@@ -45,6 +45,7 @@ for classe in ("StrikeSerial", "InicioDaTv", "StrikeInicioAtivo", "StrikeLigou",
 confere("StrikeInicioAtivo" in manifesto and "android.intent.category.HOME" in manifesto.split("E: application")[-1], "tela inicial do jogo (HOME): o Android abre o jogo ao ligar")
 confere("android.permission.SYSTEM_ALERT_WINDOW" in manifesto, "permissão para abrir de fundo no Android 10+")
 confere("StrikeSempre" in manifesto and "FOREGROUND_SERVICE" in manifesto, "o guarda (serviço em primeiro plano)")
+confere("LOCKED_BOOT_COMPLETED" in manifesto and "MY_PACKAGE_REPLACED" in manifesto and "directBootAware" in manifesto, "aviso de \"ligou\" reforçado (boot direto, atualização)")
 confere("android.intent.action.BOOT_COMPLETED" in manifesto and "RECEIVE_BOOT_COMPLETED" in manifesto, "receptor de \"a TV ligou\" + permissão")
 confere("USB_DEVICE_ATTACHED" in manifesto, "filtro USB do Arduino (permissão guardada)")
 confere("android.intent.category.LEANBACK_LAUNCHER" in manifesto, "aparece na tela da Android TV (leanback)")

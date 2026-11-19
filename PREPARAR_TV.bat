@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Gol Flash Arena - Preparar a TV Box
+title Olho no Lance - Preparar a TV Box
 rem Prepara a TV Box pelo adb do PC, uma vez por TV Box: o jogo vira a tela
 rem inicial (ligou, abre o jogo). So precisa se o jogo nao conseguiu se
 rem preparar sozinho (TV Box sem root). Veja o LEIA-ME_TV_BOX.txt.

@@ -1,4 +1,4 @@
-ARDUINO DO GOL FLASH ARENA
+ARDUINO DO OLHO NO LANCE
 ==========================
 
   gol_flash_arena\gol_flash_arena.ino   o código (grave este)

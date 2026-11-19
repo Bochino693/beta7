@@ -10,12 +10,15 @@ config_version=5
 
 [application]
 
-config/name="Gol Flash Arena"
-config/description="Gol Flash Arena - jogo arcade de futebol da Lazer & Sport Games"
+config/name="Olho no Lance"
+config/description="Olho no Lance - jogo arcade de futebol da Lazer & Sport Games"
 run/main_scene="res://scenes/opening.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.003, 0.008, 0.016, 1)
 boot_splash/image="res://branding/splash_gol_flash_arena.png"
+boot_splash/fullsize=true
+boot_splash/stretch_mode=4
+boot_splash/use_filter=true
 config/icon="res://gol_flash_arena_oficial.png"
 config/quit_on_go_back=false
 

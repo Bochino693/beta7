@@ -320,12 +320,33 @@ final class InicioDaTv {
 		}
 	}
 
+	private static final String[] TELAS_DO_GOOGLE = {"com.google.android.apps.tv.launcherx",
+			"com.google.android.tungsten.setupwraith", "com.google.android.tvlauncher"};
+
 	/**
-	 * A ROM da TV NÃO é desligada: continua instalada (lista vazia para o
-	 * AdbDaTv); o jogo só passa a ser a primeira tela.
+	 * As outras telas iniciais da TV (menos o jogo, os Ajustes e as de fundo,
+	 * com prioridade negativa) e as do Google TV. SÓ são desligadas se a TV
+	 * não aceitar o jogo como tela inicial (AdbDaTv.comandoPreparar): aí é o
+	 * único jeito de ela ligar no jogo. O PREPARAR_TV.bat -DevolverTv religa.
 	 */
 	static List<String> outrasTelasIniciais(Context c) {
-		return new ArrayList<String>();
+		List<String> lista = new ArrayList<String>();
+		for (ResolveInfo r : c.getPackageManager().queryIntentActivities(home(), PackageManager.MATCH_DEFAULT_ONLY)) {
+			if (r.activityInfo == null || r.priority < 0) {
+				continue;
+			}
+			String p = r.activityInfo.packageName;
+			if (p.equals(c.getPackageName()) || p.equals("android") || p.matches("com\\.android\\.(tv\\.)?settings") || lista.contains(p)) {
+				continue;
+			}
+			lista.add(p);
+		}
+		for (String g : TELAS_DO_GOOGLE) {
+			if (!lista.contains(g)) {
+				lista.add(g);
+			}
+		}
+		return lista;
 	}
 
 	/** Os comandos do PREPARAR_TV.bat para esta TV (AdbDaTv.comandoPreparar). */
@@ -355,12 +376,12 @@ final class InicioDaTv {
 
 	/**
 	 * O "SOBREPOR A OUTROS APPS", COMO UM APP DE AUTO START PEDE: abre a tela do
-	 * Android já no Gol Flash Arena (ou a lista) com um aviso de o que fazer.
+	 * Android já no Olho no Lance (ou a lista) com um aviso de o que fazer.
 	 * Permitido uma vez, o aviso de "ligou" (StrikeLigou) abre o jogo sempre
 	 * que a TV liga - e nunca mais pede. false se a TV não tem essa tela.
 	 */
 	static boolean pedirSobrepor(final Activity a) {
-		final String aviso = "PARA O JOGO ABRIR SOZINHO AO LIGAR A TV: deixe GOL FLASH ARENA "
+		final String aviso = "PARA O JOGO ABRIR SOZINHO AO LIGAR A TV: deixe OLHO NO LANCE "
 				+ "PERMITIDO (ligado) e aperte VOLTAR. É só desta vez.";
 		boolean abriu = abrir(a, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + a.getPackageName())))
 				|| abrir(a, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));

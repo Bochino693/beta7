@@ -27,7 +27,7 @@ const CENA_LOBBY: String = "res://scenes/lobby.tscn"
 const IMAGEM_CAPA: String = "res://images/fut_cap.jpeg"
 const VIDEO_CAPA: String = "res://medias/init.ogv"
 # Na TV Box / TV Android o Godot decodifica o vídeo só pelo processador:
-# lá roda a versão leve (768x512, 1,8 Mbps), que fica lisa.
+# lá roda a versão leve (848x480, 1,8 Mbps), que fica lisa.
 const VIDEO_CAPA_TV: String = "res://medias/init_tv.ogv"
 const MUSICA_FUNDO: String = "res://songs/song_fut.mp3"
 
@@ -308,7 +308,7 @@ func _ready() -> void:
 	# ABERTURA NORMAL DO JOGO
 	# Aqui continua mostrando loading + patrocinadores.
 	# =========================================================
-	_criar_loading_opening("GOL FLASH ARENA", "ENTRANDO EM CAMPO...")
+	_criar_loading_opening("OLHO NO LANCE", "ENTRANDO EM CAMPO...")
 	_set_loading_opening(0.10, "ENTRANDO EM CAMPO...", 0.12)
 
 	await get_tree().process_frame
@@ -4537,8 +4537,9 @@ func _criar_painel_mural_ranking() -> void:
 	painel.name = "PainelMuralRanking"
 
 	# Painel maior e mais presente.
-	painel.position = Vector2(24.0, 30.0)
+	# canto de baixo, no gramado: em cima ficava por cima do logo do jogo
 	painel.size = Vector2(355.0, 188.0)
+	painel.position = Vector2(24.0, get_viewport_rect().size.y - painel.size.y - 34.0)
 
 	painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	painel.z_index = 90

@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * ARDUINO PELO USB DA TV BOX (Gol Flash Arena; o mesmo plugin do Strike Kids): os 5 sensores da pista, o botão
+ * ARDUINO PELO USB DA TV BOX (Olho no Lance; o mesmo plugin do Strike Kids): os 5 sensores da pista, o botão
  * de configuração e a trava (porta) passam pelo Arduino, ligado no USB.
  *
  * Driver próprio, sem biblioteca de fora (nada de JitPack): o APK pronto e
@@ -197,7 +197,7 @@ public class StrikeSerial extends GodotPlugin {
 	}
 
 	// ------------------------------------------------------------ permissão
-	/** A janela "Permitir que o Gol Flash Arena acesse o dispositivo USB?" está aberta? */
+	/** A janela "Permitir que o Olho no Lance acesse o dispositivo USB?" está aberta? */
 	@UsedByGodot
 	public boolean permissao_pendente() {
 		long desde = permissaoDesde;
@@ -586,6 +586,22 @@ public class StrikeSerial extends GodotPlugin {
 		try {
 			InicioDaTv.pausarGuarda(a, 3 * 60000L);
 			return InicioDaTv.escolher(a, false);
+		} catch (Throwable t) {
+			anotar("tela inicial: " + t);
+			return "";
+		}
+	}
+
+	/** Só as janelas de ESCOLHA da tela inicial (nunca páginas de ajustes soltas): "ja", "papel", "ajustes", "escolha" ou "". */
+	@UsedByGodot
+	public String pedir_tela_inicial() {
+		Activity a = getActivity();
+		if (a == null) {
+			return "";
+		}
+		try {
+			InicioDaTv.pausarGuarda(a, 3 * 60000L);
+			return InicioDaTv.escolher(a, true);
 		} catch (Throwable t) {
 			anotar("tela inicial: " + t);
 			return "";

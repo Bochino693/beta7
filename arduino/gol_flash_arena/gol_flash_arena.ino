@@ -1,5 +1,5 @@
 // ============================================================================
-//  GOL FLASH ARENA - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:1
+//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:1
 //  Lazer & Sport Games
 // ============================================================================
 //  O QUE ELE FAZ
@@ -76,6 +76,18 @@ const uint8_t PINO_SENSOR[ALVOS] = {9, 10, 11, 12, A0, A1, A2};  // A..G
 #define PINO_START A3
 #define PINO_SELECT A4
 #define PINO_FICHA A5
+
+// ------------------------------------------------------------------- TIPOS
+// (fica aqui em cima, antes de qualquer funcao: a IDE do Arduino cria os
+// prototipos das funcoes no topo do arquivo e precisa ja conhecer o tipo)
+// Entrada com filtro: "acionada" so depois de ficar um tempo firme.
+struct Entrada {
+  uint8_t pino;
+  bool nf;
+  bool firme;            // estado aceito
+  bool bruto;            // ultima leitura
+  unsigned long desde;   // quando a leitura mudou
+};
 
 // -------------------------------------------------------------------- LEDS
 // Uma fita so na memoria: todos os LEDs de um alvo tem a mesma cor, entao o
@@ -184,15 +196,6 @@ void lerUsb() {
 }
 
 // ----------------------------------------------------------------- ENTRADAS
-// Entrada com filtro: "acionada" so depois de ficar um tempo firme.
-struct Entrada {
-  uint8_t pino;
-  bool nf;
-  bool firme;            // estado aceito
-  bool bruto;            // ultima leitura
-  unsigned long desde;   // quando a leitura mudou
-};
-
 bool lerAcionada(const Entrada &e) {
   bool fechado = digitalRead(e.pino) == LOW;   // contato no GND
   return e.nf ? !fechado : fechado;

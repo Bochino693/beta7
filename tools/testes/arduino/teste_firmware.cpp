@@ -1,4 +1,4 @@
-// Simula o firmware do Gol Flash Arena no PC (testar_firmware.sh)
+// Simula o firmware do Olho no Lance no PC (testar_firmware.sh)
 #include "Arduino.h"
 unsigned long t_ms = 0;
 int pinLevel[32], pinOut[32], pinModeV[32], pinPwm[32];

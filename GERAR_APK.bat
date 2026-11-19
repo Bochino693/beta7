@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Gol Flash Arena - Gerar APK
+title Olho no Lance - Gerar APK
 rem Gera o APK da TV Box: mostra cada passo nesta janela e guarda o
 rem historico em build\android\GERACAO-COMPLETA.log. Opcoes (opcionais):
 rem   GERAR_APK.bat -Instalar       (instala na TV Box pelo adb)
@@ -24,7 +24,7 @@ echo ============================================================
 goto fim
 :sucesso
 echo ============================================================
-echo  PRONTO: APK-Pronto\GolFlashArena.apk
+echo  PRONTO: APK-Pronto\OlhoNoLance.apk
 echo ============================================================
 :fim
 echo.
