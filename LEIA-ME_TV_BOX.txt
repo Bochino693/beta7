@@ -1,10 +1,10 @@
-GOL FLASH ARENA — TV BOX / TV ANDROID, CONTROLE REMOTO E ARDUINO
+OLHO NO LANCE — TV BOX / TV ANDROID, CONTROLE REMOTO E ARDUINO
 ================================================================
 
 O QUE TEM AQUI
 - GERAR_APK.bat ............. gera o APK no Windows (2 cliques)
 - PREPARAR_TV.bat ........... deixa a TV Box abrindo o jogo ao ligar (pelo PC)
-- APK-Pronto\GolFlashArena.apk  onde o APK sai
+- APK-Pronto\OlhoNoLance.apk  onde o APK sai
 - arduino\ .................. código do Arduino + desenho da montagem
 - LEIA-ME_TV_BOX.txt ........ este arquivo
 
@@ -16,7 +16,7 @@ O jogo no PC (Windows, COM5, placa Zero Delay) continua igual a antes.
 Dois cliques em GERAR_APK.bat e espere. Ele baixa sozinho o que faltar
 (Godot 4.6.1, Java, Android SDK) numa pasta C:\GolFlashBuild.
   1ª vez: 15 a 40 minutos.   Depois: 2 a 5 minutos.
-O APK sai em APK-Pronto\GolFlashArena.apk (uns 215 MB).
+O APK sai em APK-Pronto\OlhoNoLance.apk (uns 215 MB).
 Se falhar, envie o arquivo build\android\GERACAO-COMPLETA.log.
 (Linux: bash tools/android/montar_apk.sh)
 
@@ -27,7 +27,7 @@ Android TV com o banner do jogo). Android 7.0 ou mais novo.
 2. INSTALAR NA TV
 -----------------
 Copie o APK para um pendrive, abra pelo gerenciador de arquivos da TV e
-instale (permita "fontes desconhecidas"). Abra o Gol Flash Arena.
+instale (permita "fontes desconhecidas"). Abra o Olho no Lance.
 
 DEPOIS DE INSTALAR, ABRA O JOGO UMA VEZ (botão "Abrir" no fim da
 instalação). O Android não entrega nada a um app que nunca foi aberto: essa
@@ -65,9 +65,9 @@ novo POR CIMA.
 SEM DEPURAÇÃO (caixa que não tem Opções do desenvolvedor): uns 10 segundos
 depois de o menu aparecer o jogo mostra "PARA O JOGO ABRIR SOZINHO AO
 LIGAR". Aperte OK e, na tela do Android:
-  - Android 10 ou mais novo: deixe GOL FLASH ARENA PERMITIDO em "Sobrepor a
+  - Android 10 ou mais novo: deixe OLHO NO LANCE PERMITIDO em "Sobrepor a
     outros apps" e aperte VOLTAR;
-  - Android 9 ou mais antigo: escolha GOL FLASH ARENA como tela inicial e
+  - Android 9 ou mais antigo: escolha OLHO NO LANCE como tela inicial e
     marque SEMPRE.
 Nesse modo a tela da ROM aparece alguns segundos antes do jogo.
 

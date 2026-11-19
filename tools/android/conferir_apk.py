@@ -36,7 +36,7 @@ dex = b"".join(z.read(n) for n in nomes if re.fullmatch(r"classes\d*\.dex", n))
 
 m = re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'", cracha)
 confere(bool(m) and m.group(1) == "com.lazersport.golflasharena", "pacote com.lazersport.golflasharena (%s)" % (m.group(0) if m else "?"))
-confere("application-label:'Gol Flash Arena'" in cracha, "nome Gol Flash Arena")
+confere("application-label:'Olho no Lance'" in cracha, "nome Olho no Lance")
 for abi in ("arm64-v8a", "armeabi-v7a"):
     confere("lib/%s/libgodot_android.so" % abi in nomes, "motor do Godot para %s" % abi)
 confere("org.godotengine.plugin.v2.StrikeSerial" in manifesto, "plugin StrikeSerial registrado (v2)")

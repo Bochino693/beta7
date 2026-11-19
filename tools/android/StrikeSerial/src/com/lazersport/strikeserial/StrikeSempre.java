@@ -96,14 +96,14 @@ public class StrikeSempre extends Service {
 			if (Build.VERSION.SDK_INT >= 26) {
 				NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 				if (nm != null && nm.getNotificationChannel(CANAL) == null) {
-					nm.createNotificationChannel(new NotificationChannel(CANAL, "Gol Flash Arena na tela", NotificationManager.IMPORTANCE_MIN));
+					nm.createNotificationChannel(new NotificationChannel(CANAL, "Olho no Lance na tela", NotificationManager.IMPORTANCE_MIN));
 				}
 				b = new Notification.Builder(this, CANAL);
 			} else {
 				b = new Notification.Builder(this).setPriority(Notification.PRIORITY_MIN);
 			}
 			Notification n = b.setSmallIcon(getApplicationInfo().icon)
-					.setContentTitle("Gol Flash Arena")
+					.setContentTitle("Olho no Lance")
 					.setContentText("Mantendo o jogo na tela")
 					.setOngoing(true)
 					.build();

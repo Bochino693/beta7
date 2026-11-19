@@ -69,7 +69,7 @@ func _criar_interface() -> void:
 	var header_box := HBoxContainer.new()
 	header_box.add_theme_constant_override("separation", 14)
 	header.add_child(header_box)
-	var marca := _label("GOL FLASH  /  SISTEMA", 15, Color(0.18, 0.78, 1.0))
+	var marca := _label("OLHO NO LANCE  /  SISTEMA", 15, Color(0.18, 0.78, 1.0))
 	marca.custom_minimum_size.x = 210
 	marca.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header_box.add_child(marca)
@@ -368,9 +368,9 @@ func _escolher_tela_inicial() -> void:
 	if str(d.get("tela_inicial", "")) == "jogo":
 		_mensagem("●  PRONTO: A TV ABRE O JOGO SOZINHA AO LIGAR")
 	elif int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao" and ArduinoBridge.pedir_sobrepor():
-		_mensagem("●  DEIXE GOL FLASH ARENA PERMITIDO E APERTE VOLTAR")
+		_mensagem("●  DEIXE OLHO NO LANCE PERMITIDO E APERTE VOLTAR")
 	else:
-		_mensagem("●  ESCOLHA GOL FLASH ARENA E \"SEMPRE\"")
+		_mensagem("●  ESCOLHA OLHO NO LANCE E \"SEMPRE\"")
 		ArduinoBridge.escolher_tela_inicial()
 
 

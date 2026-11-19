@@ -6,7 +6,7 @@
     # Pasta de trabalho (opcional: o padrao e C:\GolFlashBuild)
     [string]$PastaTrabalho = ""
 )
-# GOL FLASH ARENA - GERAR APK (TV BOX / TV ANDROID). Rode pelo GERAR_APK.bat.
+# OLHO NO LANCE - GERAR APK (TV BOX / TV ANDROID). Rode pelo GERAR_APK.bat.
 #
 # Faz tudo sozinho e mostra cada passo na tela:
 #  - trabalha numa COPIA do projeto numa pasta curta e sem acentos
@@ -902,7 +902,7 @@ function Escrever-ConfigEditor {
     [IO.File]::WriteAllText($arq, $texto, (New-Object Text.UTF8Encoding($false)))
 }
 
-# Chave de assinatura do Gol Flash Arena: vai JUNTO do projeto
+# Chave de assinatura do Olho no Lance: vai JUNTO do projeto
 # (tools\android\golflash.keystore), entao o APK gerado em qualquer PC
 # (e o APK pronto que veio no pacote) instala POR CIMA do anterior na TV
 # Box, sem perder os recordes. Se ela faltar, usa a chave debug do Godot.
@@ -923,7 +923,7 @@ function Garantir-Chave {
         Apagar $escolhida.Arquivo
         [void](Executar $keytool @("-genkeypair", "-keystore", $escolhida.Arquivo, "-storetype", "PKCS12", "-storepass", "golflash", "-keypass", "golflash", "-alias", "golflash", "-dname", "CN=Gol Flash Arena,O=Lazer e Sport,C=BR", "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000") -Log (Join-Path $script:Logs "keytool.log") -LimiteMin 5 -Rotulo "keytool" -Quieto)
         if (-not (Test-Path -LiteralPath $escolhida.Arquivo)) { throw "nao consegui criar a chave de assinatura (veja keytool.log)." }
-        Aviso "chave NOVA: se a TV Box ja tiver um Gol Flash Arena com outra chave, desinstale-o antes de instalar este APK."
+        Aviso "chave NOVA: se a TV Box ja tiver um Olho no Lance com outra chave, desinstale-o antes de instalar este APK."
     }
     Copy-Item -LiteralPath $escolhida.Arquivo -Destination $local -Force
     $env:GODOT_ANDROID_KEYSTORE_RELEASE_PATH = $local
@@ -967,7 +967,7 @@ function Exportar([bool]$Gradle) {
     $gradle = $Gradle
     $saida = Pasta (Join-Path $script:Trabalho "saida")
     Get-ChildItem -LiteralPath $saida -Force | Remove-Item -Recurse -Force
-    $apk = Join-Path $saida "GolFlashArena.apk"
+    $apk = Join-Path $saida "OlhoNoLance.apk"
     $nome = "exportar-sem-gradle.log"
     if ($gradle) { $nome = "exportar-gradle.log" }
     $log = Join-Path $script:Logs $nome
@@ -1004,7 +1004,7 @@ function Mostrar-Motivo([string]$Log) {
 
 function Principal {
     Write-Host "============================================================" -ForegroundColor Cyan
-    Write-Host " GOL FLASH ARENA - GERAR APK (TV BOX / TV ANDROID)" -ForegroundColor Cyan
+    Write-Host " OLHO NO LANCE - GERAR APK (TV BOX / TV ANDROID)" -ForegroundColor Cyan
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host " A 1a vez baixa o que faltar e pode levar de 15 a 40 min."
     Write-Host " Nao feche a janela. Se clicar dentro dela e o texto parar,"
@@ -1083,7 +1083,7 @@ function Principal {
     Titulo "Entregando o APK"
     $pastaApk = Pasta (Join-Path $Projeto "APK-Pronto")
     Get-ChildItem -LiteralPath $pastaApk -Force | Remove-Item -Recurse -Force
-    $final = Join-Path $pastaApk "GolFlashArena.apk"
+    $final = Join-Path $pastaApk "OlhoNoLance.apk"
     Copy-Item -LiteralPath $apk -Destination $final -Force
     $tamanho = (Get-Item -LiteralPath $final).Length
     $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $final).Hash
@@ -1113,7 +1113,7 @@ function Principal {
             [void](Executar $adb @("shell", "monkey", "-p", $Pacote, "-c", "android.intent.category.LAUNCHER", "1") -Log (Join-Path $script:Logs "adb-abrir.log") -LimiteMin 2 -Rotulo "adb" -Quieto)
             Ok "instalado e aberto na TV Box"
         } else {
-            Aviso "o adb nao instalou (TV Box conectada? depuracao ligada?). Se aparecer INSTALL_FAILED_UPDATE_INCOMPATIBLE, desinstale o Gol Flash Arena da TV Box e rode de novo."
+            Aviso "o adb nao instalou (TV Box conectada? depuracao ligada?). Se aparecer INSTALL_FAILED_UPDATE_INCOMPATIBLE, desinstale o Olho no Lance da TV Box e rode de novo."
         }
     }
 }

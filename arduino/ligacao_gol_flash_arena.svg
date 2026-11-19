@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3800 2860" width="3800" height="2860">
 <rect x="0.0" y="0.0" width="3800.0" height="2860.0" rx="0" fill="white" stroke="none" stroke-width="0"/>
-<text x="60.0" y="100.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="78" fill="#16407a" font-weight="bold" text-anchor="start">GOL FLASH ARENA · MONTAGEM DO ARDUINO</text>
+<text x="60.0" y="100.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="78" fill="#16407a" font-weight="bold" text-anchor="start">OLHO NO LANCE · MONTAGEM DO ARDUINO</text>
 <text x="62.0" y="150.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="#5d6d7e" font-weight="normal" text-anchor="start">Arduino <tspan font-weight="bold">Nano</tspan> ou <tspan font-weight="bold">Uno</tspan> visto de cima · firmware <tspan font-weight="bold">arduino/gol_flash_arena</tspan> (GOL_FLASH:1) · o mesmo cabo USB serve no <tspan font-weight="bold">PC</tspan> e na <tspan font-weight="bold">TV Box / TV Android</tspan></text>
 <rect x="2720.0" y="34.0" width="1040.0" height="124.0" rx="16" fill="white" stroke="#b0bec5" stroke-width="3"/>
 <path d="M2750.0 74.0 L2860.0 74.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
@@ -762,7 +762,7 @@
 <rect x="2840.0" y="1000.0" width="900.0" height="330.0" rx="24" fill="#0f141b" stroke="#000" stroke-width="4"/>
 <rect x="2870.0" y="1030.0" width="840.0" height="150.0" rx="14" fill="#17202b" stroke="#263545" stroke-width="3"/>
 <text x="3290.0" y="1096.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#ffd54f" font-weight="bold" text-anchor="middle">TV BOX ou TV ANDROID</text>
-<text x="3290.0" y="1146.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="white" font-weight="normal" text-anchor="middle">o jogo Gol Flash Arena (APK)   ·   no PC: a mesma porta USB (COM5)</text>
+<text x="3290.0" y="1146.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="white" font-weight="normal" text-anchor="middle">o jogo Olho no Lance (APK)   ·   no PC: a mesma porta USB (COM5)</text>
 <text x="3290.0" y="1226.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">USB: dados + alimenta o Arduino</text>
 <text x="3290.0" y="1268.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="#b0bec5" font-weight="normal" text-anchor="middle">1ª vez: na janela do Android marque “Usar por padrão” e OK</text>
 <text x="3290.0" y="1302.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#78909c" font-weight="normal" text-anchor="middle">HDMI na TV · controle remoto opera o jogo</text>

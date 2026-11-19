@@ -1,4 +1,4 @@
-"""Desenha a MONTAGEM DO ARDUINO do Gol Flash Arena (fundo branco), com os
+"""Desenha a MONTAGEM DO ARDUINO do Olho no Lance (fundo branco), com os
 mesmos pinos do firmware arduino/gol_flash_arena/gol_flash_arena.ino:
   7 fitas/aneis de LED dos alvos (D2..D8), 7 sensores (D9..D12, A0..A2),
   START (A3), SELECT (A4), moedeiro (A5), fonte 5 V dos LEDs e a TV Box.
@@ -162,7 +162,7 @@ def nano():
 # ================================================================== cabecalho
 def cabecalho():
     rect(0, 0, W, H, "white")
-    texto(60, 100, "GOL FLASH ARENA · MONTAGEM DO ARDUINO", 78, "#16407a", "bold")
+    texto(60, 100, "OLHO NO LANCE · MONTAGEM DO ARDUINO", 78, "#16407a", "bold")
     texto(62, 150, "Arduino **Nano** ou **Uno** visto de cima · firmware **arduino/gol_flash_arena** (GOL_FLASH:1) · o mesmo cabo USB serve no **PC** e na **TV Box / TV Android**", 27, CINZA)
     # legenda
     rect(2720, 34, 1040, 124, "white", "#b0bec5", 3, rx=16)
@@ -387,7 +387,7 @@ def tv_box():
     rect(x, y, w, h, "#0f141b", "#000", 4, rx=24)
     rect(x + 30, y + 30, w - 60, 150, "#17202b", "#263545", 3, rx=14)
     texto(x + w / 2, y + 96, "TV BOX ou TV ANDROID", 44, "#ffd54f", "bold", "middle")
-    texto(x + w / 2, y + 146, "o jogo Gol Flash Arena (APK)   ·   no PC: a mesma porta USB (COM5)", 23, "white", "normal", "middle")
+    texto(x + w / 2, y + 146, "o jogo Olho no Lance (APK)   ·   no PC: a mesma porta USB (COM5)", 23, "white", "normal", "middle")
     texto(x + w / 2, y + 226, "USB: dados + alimenta o Arduino", 28, "white", "bold", "middle")
     texto(x + w / 2, y + 268, "1ª vez: na janela do Android marque “Usar por padrão” e OK", 23, "#b0bec5", "normal", "middle")
     texto(x + w / 2, y + 302, "HDMI na TV · controle remoto opera o jogo", 21, "#78909c", "normal", "middle")

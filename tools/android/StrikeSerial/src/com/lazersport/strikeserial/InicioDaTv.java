@@ -376,12 +376,12 @@ final class InicioDaTv {
 
 	/**
 	 * O "SOBREPOR A OUTROS APPS", COMO UM APP DE AUTO START PEDE: abre a tela do
-	 * Android já no Gol Flash Arena (ou a lista) com um aviso de o que fazer.
+	 * Android já no Olho no Lance (ou a lista) com um aviso de o que fazer.
 	 * Permitido uma vez, o aviso de "ligou" (StrikeLigou) abre o jogo sempre
 	 * que a TV liga - e nunca mais pede. false se a TV não tem essa tela.
 	 */
 	static boolean pedirSobrepor(final Activity a) {
-		final String aviso = "PARA O JOGO ABRIR SOZINHO AO LIGAR A TV: deixe GOL FLASH ARENA "
+		final String aviso = "PARA O JOGO ABRIR SOZINHO AO LIGAR A TV: deixe OLHO NO LANCE "
 				+ "PERMITIDO (ligado) e aperte VOLTAR. É só desta vez.";
 		boolean abriu = abrir(a, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + a.getPackageName())))
 				|| abrir(a, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));

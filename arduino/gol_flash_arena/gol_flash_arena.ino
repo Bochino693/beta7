@@ -1,5 +1,5 @@
 // ============================================================================
-//  GOL FLASH ARENA - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:1
+//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:1
 //  Lazer & Sport Games
 // ============================================================================
 //  O QUE ELE FAZ

@@ -17,7 +17,7 @@ set -e
 FERRAMENTAS=${FERRAMENTAS:-$HOME/golflash_ferramentas}
 AQUI=$(cd "$(dirname "$0")" && pwd)
 P=$(cd "$AQUI/../.." && pwd)
-SAIDA=$(realpath -m "${1:-$P/build/android/GolFlashArena.apk}")
+SAIDA=$(realpath -m "${1:-$P/build/android/OlhoNoLance.apk}")
 GODOT4=${GODOT4:-$FERRAMENTAS/Godot_v4.6.1-stable_linux.x86_64}
 MODELOS=${MODELOS:-$FERRAMENTAS/modelos}
 ANDROID_HOME=${ANDROID_HOME:-$FERRAMENTAS/sdk}
@@ -85,14 +85,14 @@ export GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$CHAVE
 export GODOT_ANDROID_KEYSTORE_RELEASE_USER=golflash
 export GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=golflash
 export GRADLE_USER_HOME=${GRADLE_USER_HOME:-$TRAB/gradle}
-rm -f "$TRAB/saida/GolFlashArena.apk"
+rm -f "$TRAB/saida/OlhoNoLance.apk"
 XDG_CONFIG_HOME=$CASA/config XDG_DATA_HOME=$CASA/data XDG_CACHE_HOME=$CASA/cache \
-  "$GODOT4" --headless --path "$TRAB/projeto" --export-release "Android TV Box" "$TRAB/saida/GolFlashArena.apk" \
+  "$GODOT4" --headless --path "$TRAB/projeto" --export-release "Android TV Box" "$TRAB/saida/OlhoNoLance.apk" \
   > "$TRAB/exportar.log" 2>&1 || true
 grep -E "ERROR|BUILD|FAILED|error:|What went wrong" -A3 "$TRAB/exportar.log" | grep -v "^--$" | head -40 || true
-[ -s "$TRAB/saida/GolFlashArena.apk" ] || { echo "o APK não saiu: veja $TRAB/exportar.log" >&2; exit 1; }
+[ -s "$TRAB/saida/OlhoNoLance.apk" ] || { echo "o APK não saiu: veja $TRAB/exportar.log" >&2; exit 1; }
 
 echo "== 4. conferir"
-python3 -I "$AQUI/conferir_apk.py" "$TRAB/saida/GolFlashArena.apk" "$ANDROID_HOME/build-tools/35.0.1"
-cp "$TRAB/saida/GolFlashArena.apk" "$SAIDA"
+python3 -I "$AQUI/conferir_apk.py" "$TRAB/saida/OlhoNoLance.apk" "$ANDROID_HOME/build-tools/35.0.1"
+cp "$TRAB/saida/OlhoNoLance.apk" "$SAIDA"
 ls -la "$SAIDA"

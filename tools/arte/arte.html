@@ -1,0 +1,140 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: "Bungee"; src: url("../../fonts/Bungee-Regular.ttf"); }
+html, body { margin: 0; background: #000; overflow: hidden; }
+#palco { position: absolute; left: 0; top: 0; width: 1536px; height: 864px; transform-origin: 0 0; overflow: hidden; background: #02060c; }
+#fundo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: url("../../images/loading.png") center/cover no-repeat; transform-origin: 50% 62%; }
+#escuro { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,4,10,.62) 0%, rgba(0,4,10,.30) 46%, rgba(0,0,0,0) 62%); }
+#clarao { position: absolute; inset: 0; background: radial-gradient(ellipse at 38% 34%, rgba(255,255,220,.95), rgba(255,220,80,.35) 34%, rgba(0,0,0,0) 62%); mix-blend-mode: screen; opacity: 0; }
+#preto { position: absolute; inset: 0; background: #000; opacity: 0; }
+canvas { position: absolute; left: 0; top: 0; }
+#logo { position: absolute; left: 86px; top: 50px; width: 980px; height: 520px; transform: rotate(-6deg) scale(.84); transform-origin: 30% 60%; }
+.riscos { position: absolute; left: -90px; top: 120px; width: 1120px; height: 300px; transform: skewX(-24deg);
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 16px, rgba(255,214,40,.8) 16px 22px, rgba(0,0,0,0) 21px 44px, rgba(70,220,70,.75) 44px 51px, rgba(0,0,0,0) 50px 70px);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0), #000 22%, #000 60%, rgba(0,0,0,0));
+  filter: blur(1.2px); }
+.palavra { position: absolute; font-family: "Bungee", sans-serif; white-space: nowrap; transform-origin: 0 100%; line-height: 1; letter-spacing: -2px; }
+.inclina { display: inline-block; transform: skewX(-12deg); }
+.branca { color: #fff; -webkit-text-stroke: 14px #06101c; paint-order: stroke fill; text-shadow: 0 10px 0 #06101c, 0 18px 26px rgba(0,0,0,.75); }
+#olho { left: 26px; top: 22px; font-size: 172px; }
+#no { font-size: .56em; margin-left: .22em; display: inline-block; }
+#lance { left: 6px; top: 186px; font-size: 236px; }
+#lance .inclina { background: linear-gradient(180deg, #fff26a 0%, #ffd21a 34%, #8be21c 62%, #1fa524 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+#lanceSombra { left: 6px; top: 186px; font-size: 236px; color: #06101c; -webkit-text-stroke: 16px #06101c; text-shadow: 0 12px 0 #06101c, 0 22px 30px rgba(0,0,0,.8); }
+#brilho { position: absolute; left: 0; top: 150px; width: 1000px; height: 300px; overflow: hidden; -webkit-mask-image: linear-gradient(#000,#000); pointer-events: none; mix-blend-mode: screen; }
+#brilho div { position: absolute; top: -40px; width: 120px; height: 380px; transform: skewX(-24deg); background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0)); }
+#frase { position: absolute; left: 46px; top: 442px; font-family: "Bungee", sans-serif; font-size: 46px; color: #fff; white-space: nowrap; -webkit-text-stroke: 8px #06101c; paint-order: stroke fill; text-shadow: 0 6px 12px rgba(0,0,0,.8); }
+#frase b { color: #ffd21a; font-weight: normal; }
+#estrela { position: absolute; left: 318px; top: -92px; width: 130px; height: 130px; }
+#ls { position: absolute; right: 64px; top: 34px; width: 330px; filter: drop-shadow(0 10px 18px rgba(0,0,0,.7)); }
+</style></head>
+<body>
+<div id="palco">
+  <div id="fundo"></div>
+  <div id="escuro"></div>
+  <canvas id="faiscas" width="1536" height="864"></canvas>
+  <div id="logo">
+    <div class="riscos" id="riscos"></div>
+    <svg id="estrela" viewBox="-60 -60 120 120"><polygon id="estrelaP" fill="#ffc81e" stroke="#7a4e00" stroke-width="5" stroke-linejoin="round"/></svg>
+    <div class="palavra branca" id="olho"><span class="inclina">OLHO<span id="no">NO</span></span></div>
+    <div class="palavra" id="lanceSombra"><span class="inclina">LANCE</span></div>
+    <div class="palavra" id="lance"><span class="inclina">LANCE</span></div>
+    <div id="brilho"><div id="feixe"></div></div>
+    <div id="frase">ACERTE, <b>MARQUE</b> E SEJA O CRAQUE!</div>
+  </div>
+  <img id="ls" src="lazer_sport_estrelas.png">
+  <div id="clarao"></div>
+  <div id="preto"></div>
+</div>
+<script>
+function estrela(el, R) {
+  let p = [];
+  for (let k = 0; k < 10; k++) { const r = k % 2 ? R * 0.42 : R; p.push((r * Math.sin(Math.PI * k / 5)).toFixed(2) + "," + (-r * Math.cos(Math.PI * k / 5)).toFixed(2)); }
+  el.setAttribute("points", p.join(" "));
+}
+estrela(document.getElementById("estrelaP"), 50);
+
+// ------------------------------------------------------------ tempo -> quadro
+const lim = (x, a, b) => Math.max(a, Math.min(b, x));
+const prog = (t, a, b) => lim((t - a) / (b - a), 0, 1);
+const sai = x => 1 - Math.pow(1 - x, 3);                      // desacelera
+const volta = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };  // passa e volta
+function rnd(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+// t em segundos (0..10); t >= 100 = a arte parada (capa, icone, banner)
+function quadro(t) {
+  const parada = t >= 100;
+  const T = parada ? 6.0 : t;
+  const q = id => document.getElementById(id);
+  q("fundo").style.transform = "scale(" + (1.0 + (parada ? 0.03 : 0.06 * T / 10)) + ")";
+  q("preto").style.opacity = parada ? 0 : 1 - prog(T, 0, 0.7);
+  // OLHO NO: entra da esquerda
+  let a = parada ? 1 : sai(prog(T, 0.5, 1.25));
+  for (const id of ["olho"]) {
+    const atraso = 0;
+    const b = parada ? 1 : sai(prog(T, 0.5 + atraso, 1.25 + atraso));
+    q(id).style.transform = "translateX(" + ((1 - b) * -900) + "px)";
+    q(id).style.opacity = b;
+    q(id).style.filter = b < 1 ? "blur(" + ((1 - b) * 10) + "px)" : "none";
+  }
+  // LANCE: bate na tela
+  const l = parada ? 1 : prog(T, 1.35, 1.95);
+  const esc = parada ? 1 : (l <= 0 ? 0 : 2.6 - 1.6 * volta(l));
+  for (const id of ["lance", "lanceSombra"]) { q(id).style.transform = "scale(" + Math.max(esc, 0.001) + ")"; q(id).style.opacity = l > 0 ? 1 : 0; q(id).style.transformOrigin = "40% 60%"; }
+  q("riscos").style.opacity = parada ? 0.85 : prog(T, 1.7, 2.3) * 0.85;
+  q("clarao").style.opacity = parada ? 0 : (T < 1.85 ? 0 : Math.max(0, 1 - (T - 1.85) / 0.55));
+  // frase: aparece da esquerda para a direita
+  const f = parada ? 1 : prog(T, 2.15, 2.9);
+  q("frase").style.clipPath = "inset(-20px " + ((1 - f) * 100) + "% -20px -20px)";
+  // estrela dourada: pula e gira
+  const e = parada ? 1 : prog(T, 2.5, 3.1);
+  q("estrela").style.transform = "scale(" + (e <= 0 ? 0 : volta(e)) + ") rotate(" + ((1 - e) * -220) + "deg)";
+  // Lazer & Sport
+  const g = parada ? 1 : prog(T, 2.7, 3.4);
+  q("ls").style.opacity = g;
+  q("ls").style.transform = "translateY(" + ((1 - sai(g)) * -50) + "px) scale(" + (0.9 + 0.1 * sai(g)) + ")";
+  // feixe de luz passando pelo LANCE (a cada 3,2 s)
+  const ciclo = parada ? 2 : ((T - 3.4) % 3.2);
+  q("feixe").style.left = (T < 3.4 && !parada ? -300 : -200 + ciclo / 0.9 * 1300) + "px";
+  q("feixe").style.opacity = parada ? 0 : 1;
+  // faiscas subindo do gramado
+  const c = q("faiscas").getContext("2d");
+  c.clearRect(0, 0, 1536, 864);
+  c.globalCompositeOperation = "lighter";
+  const n = 70;
+  for (let i = 0; i < n; i++) {
+    const vida = 2.2 + rnd(i) * 2.6, nasce = rnd(i + 99) * 10;
+    let k = ((T - nasce) % vida + vida) % vida / vida;
+    if (!parada && T < 1.9) continue;
+    const x = 380 + rnd(i + 7) * 780 + Math.sin(k * 6 + i) * 26, y = 770 - k * (230 + rnd(i + 3) * 380);
+    const r = (1.5 + rnd(i + 5) * 3.5) * (1 - k * 0.6), al = Math.sin(k * Math.PI) * 0.9;
+    const cor = rnd(i + 11) < 0.6 ? "255,205,60" : "140,255,90";
+    const gr = c.createRadialGradient(x, y, 0, x, y, r * 4);
+    gr.addColorStop(0, "rgba(" + cor + "," + al + ")"); gr.addColorStop(1, "rgba(" + cor + ",0)");
+    c.fillStyle = gr; c.beginPath(); c.arc(x, y, r * 4, 0, 6.3); c.fill();
+  }
+}
+
+// ------------------------------------------------------------ formatos
+// ?modo=capa|video|icone|banner  (o tamanho da janela decide a escala)
+const modo = new URLSearchParams(location.search).get("modo") || "capa";
+function ajustar() {
+  const palco = document.getElementById("palco"), W = innerWidth, H = innerHeight;
+  if (modo === "icone" || modo === "banner") {
+    // so o logo, grande, sobre o gramado
+    document.getElementById("ls").style.display = "none";
+    document.getElementById("frase").style.display = modo === "icone" ? "none" : "block";
+    const L = document.getElementById("logo");
+    if (modo === "icone") { palco.style.width = "1024px"; palco.style.height = "1024px"; L.style.left = "20px"; L.style.top = "240px"; L.style.transform = "rotate(-6deg) scale(0.96)"; }
+    else { L.style.left = "270px"; L.style.top = "130px"; L.style.transform = "rotate(-6deg) scale(1.0)"; }
+    document.getElementById("escuro").style.background = "rgba(0,4,10,.38)";
+  }
+  const pw = parseFloat(palco.style.width || 1536), ph = parseFloat(palco.style.height || 864);
+  palco.style.transform = "scale(" + (W / pw) + "," + (H / ph) + ")";
+}
+ajustar();
+window.quadro = quadro;
+document.fonts.ready.then(() => { quadro(100); window.pronto = true; });
+</script>
+</body></html>

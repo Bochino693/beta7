@@ -4,7 +4,7 @@
     # Desfaz: a tela inicial volta a ser a da TV (o jogo continua instalado)
     [switch]$DevolverTv
 )
-# GOL FLASH ARENA - PREPARAR A TV BOX PELO PC (adb), UMA VEZ POR TV BOX.
+# OLHO NO LANCE - PREPARAR A TV BOX PELO PC (adb), UMA VEZ POR TV BOX.
 # Rode pelo PREPARAR_TV.bat. Para a TV Box que nao deixou o jogo se preparar
 # sozinho (sem root). Faz, sem nada aparecer na TV (so "Permitir depuracao?"
 # na 1a conexao):
@@ -39,7 +39,7 @@ function Adb([string[]]$Argumentos) {
 $script:AdbExe = Achar-Adb
 $script:Alvo = @()
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host " GOL FLASH ARENA - PREPARAR A TV BOX (adb)" -ForegroundColor Cyan
+Write-Host " OLHO NO LANCE - PREPARAR A TV BOX (adb)" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 if (-not $Ip) { $Ip = Read-Host "IP da TV Box (ex.: 192.168.0.50) ou ENTER se ela esta no cabo USB" }
 if ($Ip -and $Ip -ne "usb") {
@@ -64,14 +64,14 @@ if ($DevolverTv) {
     exit 0
 }
 
-$apk = Join-Path $Projeto "APK-Pronto\GolFlashArena.apk"
+$apk = Join-Path $Projeto "APK-Pronto\OlhoNoLance.apk"
 if (Test-Path -LiteralPath $apk) {
     Write-Host "Instalando o APK (uns minutos; se a TV perguntar, escolha 'Instalar')..."
     $r = Adb @("install", "-r", $apk)
     Write-Host "  $r"
-    if ($r -notmatch "Success") { throw "a TV Box nao instalou o APK. Se aparecer INSTALL_FAILED_UPDATE_INCOMPATIBLE, desinstale o Gol Flash Arena dela e rode de novo." }
+    if ($r -notmatch "Success") { throw "a TV Box nao instalou o APK. Se aparecer INSTALL_FAILED_UPDATE_INCOMPATIBLE, desinstale o Olho no Lance dela e rode de novo." }
 } elseif ((Adb @("shell", "pm", "list", "packages", $Pacote)) -notmatch $Pacote) {
-    throw "o jogo nao esta na TV Box e nao achei APK-Pronto\GolFlashArena.apk. Rode o GERAR_APK.bat antes (ou instale o APK pelo pendrive)."
+    throw "o jogo nao esta na TV Box e nao achei APK-Pronto\OlhoNoLance.apk. Rode o GERAR_APK.bat antes (ou instale o APK pelo pendrive)."
 }
 
 Write-Host "Preparando: o jogo como tela inicial, abrir de fundo e TV sempre ligada..."

@@ -20,8 +20,8 @@ extends Node
 ## O firmware antigo (só LEDs) também funciona: os LEDs acendem, e os
 ## sensores continuam vindo pela placa Zero Delay.
 ##
-## PERMISSÃO USB: o Android pergunta UMA vez ("Permitir que o Gol Flash
-## Arena acesse o USB?"). Marque "Usar por padrão / Sempre" e OK: nunca mais
+## PERMISSÃO USB: o Android pergunta UMA vez ("Permitir que o Olho no
+## Lance acesse o USB?"). Marque "Usar por padrão / Sempre" e OK: nunca mais
 ## aparece, nem depois de desligar a TV.
 
 signal mudou
@@ -87,14 +87,14 @@ func _ready() -> void:
 ## Ao abrir, o plugin tenta se preparar em silêncio (root / adb da TV). Se a
 ## caixa não deixar, o jogo PEDE UMA VEZ, uns 10 s depois de o menu
 ## aparecer, em QUALQUER versão do Android: um aviso grande explica, OK abre
-## a tela do Android e você escolhe GOL FLASH ARENA como tela inicial
+## a tela do Android e você escolhe OLHO NO LANCE como tela inicial
 ## ("Sempre"). É o caminho que o próprio Android usa para abrir um app ao
 ## ligar: nenhuma ROM bloqueia. Aceito, nunca mais pede. Não aceito, pede de
 ## novo nas próximas aberturas (no máximo MAX_PEDIDOS; depois, só pela
 ## Central da Máquina). No Android 10+ a segunda tentativa pede "Sobrepor a
 ## outros apps" (para a caixa que não deixa trocar a tela inicial).
 const ESPERA_INICIO_MS := 9000
-const MAX_PEDIDOS := 4
+const MAX_PEDIDOS := 6
 var aviso_aberto := false          # o ControleTv manda o OK para cá
 var _inicio_resolvido := false
 var _inicio_olhou := 0
@@ -106,14 +106,11 @@ var _abriu_em := 0
 
 
 func _inicio_pronto(d: Dictionary) -> bool:
-	# preparada pelo root / adb (o jogo é a única tela inicial): pronto
-	if str(d.get("root", "")) == "pronta" or str(d.get("adb", "")) == "pronta":
-		return str(d.get("tela_inicial", "")) == "jogo"
-	# Android 10+: só vale com "Sobrepor" permitido (sem ele o Android barra o
-	# jogo de abrir sozinho, mesmo marcado como tela inicial em algumas caixas)
-	if int(d.get("sdk", "0")) >= 29:
-		return str(d.get("sobrepor", "")) == "sim"
-	return str(d.get("tela_inicial", "")) == "jogo"
+	# O JOGO É O PADRÃO (a tela inicial da TV Box): pronto, bola pra frente.
+	if str(d.get("tela_inicial", "")) == "jogo":
+		return true
+	# sem ser a tela inicial: no Android 10+ vale "Sobrepor" permitido
+	return int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "sim"
 
 
 func _olhar_inicio(agora: int) -> void:
@@ -130,25 +127,30 @@ func _olhar_inicio(agora: int) -> void:
 	if bool(_plugin.call("permissao_pendente")):
 		return   # uma janela do Android por vez: primeiro a do USB
 	var d := inicio_estado()
-	if _carimbo_label != null:
-		_carimbo_label.text = "%s  •  Android %s  •  abrir ao ligar: %s" % [VERSAO, d.get("android", "?"), "PRONTO" if _inicio_pronto(d) else "PENDENTE"]
-	if _inicio_pronto(d):
-		_inicio_resolvido = true
-		var cfg0 := ConfigFile.new()
-		cfg0.load(PERMISSOES)
-		if _inicio_pediu or not bool(cfg0.get_value("inicio", "avisou_pronto", false)):
-			cfg0.set_value("inicio", "avisou_pronto", true)
-			cfg0.save(PERMISSOES)
-			_pedidos = null
-			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 6000, false)
-		return
-	if _inicio_pediu:
-		# voltou da tela do Android sem escolher: pede de novo na próxima abertura
-		_inicio_resolvido = true
-		_mostrar_aviso("AINDA NÃO ESTÁ PRONTO", "O jogo ainda não é a tela inicial da TV Box.\nO pedido aparece de novo na próxima vez que o jogo abrir\n(ou agora: MENU > Central da Máquina > ABRIR SOZINHO AO LIGAR A TV).", "", 9000, false)
-		return
 	var cfg := ConfigFile.new()
 	cfg.load(PERMISSOES)
+	# JÁ FICOU PRONTO UMA VEZ: nunca mais aparece aviso nenhum
+	var feito: bool = bool(cfg.get_value("inicio", "feito", false))
+	var pronto: bool = _inicio_pronto(d)
+	if _carimbo_label != null:
+		_carimbo_label.text = "%s  •  Android %s  •  abrir ao ligar: %s" % [VERSAO, d.get("android", "?"), "PRONTO" if pronto else "PENDENTE"]
+	if feito:
+		_inicio_resolvido = true
+		return
+	if pronto:
+		_inicio_resolvido = true
+		cfg.set_value("inicio", "feito", true)
+		cfg.save(PERMISSOES)
+		_pedidos = null
+		if bool(cfg.get_value("inicio", "avisou_pronto", false)):
+			return   # (já tinha confirmado numa versão anterior)
+		# a confirmação, UMA vez na vida (some sozinha em 5 s)
+		_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
+		return
+	if _inicio_pediu:
+		# voltou da tela do Android sem escolher: sem aviso; pede de novo na próxima abertura
+		_inicio_resolvido = true
+		return
 	var pedidos := int(cfg.get_value("inicio", "pedidos", 0))
 	if pedidos >= MAX_PEDIDOS:
 		_inicio_resolvido = true
@@ -156,19 +158,18 @@ func _olhar_inicio(agora: int) -> void:
 	cfg.set_value("inicio", "pedidos", pedidos + 1)
 	cfg.save(PERMISSOES)
 	_pedidos = null
-	# Android 10+: 1o "Sobrepor a outros apps" (essas caixas quase nunca deixam
-	# trocar a tela inicial pelo menu); nas vezes pares, a tela inicial.
+	# Android 10+: 1o "Sobrepor a outros apps"; nas vezes pares, a tela inicial.
 	# Android 9 ou mais antigo: sempre a tela inicial.
 	var novo: bool = int(d.get("sdk", "0")) >= 29
 	_inicio_modo = "sobrepor" if (novo and str(d.get("sobrepor", "")) == "nao" and pedidos % 2 == 0) else "tela"
 	if _inicio_modo == "sobrepor":
 		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-			"Na próxima tela, deixe  GOL FLASH ARENA  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
-			"APERTE OK PARA CONTINUAR", 25000, true)
+			"Na próxima tela, deixe  OLHO NO LANCE  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
+			"APERTE OK PARA CONTINUAR", 15000, true)
 	else:
 		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-			"Na próxima tela, escolha  GOL FLASH ARENA  como tela inicial\n(app de início) e, se aparecer, marque  SEMPRE.\n\nÉ só desta vez.",
-			"APERTE OK PARA CONTINUAR", 25000, true)
+			"Na próxima tela, escolha  OLHO NO LANCE  como tela inicial\n(app de início) e, se aparecer, marque  SEMPRE.\n\nÉ só desta vez.",
+			"APERTE OK PARA CONTINUAR", 15000, true)
 
 
 func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede: bool) -> void:
@@ -255,7 +256,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 9"
+const VERSAO := "TV 10"
 var _carimbo_label: Label
 
 
