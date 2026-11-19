@@ -6,11 +6,17 @@
 
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
-    <!-- a TV ligou na tomada: abre o jogo (StrikeLigou) -->
+    <!-- a TV ligou: abre o jogo (StrikeLigou) -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <!-- Android 10+: abrir o jogo sozinho depois que a TV liga -->
+    <!-- Android 10+: abrir o jogo "de fundo" (ao ligar e pelo guarda) -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- o adb da propria TV (127.0.0.1): o jogo se prepara sozinho -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- acender a tela ao ligar -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- o guarda (StrikeSempre): servico em primeiro plano -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!-- Android 11+: enxergar a tela inicial da TV, para sair do jogo (InicioDaTv) -->
     <queries>
@@ -35,8 +41,22 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/strike_usb_arduino" />
         </activity>
-        <!-- a TV ligou: a tela da ROM abre e o jogo entra por cima (StrikeLigou).
-             O jogo NAO e uma tela inicial (HOME): nao disputa com a ROM. -->
+        <!-- O JOGO ABRE SOZINHO AO LIGAR (o metodo do Dragon Bowling / Strike
+             Kids): a tela inicial invisivel que traz o jogo, o aviso de
+             "ligou" e o guarda que mantem o jogo na tela -->
+        <activity
+            android:name="com.lazersport.strikeserial.StrikeInicioAtivo"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:stateNotNeeded="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <receiver
             android:name="com.lazersport.strikeserial.StrikeLigou"
             android:exported="true">
@@ -46,6 +66,14 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
+        <service
+            android:name="com.lazersport.strikeserial.StrikeSempre"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="quiosque: mantem o jogo da maquina de arcade na tela da TV" />
+        </service>
         <meta-data
             android:name="org.godotengine.plugin.v2.StrikeSerial"
             android:value="com.lazersport.strikeserial.StrikeSerial" />

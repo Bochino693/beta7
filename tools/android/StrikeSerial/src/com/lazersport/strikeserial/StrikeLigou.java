@@ -8,48 +8,55 @@ import android.os.Looper;
 import android.util.Log;
 
 /**
- * A TV LIGOU: a tela da ROM abre primeiro e, alguns segundos depois, o jogo
- * entra por cima dela. Duas tentativas (a ROM de algumas TV Box demora e
- * volta para a frente): se o jogo já está na frente, a segunda não faz nada.
+ * A TV LIGOU (na tomada): abre o jogo, como um app de "auto start" (Launch
+ * on Boot) faz - sem precisar de outro app (a StrikeLigou do Strike Kids).
+ * Como o auto start: acende a tela (se o Android ligou com ela apagada),
+ * abre o jogo na hora e de novo aos REABRIR_MS (a tela inicial da TV ou a
+ * entrada de TV às vezes aparecem por cima logo depois de ligar; com o jogo
+ * já na frente, abrir de novo não faz nada).
+ * No Android 10+ o sistema só deixa abrir daqui com "Sobrepor a outros apps"
+ * permitido - o mesmo que o auto start pede: o jogo pede na 1a vez
+ * (InicioDaTv.pedirSobrepor), ou o PREPARAR_TV.bat / o adb da própria TV
+ * permitem. Com o jogo escolhido como tela inicial (StrikeInicioAtivo), o
+ * Android já o abre sozinho e isto é a segunda garantia.
  * QUICKBOOT_POWERON: o "ligou" das TVs e TV Boxes com inicialização rápida.
- * No Android 10+ o sistema só deixa abrir daqui com a permissão "aparecer
- * sobre outros apps" (InicioDaTv.podeAbrirSozinho) - sem ela vale o caminho
- * do Arduino no USB (StrikeArduinoAtivo).
  */
 public class StrikeLigou extends BroadcastReceiver {
-	private static final long PRIMEIRA_MS = 4000;
-	private static final long SEGUNDA_MS = 9000;
+
+	private static final long[] REABRIR_MS = {5000, 15000};
 
 	@Override
-	public void onReceive(Context contexto, Intent i) {
-		final Context c = contexto.getApplicationContext();
-		final PendingResult pendente = goAsync();   // segura o processo até abrir
-		Log.i("StrikeSerial", "inicio: a TV ligou (" + i.getAction() + "): o jogo abre em " + PRIMEIRA_MS / 1000 + " s"
-				+ (InicioDaTv.podeAbrirSozinho(c) ? "" : " (sem a permissao de abrir sozinho)"));
-		Handler h = new Handler(Looper.getMainLooper());
-		h.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				tentar(c);
-			}
-		}, PRIMEIRA_MS);
-		h.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				tentar(c);
-				try {
-					pendente.finish();
-				} catch (Throwable ignored) {
-				}
-			}
-		}, SEGUNDA_MS);
-	}
-
-	private static void tentar(Context c) {
+	public void onReceive(Context c, Intent i) {
+		final Context app = c.getApplicationContext();
 		try {
-			InicioDaTv.abrirJogo(c);
+			Log.i("StrikeSerial", "inicio: a TV ligou (" + i.getAction() + "): abrindo o jogo"
+					+ (InicioDaTv.podeAbrirDeFundo(app) ? "" : " (Android 10+ sem 'Sobrepor a outros apps': pode ser barrado)"));
+			InicioDaTv.anotarLigou(app, i.getAction());
+			InicioDaTv.acenderTela(app);
+			InicioDaTv.abrirJogo(app);
+			// o guarda: dali em diante, a TV ligada pelo controle também abre o jogo
+			StrikeSempre.comecar(app);
 		} catch (Throwable t) {
 			Log.i("StrikeSerial", "inicio: ligou: " + t);
+		}
+		// o aviso de "ligou" pode esperar (até 60 s): reabre como o auto start
+		final PendingResult fim = goAsync();
+		Handler h = new Handler(Looper.getMainLooper());
+		for (int n = 0; n < REABRIR_MS.length; n++) {
+			final boolean ultimo = n == REABRIR_MS.length - 1;
+			h.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						InicioDaTv.abrirJogo(app);
+					} catch (Throwable t) {
+						Log.i("StrikeSerial", "inicio: reabrir: " + t);
+					}
+					if (ultimo) {
+						fim.finish();
+					}
+				}
+			}, REABRIR_MS[n]);
 		}
 	}
 }

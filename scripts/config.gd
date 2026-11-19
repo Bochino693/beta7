@@ -13,6 +13,7 @@ var caminho_script := ""
 var apagar_timer := 0.0
 var ultimo_sensor := -1
 var voltando := false
+var inicio_label: Label
 
 func _ready() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
@@ -144,6 +145,10 @@ func _criar_interface() -> void:
 	rodape.custom_minimum_size.y = 52
 	rodape.add_theme_constant_override("separation", 12)
 	app.add_child(rodape)
+	if ArduinoBridge.tem_plugin():
+		# o estado do "abrir sozinho ao ligar" desta TV (para o suporte)
+		inicio_label = _label(_texto_inicio(), 13, Color(0.62, 0.72, 0.84))
+		app.add_child(inicio_label)
 	var atalho := _label("F9, ESC ou VOLTAR do controle para fechar  •  setas + OK escolhem", 14, Color(0.50, 0.60, 0.70))
 	atalho.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	atalho.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -343,17 +348,43 @@ func _arduino_mudou() -> void:
 		_mensagem("●  " + ArduinoBridge.status.to_upper())
 
 
+func _texto_inicio() -> String:
+	var d := ArduinoBridge.inicio_estado()
+	if d.is_empty():
+		return ""
+	var tela := str(d.get("tela_inicial", "?"))
+	return "ANDROID %s  •  TELA INICIAL: %s  •  SOBREPOR: %s  •  LIGOU: %sx  •  ROOT: %s  •  ADB: %s" % [
+		d.get("android", "?"), "O JOGO" if tela == "jogo" else tela.to_upper(), str(d.get("sobrepor", "?")).to_upper(),
+		d.get("ligou_vezes", "0"), d.get("root", "-") if str(d.get("root", "")) != "" else "-",
+		d.get("adb", "-") if str(d.get("adb", "")) != "" else "-"]
+
+
 func _escolher_tela_inicial() -> void:
-	if ArduinoBridge.pode_abrir_sozinho():
-		_mensagem("●  OK: O JOGO ABRE SOZINHO DEPOIS QUE A TV LIGA")
+	if ArduinoBridge.abre_sozinho() and str(ArduinoBridge.inicio_estado().get("tela_inicial", "")) == "jogo":
+		_mensagem("●  OK: A TV JÁ ABRE O JOGO SOZINHA")
+		_atualizar_inicio()
 		return
-	match ArduinoBridge.pedir_abrir_sozinho():
-		"permissao":
-			_mensagem("●  LIGUE A CHAVE DO GOL FLASH ARENA E APERTE VOLTAR")
-		"app":
-			_mensagem("●  NOS AJUSTES DO APP: PERMITA \"APARECER SOBRE OUTROS APPS\"")
-		_:
-			_mensagem("●  ESTA TV NÃO TEM ESSA TELA: DEIXE O ARDUINO NO USB (USAR POR PADRÃO)")
+	# 1o em silêncio (root / adb da TV); se a caixa não deixar, a tela do Android
+	_mensagem("●  PREPARANDO A TV...")
+	ArduinoBridge.preparar_sozinho()
+	await get_tree().create_timer(6.0).timeout
+	if not is_inside_tree() or voltando:
+		return
+	var d := ArduinoBridge.inicio_estado()
+	_atualizar_inicio()
+	if str(d.get("tela_inicial", "")) == "jogo":
+		_mensagem("●  PRONTO: A TV ABRE O JOGO SOZINHA AO LIGAR")
+	elif int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "nao":
+		_mensagem("●  DEIXE GOL FLASH ARENA PERMITIDO E APERTE VOLTAR")
+		ArduinoBridge.pedir_sobrepor()
+	else:
+		_mensagem("●  ESCOLHA GOL FLASH ARENA E \"SEMPRE\"")
+		ArduinoBridge.escolher_tela_inicial()
+
+
+func _atualizar_inicio() -> void:
+	if inicio_label != null:
+		inicio_label.text = _texto_inicio()
 
 
 func _sair_para_tv() -> void:

@@ -3,6 +3,7 @@ GOL FLASH ARENA — TV BOX / TV ANDROID, CONTROLE REMOTO E ARDUINO
 
 O QUE TEM AQUI
 - GERAR_APK.bat ............. gera o APK no Windows (2 cliques)
+- PREPARAR_TV.bat ........... deixa a TV Box abrindo o jogo ao ligar (pelo PC)
 - APK-Pronto\GolFlashArena.apk  onde o APK sai
 - arduino\ .................. código do Arduino + desenho da montagem
 - LEIA-ME_TV_BOX.txt ........ este arquivo
@@ -28,37 +29,48 @@ Android TV com o banner do jogo). Android 7.0 ou mais novo.
 Copie o APK para um pendrive, abra pelo gerenciador de arquivos da TV e
 instale (permita "fontes desconhecidas"). Abra o Gol Flash Arena.
 
-DEPOIS DE INSTALAR, ABRA O JOGO UMA VEZ pelo controle (o Android só deixa
-um app abrir sozinho depois de ele ter sido aberto uma vez).
+DEPOIS DE INSTALAR, ABRA O JOGO UMA VEZ (botão "Abrir" no fim da
+instalação). O Android não entrega nada a um app que nunca foi aberto: essa
+primeira abertura é obrigatória em qualquer aparelho.
 
-COMO O JOGO ABRE SOZINHO
-A tela normal da TV (a ROM) abre primeiro, como sempre, e em alguns
-segundos o jogo entra por cima dela. O jogo NÃO toma o lugar da tela
-inicial da TV: nada de janela "Sempre / Só uma vez", nada de conflito.
+COMO O JOGO PASSA A ABRIR SOZINHO (a TV Box fica só do jogo)
+Na primeira abertura o jogo tenta se preparar SOZINHO, sem perguntar nada:
+  - pela conta de administrador da TV Box (root), que muitas TV Box têm; ou
+  - pelo adb da própria TV Box, se a "Depuração USB" estiver ligada
+    (Configurações > Sobre > 7 cliques em "Número da versão" > Opções do
+    desenvolvedor > Depuração USB). Se a TV perguntar "Permitir depuração?",
+    marque "Sempre permitir" e OK.
+Dando certo, o jogo vira a tela inicial da TV Box: ligou, abre o jogo, sem
+janela nenhuma. (A tela da ROM continua instalada: HOME 5 vezes seguidas no
+controle abre ela; um HOME volta ao jogo.)
 
-Na primeira vez que o jogo abre:
-  a) "Permitir que o Gol Flash Arena acesse o dispositivo USB?"
-     -> marque "Usar por padrão" e OK. (aparece com o Arduino ligado)
-     Com isso marcado, o próprio Android abre o jogo sempre que enxerga o
-     Arduino: ao ligar a TV e ao encaixar o cabo. É o caminho mais firme:
-     deixe o Arduino sempre no USB.
-  b) Só no Android 10 ou mais novo: abre sozinha a tela "Aparecer sobre
-     outros apps". Ligue a chave do GOL FLASH ARENA e aperte VOLTAR.
-     (É a permissão que o Android exige para um app abrir sozinho.)
-     Se a tela não aparecer: MENU do controle -> Central da Máquina ->
-     "ABRIR SOZINHO AO LIGAR A TV". Android 9 ou mais antigo: não precisa.
+SE A TV BOX NÃO DEIXAR (sem root e sem depuração) - A PERMISSÃO, UMA VEZ:
+  - Android 10 ou mais novo: uns 10 segundos depois de o menu aparecer, o
+    jogo mostra um aviso grande: "PARA O JOGO ABRIR SOZINHO AO LIGAR".
+    Aperte OK. Abre a tela "Sobrepor a outros apps" do Android: deixe GOL
+    FLASH ARENA PERMITIDO (ligado) e aperte VOLTAR. O jogo mostra "PRONTO!".
+    Daí em diante nunca mais pede e abre sempre que a TV Box liga.
+    Se você voltar sem permitir, ele pede de novo na próxima abertura.
+  - Android 9 ou mais antigo: não precisa de permissão; nada é pedido.
+Não existe jeito de pular essa confirmação num Android 10+ sem root: é
+trava do sistema, vale para qualquer app.
 
-Desligar pelo controle (a TV só "dorme") e ligar de novo: o jogo reinicia
-sozinho na tela.
+PELO PC, SEM DEPENDER DE NADA DISSO: PREPARAR_TV.bat (dois cliques, pede o
+IP da TV Box, com a Depuração USB ligada nela). Instala o APK e deixa a TV
+Box pronta de uma vez. É o caminho mais garantido para produzir em série.
 
-Se a TV Box tiver um "gerenciador de inicialização" / "auto start" /
-"economia de bateria" nos ajustes, libere o Gol Flash Arena nele.
+CONFERIR: MENU do controle -> Central da Máquina. A linha de baixo mostra
+  ANDROID x • TELA INICIAL: O JOGO • SOBREPOR: SIM • LIGOU: 3x • ROOT • ADB
+"TELA INICIAL: O JOGO" = pronto. Se não abrir sozinho, me mande essa linha.
+O botão "ABRIR SOZINHO AO LIGAR A TV" tenta tudo de novo.
 
-Para SAIR do jogo para a tela normal da TV: tecla HOME do controle, ou
-Central da Máquina -> "SAIR PARA A TELA DA TV".
+O Arduino no USB com "Usar por padrão" marcado também faz o Android abrir
+o jogo ao ligar. Desligar pelo controle (a TV só "dorme") e ligar de novo:
+o jogo volta sozinho.
 
-Quem instalou o APK ANTERIOR (que pedia para virar a tela inicial): é só
-instalar este por cima; a tela inicial volta a ser a da TV sozinha.
+Para SAIR do jogo para a tela da TV: HOME 5 vezes seguidas, ou Central da
+Máquina -> "SAIR PARA A TELA DA TV". Para desfazer tudo: PREPARAR_TV.bat
+-DevolverTv.
 
 
 3. CONTROLE REMOTO
@@ -118,7 +130,7 @@ SE ALGO NÃO FUNCIONAR
   junto com o GND do Arduino, LEDS_POR_ALVO e TIPO_FITA no .ino.
 - Sensor não marca: Central da Máquina mostra cada batida; confira o fio
   no pino e o outro no GND.
-- O jogo não abre sozinho: abra-o uma vez pelo controle; deixe o Arduino no
-  USB com "Usar por padrão"; no Android 10+, Central da Máquina -> "ABRIR
-  SOZINHO AO LIGAR A TV" e ligue a chave; libere o jogo no "auto start" da
-  TV Box, se ela tiver.
+- O jogo não abre sozinho: veja a linha de baixo da Central da Máquina
+  (TELA INICIAL / SOBREPOR / LIGOU) e use o botão "ABRIR SOZINHO AO LIGAR A
+  TV"; ou rode o PREPARAR_TV.bat pelo PC. Se a TV Box tiver "auto start" /
+  "gerenciador de inicialização" nos ajustes, libere o jogo nele.

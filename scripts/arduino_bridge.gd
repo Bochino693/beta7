@@ -74,31 +74,115 @@ func _ready() -> void:
 		set_process(false)
 		return
 	_plugin = Engine.get_singleton("StrikeSerial")
-	_pedir_abrir_sozinho_uma_vez()
+	_abriu_em = Time.get_ticks_msec()
 
 
-## ABRIR SOZINHO DEPOIS QUE A TV LIGA (a tela da ROM abre e o jogo entra por
-## cima; o jogo NÃO vira a tela inicial da TV). Até o Android 9 não precisa
-## de nada. No Android 10+ o sistema pede a permissão "aparecer sobre outros
-## apps": na primeira vez que o jogo abre, a tela dessa permissão aparece
-## UMA vez (ligue a chave do Gol Flash Arena e aperte VOLTAR). De novo, só
-## pela Central da Máquina. Com o Arduino no USB e "Usar por padrão"
-## marcado, o Android já abre o jogo sozinho mesmo sem ela.
-func _pedir_abrir_sozinho_uma_vez() -> void:
-	await get_tree().create_timer(12.0, true, false, true).timeout
-	if pode_abrir_sozinho():
+## ABRIR SOZINHO AO LIGAR A TV (a TV Box é só do jogo).
+## Ao abrir, o plugin tenta se preparar em silêncio (root / adb da TV). Se a
+## caixa não deixar e for Android 10 ou mais novo, o jogo PEDE A PERMISSÃO
+## UMA VEZ, logo que o menu aparece: um aviso grande explica o que fazer, OK
+## abre a tela do Android ("Sobrepor a outros apps"), você deixa GOL FLASH
+## ARENA permitido e aperta VOLTAR. Aceito, nunca mais pede e o jogo abre
+## sempre que a TV Box liga. Não aceito, pede de novo na próxima abertura.
+## Android 9 ou mais antigo não precisa de permissão: nada é pedido.
+const ESPERA_INICIO_MS := 9000
+var aviso_aberto := false          # o ControleTv manda o OK para cá
+var _inicio_resolvido := false
+var _inicio_olhou := 0
+var _inicio_pediu := false
+var _aviso: CanvasLayer
+var _aviso_ate := 0
+var _abriu_em := 0
+
+
+func _olhar_inicio(agora: int) -> void:
+	if aviso_aberto:
+		if _aviso_ate > 0 and agora >= _aviso_ate:
+			confirmar_aviso()
 		return
-	var cfg := ConfigFile.new()
-	cfg.load(PERMISSOES)
-	if bool(cfg.get_value("inicio", "ja_pediu_abrir", false)):
+	if _inicio_resolvido or agora - _inicio_olhou < 2000 or agora - _abriu_em < ESPERA_INICIO_MS:
 		return
-	# uma janela do Android por vez: espera a do USB fechar
-	while bool(_plugin.call("permissao_pendente")):
-		await get_tree().create_timer(2.0, true, false, true).timeout
-	cfg.set_value("inicio", "ja_pediu_abrir", true)
-	cfg.save(PERMISSOES)
-	_pedidos = null
-	print("ABRIR SOZINHO: pedindo a permissão ao Android (", pedir_abrir_sozinho(), ")")
+	_inicio_olhou = agora
+	var cena := get_tree().current_scene
+	if cena == null or cena.scene_file_path.get_file() != "opening.tscn":
+		return
+	if bool(_plugin.call("permissao_pendente")):
+		return   # uma janela do Android por vez: primeiro a do USB
+	var d := inicio_estado()
+	if str(d.get("tela_inicial", "")) == "jogo" or str(d.get("sobrepor", "")) != "nao":
+		_inicio_resolvido = true
+		if _inicio_pediu:
+			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
+		return
+	if _inicio_pediu:
+		# voltou da tela do Android sem permitir: pede de novo na próxima abertura
+		_inicio_resolvido = true
+		_mostrar_aviso("AINDA NÃO PERMITIDO", "Sem a permissão o jogo não abre sozinho ao ligar.\nEla será pedida de novo na próxima vez que o jogo abrir\n(ou agora: MENU > Central da Máquina > ABRIR SOZINHO AO LIGAR A TV).", "", 9000, false)
+		return
+	_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
+		"Na próxima tela, deixe  GOL FLASH ARENA  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
+		"APERTE OK PARA CONTINUAR", 25000, true)
+
+
+func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede: bool) -> void:
+	_fechar_aviso()
+	_aviso = CanvasLayer.new()
+	_aviso.layer = 120
+	_aviso.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_aviso)
+	var fundo := ColorRect.new()
+	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.color = Color(0, 0, 0, 0.93)
+	_aviso.add_child(fundo)
+	var tela := get_viewport().get_visible_rect().size
+	var k := clampf(tela.x / 1280.0, 0.8, 3.0)
+	var caixa := VBoxContainer.new()
+	caixa.set_anchors_preset(Control.PRESET_FULL_RECT)
+	caixa.alignment = BoxContainer.ALIGNMENT_CENTER
+	caixa.add_theme_constant_override("separation", int(26 * k))
+	_aviso.add_child(caixa)
+	for item in [[titulo, 44, Color(1.0, 0.86, 0.10)], [texto, 28, Color.WHITE], [rodape, 26, Color(0.30, 1.0, 0.50)]]:
+		if str(item[0]) == "":
+			continue
+		var l := Label.new()
+		l.text = str(item[0])
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.add_theme_font_size_override("font_size", int(int(item[1]) * k))
+		l.add_theme_color_override("font_color", item[2])
+		caixa.add_child(l)
+	aviso_aberto = true
+	_aviso_pede = pede
+	_aviso_ate = Time.get_ticks_msec() + ms
+	if pede:
+		# o menu espera: o START não começa uma partida por trás do aviso
+		get_tree().paused = true
+
+
+var _aviso_pede := false
+
+
+func _fechar_aviso() -> void:
+	if _aviso != null and is_instance_valid(_aviso):
+		_aviso.queue_free()
+	_aviso = null
+	aviso_aberto = false
+	_aviso_ate = 0
+	get_tree().paused = false
+
+
+## OK no controle (ControleTv), START ou o tempo do aviso: segue.
+func confirmar_aviso() -> void:
+	if not aviso_aberto:
+		return
+	var pede := _aviso_pede
+	_fechar_aviso()
+	if not pede or _plugin == null:
+		return
+	_inicio_pediu = true
+	_inicio_olhou = Time.get_ticks_msec() + 4000   # dá tempo de a tela do Android abrir
+	if not bool(_plugin.call("pedir_sobrepor")):
+		# a TV Box não tem essa tela: a escolha da tela inicial ("Sempre")
+		print("ABRIR AO LIGAR: sem a tela de sobrepor; tela inicial: ", str(_plugin.call("escolher_tela_inicial")))
 
 
 ## true = os comandos de LED passam por aqui (tudo que não é Windows).
@@ -134,6 +218,7 @@ func _process(_delta: float) -> void:
 	if _plugin == null:
 		return
 	var agora := Time.get_ticks_msec()
+	_olhar_inicio(agora)
 	match _fase:
 		"procurando":
 			if agora - _ultima_procura >= PROCURAR_MS:
@@ -323,14 +408,41 @@ func _pulsar(acao: String) -> void:
 
 
 # ------------------------------------------------------------ abrir ao ligar
-## O Android deixa o jogo abrir sozinho depois que a TV liga?
-func pode_abrir_sozinho() -> bool:
-	return _plugin != null and bool(_plugin.call("pode_abrir_sozinho"))
+## O estado do "abrir ao ligar": {android, sdk, tela_inicial, sobrepor,
+## ligou, ligou_vezes, root, adb, aparelho} ({} fora da TV).
+func inicio_estado() -> Dictionary:
+	var d := {}
+	if _plugin == null:
+		return d
+	for linha in str(_plugin.call("inicio_relatorio")).split("\n", false):
+		var k := linha.find("=")
+		if k > 0:
+			d[linha.substr(0, k)] = linha.substr(k + 1)
+	return d
 
 
-## Abre a tela da permissão do Android: "ja", "permissao", "app" ou "".
-func pedir_abrir_sozinho() -> String:
-	return str(_plugin.call("pedir_abrir_sozinho")) if _plugin != null else ""
+## A TV já abre o jogo sozinha ao ligar?
+func abre_sozinho() -> bool:
+	var d := inicio_estado()
+	if d.is_empty():
+		return false
+	return str(d.get("tela_inicial", "")) == "jogo" or (str(d.get("sobrepor", "")) != "nao" and int(d.get("ligou_vezes", "0")) > 0)
+
+
+## Tenta de novo pelo root / adb da TV (sem nada na tela).
+func preparar_sozinho() -> void:
+	if _plugin != null:
+		_plugin.call("preparar_sozinho")
+
+
+## Abre a escolha da tela inicial do Android.
+func escolher_tela_inicial() -> String:
+	return str(_plugin.call("escolher_tela_inicial")) if _plugin != null else ""
+
+
+## Abre "Sobrepor a outros apps" (Android 10+).
+func pedir_sobrepor() -> bool:
+	return _plugin != null and bool(_plugin.call("pedir_sobrepor"))
 
 
 ## Sai do jogo para a tela inicial da TV (saída do operador).
