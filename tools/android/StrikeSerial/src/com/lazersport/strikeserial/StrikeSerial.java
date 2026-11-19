@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
@@ -433,46 +434,181 @@ public class StrikeSerial extends GodotPlugin {
 		fechar();
 	}
 
-	// ------------------------------------------------------------ tela inicial
-	/** Logo que o jogo abre: a TV voltando da espera (ligada pelo controle) reinicia o jogo. */
+	// ------------------------------------------------------------ abrir ao ligar
+	// InicioDaTv: o jogo se prepara sozinho (root / adb da TV), a tela inicial
+	// do jogo, o aviso de "ligou" (StrikeLigou) e o guarda (StrikeSempre).
+	private static boolean inicioPedido = false;
+
 	@Override
 	public View onMainCreate(Activity activity) {
 		try {
+			if (Build.VERSION.SDK_INT >= 27) {
+				activity.setTurnScreenOn(true);
+				activity.setShowWhenLocked(true);
+			} else {
+				activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+						| WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+			}
+			activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		} catch (Throwable t) {
+			anotar("inicio: acender a tela: " + t);
+		}
+		try {
+			// a TV voltando da espera (ligada pelo controle) reinicia o jogo
 			InicioDaTv.ouvirTela(activity);
+			// o guarda: outra tela por cima ou a TV ligada pelo controle - o jogo volta
+			StrikeSempre.comecar(activity.getApplicationContext());
 		} catch (Throwable t) {
 			anotar("inicio: " + t);
 		}
+		// O JOGO SE PREPARA SOZINHO, em silêncio, logo ao abrir: pelo root ou
+		// pelo adb da própria TV. Nada aparece na tela (a não ser o "Permitir
+		// depuração?" de uma TV com a depuração ligada e com senha).
+		final Context app = activity.getApplicationContext();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					if (InicioDaTv.estado(app).equals("jogo") && InicioDaTv.podeAbrirDeFundo(app)) {
+						return;
+					}
+					if (!InicioDaTv.telaDoJogoLigada(app)) {
+						return;
+					}
+					InicioDaTv.pausarGuarda(app, 2 * 60000L);
+					anotar("inicio: sozinho: " + InicioDaTv.prepararSozinho(app));
+				} catch (Throwable t) {
+					anotar("inicio: sozinho: " + t);
+				} finally {
+					preparou = true;
+				}
+			}
+		}, "GolFlashInicio").start();
 		return null;
 	}
 
-	/** O Android deixa o jogo abrir sozinho depois que a TV liga? */
-	@UsedByGodot
-	public boolean pode_abrir_sozinho() {
+	private static volatile boolean preparou = false;
+
+	@Override
+	public void onMainResume() {
+		InicioDaTv.naFrente = true;
 		Activity a = getActivity();
-		try {
-			return a != null && InicioDaTv.podeAbrirSozinho(a);
-		} catch (Throwable t) {
-			anotar("inicio: " + t);
-			return false;
+		if (a != null) {
+			StrikeSempre.comecar(a.getApplicationContext());
 		}
 	}
 
-	/** Abre a tela da permissão "aparecer sobre outros apps": "ja", "permissao", "app" ou "". */
+	@Override
+	public void onMainPause() {
+		InicioDaTv.naFrente = false;
+	}
+
+	/**
+	 * SÓ SE A TV BOX NÃO DEIXOU O JOGO SE PREPARAR SOZINHO (sem root e sem
+	 * adb): o jogo chama com o menu parado há um tempo, uma vez por abertura.
+	 * Android 10+: abre "Sobrepor a outros apps"; Android 9 ou mais antigo: a
+	 * escolha da tela inicial. Devolve "pedindo", "ja" (não falta nada),
+	 * "espere" (ainda se preparando) ou "".
+	 */
 	@UsedByGodot
-	public String pedir_abrir_sozinho() {
+	public String preparar_inicio() {
+		final Activity a = getActivity();
+		if (a == null || inicioPedido) {
+			return "";
+		}
+		if (!preparou) {
+			return "espere";
+		}
+		inicioPedido = true;
+		try {
+			String estado = InicioDaTv.estado(a);
+			if (!InicioDaTv.telaDoJogoLigada(a) || (estado.equals("jogo") && InicioDaTv.podeAbrirDeFundo(a))) {
+				return "ja";
+			}
+			InicioDaTv.pausarGuarda(a, 3 * 60000L);
+			if (Build.VERSION.SDK_INT >= 29) {
+				if (InicioDaTv.podeAbrirDeFundo(a)) {
+					return "ja";
+				}
+				anotar("inicio: pedindo 'Sobrepor a outros apps': " + InicioDaTv.pedirSobrepor(a));
+			} else {
+				if (estado.equals("jogo")) {
+					return "ja";
+				}
+				anotar("inicio: a TV ainda não abre o jogo (" + estado + "): " + InicioDaTv.escolher(a, true));
+			}
+			return "pedindo";
+		} catch (Throwable t) {
+			anotar("inicio: " + t);
+			return "";
+		}
+	}
+
+	/** Tenta de novo se preparar sozinho (Central da Máquina): o resultado sai no inicio_relatorio(). */
+	@UsedByGodot
+	public void preparar_sozinho() {
+		final Activity a = getActivity();
+		if (a == null) {
+			return;
+		}
+		final Context app = a.getApplicationContext();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					InicioDaTv.pausarGuarda(app, 2 * 60000L);
+					anotar("inicio: sozinho: " + InicioDaTv.prepararSozinho(app));
+				} catch (Throwable t) {
+					anotar("inicio: sozinho: " + t);
+				}
+			}
+		}, "GolFlashInicio").start();
+	}
+
+	/** O estado do "abrir ao ligar" (linhas nome=valor) para a Central da Máquina. */
+	@UsedByGodot
+	public String inicio_relatorio() {
+		Activity a = getActivity();
+		try {
+			return a == null ? "" : InicioDaTv.relatorio(a);
+		} catch (Throwable t) {
+			return "";
+		}
+	}
+
+	/** Abre a escolha da tela inicial do Android: "ja", "papel", "ajustes", "escolha", "app", "config" ou "". */
+	@UsedByGodot
+	public String escolher_tela_inicial() {
 		Activity a = getActivity();
 		if (a == null) {
 			return "";
 		}
 		try {
-			return InicioDaTv.pedirPermissao(a);
+			InicioDaTv.pausarGuarda(a, 3 * 60000L);
+			return InicioDaTv.escolher(a, false);
 		} catch (Throwable t) {
-			anotar("inicio: " + t);
+			anotar("tela inicial: " + t);
 			return "";
 		}
 	}
 
-	/** Sai do jogo para a tela inicial da TV: "tv", "config" (os ajustes) ou "". */
+	/** Abre a tela "Sobrepor a outros apps" (Android 10+): true se abriu. */
+	@UsedByGodot
+	public boolean pedir_sobrepor() {
+		Activity a = getActivity();
+		if (a == null) {
+			return false;
+		}
+		try {
+			InicioDaTv.pausarGuarda(a, 3 * 60000L);
+			return InicioDaTv.pedirSobrepor(a);
+		} catch (Throwable t) {
+			anotar("sobrepor: " + t);
+			return false;
+		}
+	}
+
+	/** Abre a tela inicial da própria TV (o guarda espera 15 min): o nome dela, "config" ou "". */
 	@UsedByGodot
 	public String sair_para_tv() {
 		Activity a = getActivity();
@@ -484,6 +620,18 @@ public class StrikeSerial extends GodotPlugin {
 		} catch (Throwable t) {
 			anotar("sair para a TV: " + t);
 			return "";
+		}
+	}
+
+	@Override
+	public void onMainActivityResult(int pedido, int resultado, Intent dados) {
+		Activity a = getActivity();
+		if (pedido == InicioDaTv.PEDIDO_PAPEL && a != null) {
+			try {
+				InicioDaTv.depoisDoPapel(a, resultado);
+			} catch (Throwable t) {
+				anotar("tela inicial: " + t);
+			}
 		}
 	}
 

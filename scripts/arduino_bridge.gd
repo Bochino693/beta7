@@ -74,31 +74,40 @@ func _ready() -> void:
 		set_process(false)
 		return
 	_plugin = Engine.get_singleton("StrikeSerial")
-	_pedir_abrir_sozinho_uma_vez()
+	_ultimo_toque = Time.get_ticks_msec()
 
 
-## ABRIR SOZINHO DEPOIS QUE A TV LIGA (a tela da ROM abre e o jogo entra por
-## cima; o jogo NÃO vira a tela inicial da TV). Até o Android 9 não precisa
-## de nada. No Android 10+ o sistema pede a permissão "aparecer sobre outros
-## apps": na primeira vez que o jogo abre, a tela dessa permissão aparece
-## UMA vez (ligue a chave do Gol Flash Arena e aperte VOLTAR). De novo, só
-## pela Central da Máquina. Com o Arduino no USB e "Usar por padrão"
-## marcado, o Android já abre o jogo sozinho mesmo sem ela.
-func _pedir_abrir_sozinho_uma_vez() -> void:
-	await get_tree().create_timer(12.0, true, false, true).timeout
-	if pode_abrir_sozinho():
+## ABRIR SOZINHO AO LIGAR A TV (a TV Box é só do jogo).
+## Ao abrir, o plugin já tenta se preparar SOZINHO E EM SILÊNCIO: pelo root
+## da TV Box ou pelo adb dela (o jogo vira a tela inicial e ganha a
+## permissão de abrir de fundo). Só se a caixa não deixar (sem root e sem
+## adb) é que, com o menu parado há 20 s, o Android mostra o pedido:
+## "Sobrepor a outros apps" (Android 10+) ou a escolha da tela inicial
+## (Android 9-). Uma vez por abertura do jogo, até ficar pronto.
+const SOSSEGO_MS := 20000
+var _ultimo_toque := 0
+var _inicio_resolvido := false
+var _inicio_olhou := 0
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey or event is InputEventJoypadButton or event is InputEventMouseButton or event is InputEventAction:
+		_ultimo_toque = Time.get_ticks_msec()
+
+
+func _olhar_inicio(agora: int) -> void:
+	if _inicio_resolvido or agora - _inicio_olhou < 5000:
 		return
-	var cfg := ConfigFile.new()
-	cfg.load(PERMISSOES)
-	if bool(cfg.get_value("inicio", "ja_pediu_abrir", false)):
+	_inicio_olhou = agora
+	var cena := get_tree().current_scene
+	if cena == null or cena.scene_file_path.get_file() != "opening.tscn":
 		return
-	# uma janela do Android por vez: espera a do USB fechar
-	while bool(_plugin.call("permissao_pendente")):
-		await get_tree().create_timer(2.0, true, false, true).timeout
-	cfg.set_value("inicio", "ja_pediu_abrir", true)
-	cfg.save(PERMISSOES)
-	_pedidos = null
-	print("ABRIR SOZINHO: pedindo a permissão ao Android (", pedir_abrir_sozinho(), ")")
+	if agora - _ultimo_toque < SOSSEGO_MS or bool(_plugin.call("permissao_pendente")):
+		return
+	var r := str(_plugin.call("preparar_inicio"))
+	if r != "espere":
+		_inicio_resolvido = true
+		print("ABRIR AO LIGAR: ", r if r != "" else "-")
 
 
 ## true = os comandos de LED passam por aqui (tudo que não é Windows).
@@ -134,6 +143,7 @@ func _process(_delta: float) -> void:
 	if _plugin == null:
 		return
 	var agora := Time.get_ticks_msec()
+	_olhar_inicio(agora)
 	match _fase:
 		"procurando":
 			if agora - _ultima_procura >= PROCURAR_MS:
@@ -323,14 +333,41 @@ func _pulsar(acao: String) -> void:
 
 
 # ------------------------------------------------------------ abrir ao ligar
-## O Android deixa o jogo abrir sozinho depois que a TV liga?
-func pode_abrir_sozinho() -> bool:
-	return _plugin != null and bool(_plugin.call("pode_abrir_sozinho"))
+## O estado do "abrir ao ligar": {android, sdk, tela_inicial, sobrepor,
+## ligou, ligou_vezes, root, adb, aparelho} ({} fora da TV).
+func inicio_estado() -> Dictionary:
+	var d := {}
+	if _plugin == null:
+		return d
+	for linha in str(_plugin.call("inicio_relatorio")).split("\n", false):
+		var k := linha.find("=")
+		if k > 0:
+			d[linha.substr(0, k)] = linha.substr(k + 1)
+	return d
 
 
-## Abre a tela da permissão do Android: "ja", "permissao", "app" ou "".
-func pedir_abrir_sozinho() -> String:
-	return str(_plugin.call("pedir_abrir_sozinho")) if _plugin != null else ""
+## A TV já abre o jogo sozinha ao ligar?
+func abre_sozinho() -> bool:
+	var d := inicio_estado()
+	if d.is_empty():
+		return false
+	return str(d.get("tela_inicial", "")) == "jogo" or (str(d.get("sobrepor", "")) != "nao" and int(d.get("ligou_vezes", "0")) > 0)
+
+
+## Tenta de novo pelo root / adb da TV (sem nada na tela).
+func preparar_sozinho() -> void:
+	if _plugin != null:
+		_plugin.call("preparar_sozinho")
+
+
+## Abre a escolha da tela inicial do Android.
+func escolher_tela_inicial() -> String:
+	return str(_plugin.call("escolher_tela_inicial")) if _plugin != null else ""
+
+
+## Abre "Sobrepor a outros apps" (Android 10+).
+func pedir_sobrepor() -> bool:
+	return _plugin != null and bool(_plugin.call("pedir_sobrepor"))
 
 
 ## Sai do jogo para a tela inicial da TV (saída do operador).

@@ -1095,12 +1095,10 @@ function Principal {
     Write-Host "  SHA256:  $hash"
     if ($comArduino) {
         Write-Host "  Arduino pelo USB (7 LEDs, 7 sensores, START, SELECT, ficha): INCLUIDO." -ForegroundColor Green
-        Write-Host "  Abrir sozinho depois que a TV liga e banner da Android TV: INCLUIDOS." -ForegroundColor Green
-        Write-Host "  Depois de instalar, ABRA O JOGO UMA VEZ pelo controle. Na 1a vez:"
-        Write-Host "   - o Arduino no USB: marque 'Usar por padrao' e OK;"
-        Write-Host "   - Android 10 ou mais novo: ligue a chave 'aparecer sobre outros apps'"
-        Write-Host "     do Gol Flash Arena (a tela abre sozinha) e aperte VOLTAR."
-        Write-Host "  A tela da TV (ROM) abre normal e o jogo entra por cima em alguns segundos."
+        Write-Host "  Abrir sozinho ao ligar a TV e banner da Android TV: INCLUIDOS." -ForegroundColor Green
+        Write-Host "  Depois de instalar, ABRA O JOGO UMA VEZ: ele tenta se preparar sozinho"
+        Write-Host "  (root / depuracao da TV Box). Para garantir pelo PC: PREPARAR_TV.bat."
+        Write-Host "  Arduino no USB: na 1a vez marque 'Usar por padrao' e OK."
     } else {
         Write-Host "  Arduino pelo USB: NAO incluido (o Gradle falhou). Este APK so serve para ver o jogo na TV." -ForegroundColor Red
         if ($motivo) { Write-Host "  Motivo: $motivo" -ForegroundColor Yellow }

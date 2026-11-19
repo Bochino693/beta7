@@ -40,13 +40,11 @@ confere("application-label:'Gol Flash Arena'" in cracha, "nome Gol Flash Arena")
 for abi in ("arm64-v8a", "armeabi-v7a"):
     confere("lib/%s/libgodot_android.so" % abi in nomes, "motor do Godot para %s" % abi)
 confere("org.godotengine.plugin.v2.StrikeSerial" in manifesto, "plugin StrikeSerial registrado (v2)")
-for classe in ("StrikeSerial", "InicioDaTv", "StrikeLigou", "StrikeArduinoAtivo"):
+for classe in ("StrikeSerial", "InicioDaTv", "StrikeInicioAtivo", "StrikeLigou", "StrikeSempre", "AdbDaTv", "StrikeArduinoAtivo"):
     confere(("Lcom/lazersport/strikeserial/%s;" % classe).encode() in dex, "classe %s dentro do APK" % classe)
-# o jogo NAO pode ser uma tela inicial (disputaria com a ROM da TV): a
-# categoria HOME so pode aparecer dentro de <queries>, nunca num intent-filter
-filtros = manifesto.split("E: queries")[0] + "".join(manifesto.split("E: application")[1:])
-confere("android.intent.category.HOME" not in filtros, "o jogo NÃO é tela inicial (não disputa com a ROM)")
-confere("android.permission.SYSTEM_ALERT_WINDOW" in manifesto, "permissão para abrir sozinho no Android 10+")
+confere("StrikeInicioAtivo" in manifesto and "android.intent.category.HOME" in manifesto.split("E: application")[-1], "tela inicial do jogo (HOME): o Android abre o jogo ao ligar")
+confere("android.permission.SYSTEM_ALERT_WINDOW" in manifesto, "permissão para abrir de fundo no Android 10+")
+confere("StrikeSempre" in manifesto and "FOREGROUND_SERVICE" in manifesto, "o guarda (serviço em primeiro plano)")
 confere("android.intent.action.BOOT_COMPLETED" in manifesto and "RECEIVE_BOOT_COMPLETED" in manifesto, "receptor de \"a TV ligou\" + permissão")
 confere("USB_DEVICE_ATTACHED" in manifesto, "filtro USB do Arduino (permissão guardada)")
 confere("android.intent.category.LEANBACK_LAUNCHER" in manifesto, "aparece na tela da Android TV (leanback)")
