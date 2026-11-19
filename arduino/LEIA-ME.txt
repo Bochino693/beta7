@@ -1,0 +1,72 @@
+ARDUINO DO GOL FLASH ARENA
+==========================
+
+  gol_flash_arena\gol_flash_arena.ino   o código (grave este)
+  ligacao_gol_flash_arena.pdf / .png    o desenho da montagem
+  ligacao_gol_flash_arena.svg           o mesmo desenho, editável
+
+Placa: Arduino Nano ou Uno (ATmega328P). Sem relé, sem ponte H, sem placa
+Zero Delay: os LEDs, os sensores, o START e o SELECT vão direto no Arduino,
+e um cabo USB liga o Arduino na TV Box / TV Android (ou no PC).
+
+PINOS
+  ALVO   fita de LED (DIN)   sensor
+   A          D2               D9
+   B          D3               D10
+   C          D4               D11
+   D          D5               D12
+   E          D6               A0
+   F          D7               A1
+   G          D8               A2
+  START  A3      SELECT (COPA)  A4      MOEDEIRO (opcional)  A5
+  Sensores e botões: um fio no pino, o outro no GND.
+
+MATERIAL
+  1 Arduino Nano (ou Uno) + cabo USB de dados
+  7 fitas ou anéis de LED endereçável WS2812B (5 V), um por alvo
+  7 resistores de 330 ohms (um em cada fio DIN, perto da fita)
+  1 fonte 5 V para os LEDs: 0,05 A por LED (7 x 30 LEDs = 10 A)
+  1 capacitor eletrolítico 1000 uF 16 V (no + e - da fonte)
+  7 sensores de contato (microchave / sensor de impacto) + 2 botões
+
+GRAVAR
+  1. IDE do Arduino > Ferramentas > Gerenciar bibliotecas >
+     "Adafruit NeoPixel" > Instalar.
+  2. Abra gol_flash_arena.ino. No começo do arquivo, confira:
+       LEDS_POR_ALVO   quantos LEDs tem a fita de CADA alvo
+       TIPO_FITA       NEO_GRB (WS2812B). Cor trocada: NEO_RGB ou NEO_BRG
+       BRILHO_MAX      0 a 255
+       SENSOR_NF       1 se o sensor ABRE o contato ao ser acionado
+       TESTE_AO_LIGAR  1 = cada alvo pisca ao ligar (teste de bancada)
+  3. Ferramentas > Placa: Arduino Nano (Processador "ATmega328P (Old
+     Bootloader)" se der erro ao gravar) ou Arduino Uno. Carregar.
+
+TESTAR NO PC (Monitor Serial, 9600, "Nova linha")
+  aparece   OLA:GOL_FLASH:1
+  digite    PING                 -> PONG:GOL_FLASH:1
+            SET:A=255,0,0        -> alvo A vermelho (os outros apagam)
+            SET:A=0,0,255;G=0,255,0
+            OFF                  -> apaga tudo
+  bata num alvo      -> S:A ... S:G
+  aperte START       -> B:START:1  (solte: B:START:0)
+  aperte SELECT      -> B:SELECT:1 (solte: B:SELECT:0)
+  moedeiro           -> FICHA
+
+O JOGO
+  PC (Windows): continua pela COM5, com os mesmos comandos SET / OFF de
+  sempre. A placa Zero Delay continua valendo para os sensores no PC.
+  TV Box / TV Android: o jogo acha o Arduino sozinho no USB (chips
+  CH340, FTDI, CP2102 e o USB original). Na 1ª vez, na janela do Android,
+  marque "Usar por padrão" e OK.
+
+CUIDADOS
+  - Todos os GND juntos (Arduino, fonte 5 V, fitas, sensores, botões).
+  - +5V e GND das fitas saem da FONTE, nunca do pino 5V do Arduino.
+  - Nunca 12 V num pino do Arduino. Sensor de 3 fios: só NPN de 5 V.
+  - Fio do DIN curto; resistor de 330 ohms em cada um.
+
+Teste do código sem placa (PC com g++):
+  bash tools/testes/arduino/testar_firmware.sh
+Refazer o desenho:
+  python3 -I tools/desenhar_ligacao.py
+  node tools/desenho_para_png_pdf.js arduino/ligacao_gol_flash_arena.svg

@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.003, 0.008, 0.016, 1)
 boot_splash/image="res://branding/splash_gol_flash_arena.png"
 config/icon="res://gol_flash_arena_oficial.png"
+config/quit_on_go_back=false
 
 [autoload]
 
@@ -24,6 +25,9 @@ PlayersGlobal="*uid://bkh2eiv3pk7gb"
 CupGlobal="*uid://bwmkltvnd15vw"
 ChampionsDb="*uid://vkuq2fbw4bkw"
 ArcadeData="*res://scripts/arcade_data.gd"
+ArduinoBridge="*res://scripts/arduino_bridge.gd"
+Efeitos="*res://scripts/efeitos.gd"
+ControleTv="*res://scripts/controle_tv.gd"
 
 [display]
 
@@ -91,3 +95,8 @@ input_credit={
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/StrikeSerial/plugin.cfg")

@@ -1,0 +1,1048 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3800 2860" width="3800" height="2860">
+<rect x="0.0" y="0.0" width="3800.0" height="2860.0" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="60.0" y="100.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="78" fill="#16407a" font-weight="bold" text-anchor="start">GOL FLASH ARENA · MONTAGEM DO ARDUINO</text>
+<text x="62.0" y="150.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="#5d6d7e" font-weight="normal" text-anchor="start">Arduino <tspan font-weight="bold">Nano</tspan> ou <tspan font-weight="bold">Uno</tspan> visto de cima · firmware <tspan font-weight="bold">arduino/gol_flash_arena</tspan> (GOL_FLASH:1) · o mesmo cabo USB serve no <tspan font-weight="bold">PC</tspan> e na <tspan font-weight="bold">TV Box / TV Android</tspan></text>
+<rect x="2720.0" y="34.0" width="1040.0" height="124.0" rx="16" fill="white" stroke="#b0bec5" stroke-width="3"/>
+<path d="M2750.0 74.0 L2860.0 74.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2750.0 74.0 L2860.0 74.0" fill="none" stroke="#455a64" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2750.0 74.0 L2860.0 74.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="2880.0" y="83.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">fio: ligar</text>
+<rect x="3078.2" y="64.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="3110.0" y="86.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<text x="3160.0" y="83.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">= no GND comum (todos juntos)</text>
+<rect x="2773.2" y="114.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="2805.0" y="136.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<text x="2880.0" y="133.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">= no + da FONTE 5 V dos LEDs (não no Arduino)</text>
+<rect x="0.0" y="178.0" width="543.9" height="10.0" rx="0" fill="#1565c0" stroke="none" stroke-width="0"/>
+<rect x="542.9" y="178.0" width="543.9" height="10.0" rx="0" fill="#2e7d32" stroke="none" stroke-width="0"/>
+<rect x="1085.7" y="178.0" width="543.9" height="10.0" rx="0" fill="#c62828" stroke="none" stroke-width="0"/>
+<rect x="1628.6" y="178.0" width="543.9" height="10.0" rx="0" fill="#f9a825" stroke="none" stroke-width="0"/>
+<rect x="2171.4" y="178.0" width="543.9" height="10.0" rx="0" fill="#8e24aa" stroke="none" stroke-width="0"/>
+<rect x="2714.3" y="178.0" width="543.9" height="10.0" rx="0" fill="#00838f" stroke="none" stroke-width="0"/>
+<rect x="3257.1" y="178.0" width="543.9" height="10.0" rx="0" fill="#ef6c00" stroke="none" stroke-width="0"/>
+<text x="50.0" y="232.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#1b2a41" font-weight="bold" text-anchor="start">OS 7 ALVOS — fita ou anel de LED endereçável (WS2812B): o fio <tspan font-weight="bold">DIN</tspan> de cada alvo vai no pino dele, com um resistor de 330 Ω</text>
+<rect x="54.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="50.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#1565c0" stroke-width="4"/>
+<path d="M68.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#1565c0"/>
+<text x="76.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO A · LED</text>
+<circle cx="209.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="209.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="268.0" cy="398.0" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="268.0" cy="398.0" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="260.1" cy="427.5" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="260.1" cy="427.5" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="238.5" cy="449.1" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="238.5" cy="449.1" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="209.0" cy="457.0" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="209.0" cy="457.0" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="179.5" cy="449.1" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="179.5" cy="449.1" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="157.9" cy="427.5" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="157.9" cy="427.5" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="150.0" cy="398.0" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="150.0" cy="398.0" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="157.9" cy="368.5" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="157.9" cy="368.5" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="179.5" cy="346.9" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="179.5" cy="346.9" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="209.0" cy="339.0" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="209.0" cy="339.0" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="238.5" cy="346.9" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="238.5" cy="346.9" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<circle cx="260.1" cy="368.5" r="14.0" fill="#1565c0" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="260.1" cy="368.5" r="9.0" fill="#1565c0" stroke="white" stroke-width="2"/>
+<text x="209.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#1565c0" font-weight="bold" text-anchor="middle">A</text>
+<text x="209.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#1565c0" font-weight="bold" text-anchor="middle">DIN → D2</text>
+<rect x="74.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="112.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="112.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="209.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="209.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="306.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="306.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="80.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="112.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M112.0 580.0 L112.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M112.0 580.0 L112.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M112.0 580.0 L112.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="274.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="306.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M306.0 580.0 L306.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M306.0 580.0 L306.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M306.0 580.0 L306.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="392.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="388.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#2e7d32" stroke-width="4"/>
+<path d="M406.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#2e7d32"/>
+<text x="414.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO B · LED</text>
+<circle cx="547.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="547.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="606.0" cy="398.0" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="606.0" cy="398.0" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="598.1" cy="427.5" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="598.1" cy="427.5" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="576.5" cy="449.1" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="576.5" cy="449.1" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="547.0" cy="457.0" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="547.0" cy="457.0" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="517.5" cy="449.1" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="517.5" cy="449.1" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="495.9" cy="427.5" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="495.9" cy="427.5" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="488.0" cy="398.0" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="488.0" cy="398.0" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="495.9" cy="368.5" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="495.9" cy="368.5" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="517.5" cy="346.9" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="517.5" cy="346.9" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="547.0" cy="339.0" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="547.0" cy="339.0" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="576.5" cy="346.9" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="576.5" cy="346.9" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<circle cx="598.1" cy="368.5" r="14.0" fill="#2e7d32" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="598.1" cy="368.5" r="9.0" fill="#2e7d32" stroke="white" stroke-width="2"/>
+<text x="547.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#2e7d32" font-weight="bold" text-anchor="middle">B</text>
+<text x="547.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#2e7d32" font-weight="bold" text-anchor="middle">DIN → D3</text>
+<rect x="412.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="450.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="450.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="547.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="547.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="644.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="644.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="418.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="450.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M450.0 580.0 L450.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M450.0 580.0 L450.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M450.0 580.0 L450.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="612.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="644.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M644.0 580.0 L644.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M644.0 580.0 L644.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M644.0 580.0 L644.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="730.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="726.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#c62828" stroke-width="4"/>
+<path d="M744.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#c62828"/>
+<text x="752.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO C · LED</text>
+<circle cx="885.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="885.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="944.0" cy="398.0" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="944.0" cy="398.0" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="936.1" cy="427.5" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="936.1" cy="427.5" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="914.5" cy="449.1" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="914.5" cy="449.1" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="885.0" cy="457.0" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="885.0" cy="457.0" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="855.5" cy="449.1" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="855.5" cy="449.1" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="833.9" cy="427.5" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="833.9" cy="427.5" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="826.0" cy="398.0" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="826.0" cy="398.0" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="833.9" cy="368.5" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="833.9" cy="368.5" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="855.5" cy="346.9" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="855.5" cy="346.9" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="885.0" cy="339.0" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="885.0" cy="339.0" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="914.5" cy="346.9" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="914.5" cy="346.9" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<circle cx="936.1" cy="368.5" r="14.0" fill="#c62828" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="936.1" cy="368.5" r="9.0" fill="#c62828" stroke="white" stroke-width="2"/>
+<text x="885.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#c62828" font-weight="bold" text-anchor="middle">C</text>
+<text x="885.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#c62828" font-weight="bold" text-anchor="middle">DIN → D4</text>
+<rect x="750.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="788.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="788.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="885.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="885.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="982.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="982.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="756.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="788.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M788.0 580.0 L788.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M788.0 580.0 L788.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M788.0 580.0 L788.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="950.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="982.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M982.0 580.0 L982.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M982.0 580.0 L982.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M982.0 580.0 L982.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1068.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1064.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#f9a825" stroke-width="4"/>
+<path d="M1082.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#f9a825"/>
+<text x="1090.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO D · LED</text>
+<circle cx="1223.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="1223.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="1282.0" cy="398.0" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1282.0" cy="398.0" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1274.1" cy="427.5" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1274.1" cy="427.5" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1252.5" cy="449.1" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1252.5" cy="449.1" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1223.0" cy="457.0" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1223.0" cy="457.0" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1193.5" cy="449.1" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1193.5" cy="449.1" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1171.9" cy="427.5" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1171.9" cy="427.5" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1164.0" cy="398.0" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1164.0" cy="398.0" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1171.9" cy="368.5" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1171.9" cy="368.5" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1193.5" cy="346.9" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1193.5" cy="346.9" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1223.0" cy="339.0" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1223.0" cy="339.0" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1252.5" cy="346.9" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1252.5" cy="346.9" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<circle cx="1274.1" cy="368.5" r="14.0" fill="#f9a825" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1274.1" cy="368.5" r="9.0" fill="#f9a825" stroke="white" stroke-width="2"/>
+<text x="1223.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#f9a825" font-weight="bold" text-anchor="middle">D</text>
+<text x="1223.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#f9a825" font-weight="bold" text-anchor="middle">DIN → D5</text>
+<rect x="1088.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="1126.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1126.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="1223.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1223.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="1320.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1320.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="1094.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="1126.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M1126.0 580.0 L1126.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1126.0 580.0 L1126.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1126.0 580.0 L1126.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1288.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1320.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M1320.0 580.0 L1320.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1320.0 580.0 L1320.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1320.0 580.0 L1320.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1406.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1402.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#8e24aa" stroke-width="4"/>
+<path d="M1420.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#8e24aa"/>
+<text x="1428.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO E · LED</text>
+<circle cx="1561.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="1561.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="1620.0" cy="398.0" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1620.0" cy="398.0" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1612.1" cy="427.5" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1612.1" cy="427.5" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1590.5" cy="449.1" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1590.5" cy="449.1" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1561.0" cy="457.0" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1561.0" cy="457.0" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1531.5" cy="449.1" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1531.5" cy="449.1" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1509.9" cy="427.5" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1509.9" cy="427.5" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1502.0" cy="398.0" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1502.0" cy="398.0" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1509.9" cy="368.5" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1509.9" cy="368.5" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1531.5" cy="346.9" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1531.5" cy="346.9" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1561.0" cy="339.0" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1561.0" cy="339.0" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1590.5" cy="346.9" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1590.5" cy="346.9" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<circle cx="1612.1" cy="368.5" r="14.0" fill="#8e24aa" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1612.1" cy="368.5" r="9.0" fill="#8e24aa" stroke="white" stroke-width="2"/>
+<text x="1561.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#8e24aa" font-weight="bold" text-anchor="middle">E</text>
+<text x="1561.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#8e24aa" font-weight="bold" text-anchor="middle">DIN → D6</text>
+<rect x="1426.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="1464.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1464.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="1561.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1561.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="1658.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1658.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="1432.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="1464.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M1464.0 580.0 L1464.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1464.0 580.0 L1464.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1464.0 580.0 L1464.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1626.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1658.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M1658.0 580.0 L1658.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1658.0 580.0 L1658.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1658.0 580.0 L1658.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1744.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1740.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#00838f" stroke-width="4"/>
+<path d="M1758.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#00838f"/>
+<text x="1766.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO F · LED</text>
+<circle cx="1899.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="1899.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="1958.0" cy="398.0" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1958.0" cy="398.0" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1950.1" cy="427.5" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1950.1" cy="427.5" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1928.5" cy="449.1" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1928.5" cy="449.1" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1899.0" cy="457.0" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1899.0" cy="457.0" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1869.5" cy="449.1" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1869.5" cy="449.1" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1847.9" cy="427.5" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1847.9" cy="427.5" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1840.0" cy="398.0" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1840.0" cy="398.0" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1847.9" cy="368.5" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1847.9" cy="368.5" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1869.5" cy="346.9" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1869.5" cy="346.9" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1899.0" cy="339.0" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1899.0" cy="339.0" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1928.5" cy="346.9" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1928.5" cy="346.9" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<circle cx="1950.1" cy="368.5" r="14.0" fill="#00838f" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="1950.1" cy="368.5" r="9.0" fill="#00838f" stroke="white" stroke-width="2"/>
+<text x="1899.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#00838f" font-weight="bold" text-anchor="middle">F</text>
+<text x="1899.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#00838f" font-weight="bold" text-anchor="middle">DIN → D7</text>
+<rect x="1764.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="1802.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1802.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="1899.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1899.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="1996.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1996.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="1770.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="1802.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M1802.0 580.0 L1802.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1802.0 580.0 L1802.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1802.0 580.0 L1802.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1964.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1996.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M1996.0 580.0 L1996.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1996.0 580.0 L1996.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1996.0 580.0 L1996.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="2082.0" y="256.0" width="318.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="2078.0" y="250.0" width="318.0" height="372.0" rx="18" fill="white" stroke="#ef6c00" stroke-width="4"/>
+<path d="M2096.0 250.0 h282.0 a18 18 0 0 1 18 18 v38.0 h-318.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#ef6c00"/>
+<text x="2104.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">ALVO G · LED</text>
+<circle cx="2237.0" cy="398.0" r="74.0" fill="#15191f" stroke="#000" stroke-width="3"/>
+<circle cx="2237.0" cy="398.0" r="44.0" fill="white" stroke="#cfd8dc" stroke-width="2"/>
+<circle cx="2296.0" cy="398.0" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2296.0" cy="398.0" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2288.1" cy="427.5" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2288.1" cy="427.5" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2266.5" cy="449.1" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2266.5" cy="449.1" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2237.0" cy="457.0" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2237.0" cy="457.0" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2207.5" cy="449.1" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2207.5" cy="449.1" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2185.9" cy="427.5" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2185.9" cy="427.5" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2178.0" cy="398.0" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2178.0" cy="398.0" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2185.9" cy="368.5" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2185.9" cy="368.5" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2207.5" cy="346.9" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2207.5" cy="346.9" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2237.0" cy="339.0" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2237.0" cy="339.0" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2266.5" cy="346.9" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2266.5" cy="346.9" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<circle cx="2288.1" cy="368.5" r="14.0" fill="#ef6c00" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="2288.1" cy="368.5" r="9.0" fill="#ef6c00" stroke="white" stroke-width="2"/>
+<text x="2237.0" y="408.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#ef6c00" font-weight="bold" text-anchor="middle">G</text>
+<text x="2237.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#ef6c00" font-weight="bold" text-anchor="middle">DIN → D8</text>
+<rect x="2102.0" y="560.0" width="270.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="2140.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2140.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">+5V</text>
+<circle cx="2237.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2237.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">DIN</text>
+<circle cx="2334.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2334.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="2108.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="2140.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M2140.0 580.0 L2140.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2140.0 580.0 L2140.0 642.0" fill="none" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2140.0 580.0 L2140.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="2302.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="2334.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M2334.0 580.0 L2334.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2334.0 580.0 L2334.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2334.0 580.0 L2334.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="2446.0" y="232.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#1b2a41" font-weight="bold" text-anchor="start">SENSORES A, B, C, D  (E, F, G: embaixo)</text>
+<rect x="2450.0" y="256.0" width="294.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="2446.0" y="250.0" width="294.0" height="372.0" rx="18" fill="white" stroke="#5c6bc0" stroke-width="4"/>
+<path d="M2464.0 250.0 h258.0 a18 18 0 0 1 18 18 v38.0 h-294.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#5c6bc0"/>
+<text x="2472.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">SENSOR A</text>
+<rect x="2507.0" y="356.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="2523.0" y="334.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="2663.0" cy="340.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="2593.0" y="404.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="2593.0" y="428.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="2533.0" cy="380.0" r="8.0" fill="#5c6bc0" stroke="none" stroke-width="0"/>
+<text x="2593.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#5c6bc0" font-weight="bold" text-anchor="middle">sinal → D9</text>
+<rect x="2470.0" y="560.0" width="246.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="2516.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2516.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="2670.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2670.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="2638.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="2670.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M2670.0 580.0 L2670.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2670.0 580.0 L2670.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2670.0 580.0 L2670.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="2764.0" y="256.0" width="294.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="2760.0" y="250.0" width="294.0" height="372.0" rx="18" fill="white" stroke="#43a047" stroke-width="4"/>
+<path d="M2778.0 250.0 h258.0 a18 18 0 0 1 18 18 v38.0 h-294.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#43a047"/>
+<text x="2786.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">SENSOR B</text>
+<rect x="2821.0" y="356.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="2837.0" y="334.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="2977.0" cy="340.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="2907.0" y="404.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="2907.0" y="428.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="2847.0" cy="380.0" r="8.0" fill="#43a047" stroke="none" stroke-width="0"/>
+<text x="2907.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#43a047" font-weight="bold" text-anchor="middle">sinal → D10</text>
+<rect x="2784.0" y="560.0" width="246.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="2830.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2830.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="2984.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2984.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="2952.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="2984.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M2984.0 580.0 L2984.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2984.0 580.0 L2984.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2984.0 580.0 L2984.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="3078.0" y="256.0" width="294.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="3074.0" y="250.0" width="294.0" height="372.0" rx="18" fill="white" stroke="#e53935" stroke-width="4"/>
+<path d="M3092.0 250.0 h258.0 a18 18 0 0 1 18 18 v38.0 h-294.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#e53935"/>
+<text x="3100.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">SENSOR C</text>
+<rect x="3135.0" y="356.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="3151.0" y="334.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="3291.0" cy="340.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="3221.0" y="404.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="3221.0" y="428.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="3161.0" cy="380.0" r="8.0" fill="#e53935" stroke="none" stroke-width="0"/>
+<text x="3221.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#e53935" font-weight="bold" text-anchor="middle">sinal → D11</text>
+<rect x="3098.0" y="560.0" width="246.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="3144.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="3144.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="3298.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="3298.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="3266.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="3298.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M3298.0 580.0 L3298.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M3298.0 580.0 L3298.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3298.0 580.0 L3298.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="3392.0" y="256.0" width="294.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="3388.0" y="250.0" width="294.0" height="372.0" rx="18" fill="white" stroke="#c0a000" stroke-width="4"/>
+<path d="M3406.0 250.0 h258.0 a18 18 0 0 1 18 18 v38.0 h-294.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#c0a000"/>
+<text x="3414.0" y="289.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">SENSOR D</text>
+<rect x="3449.0" y="356.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="3465.0" y="334.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="3605.0" cy="340.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="3535.0" y="404.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="3535.0" y="428.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="3475.0" cy="380.0" r="8.0" fill="#c0a000" stroke="none" stroke-width="0"/>
+<text x="3535.0" y="512.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#c0a000" font-weight="bold" text-anchor="middle">sinal → D12</text>
+<rect x="3412.0" y="560.0" width="246.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="3458.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="3458.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="3612.0" cy="580.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="3612.0" y="550.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#1b2a41" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="3580.2" y="648.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="3612.0" y="670.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M3612.0 580.0 L3612.0 642.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M3612.0 580.0 L3612.0 642.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3612.0 580.0 L3612.0 642.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="64.0" y="1006.0" width="620.0" height="420.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="60.0" y="1000.0" width="620.0" height="420.0" rx="18" fill="white" stroke="#b71c1c" stroke-width="4"/>
+<path d="M78.0 1000.0 h584.0 a18 18 0 0 1 18 18 v38.0 h-620.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#b71c1c"/>
+<text x="86.0" y="1039.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">FONTE 5 V DOS LEDS</text>
+<rect x="100.0" y="1076.0" width="300.0" height="190.0" rx="8" fill="#cfd8dc" stroke="#78909c" stroke-width="3"/>
+<circle cx="122.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="148.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="174.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="200.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="226.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="252.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="278.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="304.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="330.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="356.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="382.0" cy="1100.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="122.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="148.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="174.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="200.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="226.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="252.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="278.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="304.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="330.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="356.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="382.0" cy="1126.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="122.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="148.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="174.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="200.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="226.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="252.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="278.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="304.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="330.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="356.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="382.0" cy="1152.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="122.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="148.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="174.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="200.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="226.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="252.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="278.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="304.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="330.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="356.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="382.0" cy="1178.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="122.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="148.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="174.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="200.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="226.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="252.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="278.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="304.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="330.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="356.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<circle cx="382.0" cy="1204.0" r="5.0" fill="#607d8b" stroke="none" stroke-width="0"/>
+<rect x="120.0" y="1196.0" width="260.0" height="56.0" rx="6" fill="#1b4f9c" stroke="none" stroke-width="0"/>
+<text x="250.0" y="1234.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="white" font-weight="bold" text-anchor="middle">5 V · 10 A</text>
+<rect x="420.0" y="1096.0" width="220.0" height="60.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="470.0" cy="1126.0" r="14.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<circle cx="590.0" cy="1126.0" r="14.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="470.0" y="1088.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#1b2a41" font-weight="bold" text-anchor="middle">+V</text>
+<text x="590.0" y="1088.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#1b2a41" font-weight="bold" text-anchor="middle">−V</text>
+<rect x="436.3" y="1197.3" width="67.4" height="31.7" rx="8" fill="#d32f2f" stroke="#00000055" stroke-width="1.5"/>
+<text x="470.0" y="1220.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">+5V</text>
+<path d="M470.0 1126.0 L470.0 1190.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M470.0 1126.0 L470.0 1190.0" fill="none" stroke="#d32f2f" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M470.0 1126.0 L470.0 1190.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="556.3" y="1197.3" width="67.4" height="31.7" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="590.0" y="1220.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M590.0 1126.0 L590.0 1190.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M590.0 1126.0 L590.0 1190.0" fill="none" stroke="#262626" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M590.0 1126.0 L590.0 1190.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="90.0" y="1300.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">+5V</tspan> e <tspan font-weight="bold">GND</tspan> de CADA fita saem daqui</text>
+<text x="90.0" y="1331.9" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">(fio 1,5 mm²), nunca do pino 5V do Arduino.</text>
+<text x="90.0" y="1363.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">Capacitor <tspan font-weight="bold">1000 µF 16 V</tspan> entre +V e −V.</text>
+<path d="M650.0 1208.0 L724.0 1208.0 Q740.0 1208.0 740.0 1224.0 L740.0 1358.0 Q740.0 1374.0 756.0 1374.0 L1356.0 1374.0 Q1372.0 1374.0 1372.0 1358.0 L1372.0 1298.0" fill="none" stroke="#10151c" stroke-width="14" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M650.0 1208.0 L724.0 1208.0 Q740.0 1208.0 740.0 1224.0 L740.0 1358.0 Q740.0 1374.0 756.0 1374.0 L1356.0 1374.0 Q1372.0 1374.0 1372.0 1358.0 L1372.0 1298.0" fill="none" stroke="#262626" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M650.0 1208.0 L724.0 1208.0 Q740.0 1208.0 740.0 1224.0 L740.0 1358.0 Q740.0 1374.0 756.0 1374.0 L1356.0 1374.0 Q1372.0 1374.0 1372.0 1358.0 L1372.0 1298.0" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="774.1" y="1366.4" width="563.8" height="26.4" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1056.0" y="1386.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="20" fill="white" font-weight="bold" text-anchor="middle">GND da fonte → GND do Arduino (obrigatório)</text>
+<path d="M209.0 580.0 L209.0 934.0 Q209.0 950.0 225.0 950.0 L1620.0 950.0 Q1636.0 950.0 1636.0 966.0 L1636.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M209.0 580.0 L209.0 934.0 Q209.0 950.0 225.0 950.0 L1620.0 950.0 Q1636.0 950.0 1636.0 966.0 L1636.0 1052.0" fill="none" stroke="#1565c0" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M209.0 580.0 L209.0 934.0 Q209.0 950.0 225.0 950.0 L1620.0 950.0 Q1636.0 950.0 1636.0 966.0 L1636.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="196.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="196.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="196.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="196.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="196.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="231.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M547.0 580.0 L547.0 900.0 Q547.0 916.0 563.0 916.0 L1708.0 916.0 Q1724.0 916.0 1724.0 932.0 L1724.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M547.0 580.0 L547.0 900.0 Q547.0 916.0 563.0 916.0 L1708.0 916.0 Q1724.0 916.0 1724.0 932.0 L1724.0 1052.0" fill="none" stroke="#2e7d32" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M547.0 580.0 L547.0 900.0 Q547.0 916.0 563.0 916.0 L1708.0 916.0 Q1724.0 916.0 1724.0 932.0 L1724.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="534.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="534.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="534.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="534.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="534.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="569.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M885.0 580.0 L885.0 866.0 Q885.0 882.0 901.0 882.0 L1796.0 882.0 Q1812.0 882.0 1812.0 898.0 L1812.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M885.0 580.0 L885.0 866.0 Q885.0 882.0 901.0 882.0 L1796.0 882.0 Q1812.0 882.0 1812.0 898.0 L1812.0 1052.0" fill="none" stroke="#c62828" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M885.0 580.0 L885.0 866.0 Q885.0 882.0 901.0 882.0 L1796.0 882.0 Q1812.0 882.0 1812.0 898.0 L1812.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="872.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="872.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="872.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="872.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="872.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="907.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M1223.0 580.0 L1223.0 832.0 Q1223.0 848.0 1239.0 848.0 L1884.0 848.0 Q1900.0 848.0 1900.0 864.0 L1900.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1223.0 580.0 L1223.0 832.0 Q1223.0 848.0 1239.0 848.0 L1884.0 848.0 Q1900.0 848.0 1900.0 864.0 L1900.0 1052.0" fill="none" stroke="#f9a825" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1223.0 580.0 L1223.0 832.0 Q1223.0 848.0 1239.0 848.0 L1884.0 848.0 Q1900.0 848.0 1900.0 864.0 L1900.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1210.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="1210.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="1210.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="1210.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="1210.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="1245.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M1561.0 580.0 L1561.0 798.0 Q1561.0 814.0 1577.0 814.0 L1972.0 814.0 Q1988.0 814.0 1988.0 830.0 L1988.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1561.0 580.0 L1561.0 798.0 Q1561.0 814.0 1577.0 814.0 L1972.0 814.0 Q1988.0 814.0 1988.0 830.0 L1988.0 1052.0" fill="none" stroke="#8e24aa" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1561.0 580.0 L1561.0 798.0 Q1561.0 814.0 1577.0 814.0 L1972.0 814.0 Q1988.0 814.0 1988.0 830.0 L1988.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1548.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="1548.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="1548.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="1548.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="1548.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="1583.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M1899.0 580.0 L1899.0 764.0 Q1899.0 780.0 1915.0 780.0 L2060.0 780.0 Q2076.0 780.0 2076.0 796.0 L2076.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1899.0 580.0 L1899.0 764.0 Q1899.0 780.0 1915.0 780.0 L2060.0 780.0 Q2076.0 780.0 2076.0 796.0 L2076.0 1052.0" fill="none" stroke="#00838f" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1899.0 580.0 L1899.0 764.0 Q1899.0 780.0 1915.0 780.0 L2060.0 780.0 Q2076.0 780.0 2076.0 796.0 L2076.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="1886.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="1886.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="1886.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="1886.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="1886.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="1921.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M2237.0 580.0 L2237.0 798.0 Q2237.0 814.0 2221.0 814.0 L2180.0 814.0 Q2164.0 814.0 2164.0 830.0 L2164.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2237.0 580.0 L2237.0 798.0 Q2237.0 814.0 2221.0 814.0 L2180.0 814.0 Q2164.0 814.0 2164.0 830.0 L2164.0 1052.0" fill="none" stroke="#ef6c00" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2237.0 580.0 L2237.0 798.0 Q2237.0 814.0 2221.0 814.0 L2180.0 814.0 Q2164.0 814.0 2164.0 830.0 L2164.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="2224.0" y="638.0" width="26.0" height="60.0" rx="10" fill="#d9c08a" stroke="#7a6a45" stroke-width="2"/>
+<rect x="2224.0" y="646.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="2224.0" y="658.0" width="26.0" height="6.0" rx="0" fill="#e65100" stroke="none" stroke-width="0"/>
+<rect x="2224.0" y="670.0" width="26.0" height="6.0" rx="0" fill="#6d4c41" stroke="none" stroke-width="0"/>
+<rect x="2224.0" y="682.0" width="26.0" height="6.0" rx="0" fill="#c9a227" stroke="none" stroke-width="0"/>
+<text x="2259.0" y="708.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="bold" text-anchor="start">330 Ω</text>
+<path d="M2516.0 580.0 L2516.0 832.0 Q2516.0 848.0 2500.0 848.0 L2268.0 848.0 Q2252.0 848.0 2252.0 864.0 L2252.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2516.0 580.0 L2516.0 832.0 Q2516.0 848.0 2500.0 848.0 L2268.0 848.0 Q2252.0 848.0 2252.0 864.0 L2252.0 1052.0" fill="none" stroke="#5c6bc0" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2516.0 580.0 L2516.0 832.0 Q2516.0 848.0 2500.0 848.0 L2268.0 848.0 Q2252.0 848.0 2252.0 864.0 L2252.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M2830.0 580.0 L2830.0 866.0 Q2830.0 882.0 2814.0 882.0 L2356.0 882.0 Q2340.0 882.0 2340.0 898.0 L2340.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2830.0 580.0 L2830.0 866.0 Q2830.0 882.0 2814.0 882.0 L2356.0 882.0 Q2340.0 882.0 2340.0 898.0 L2340.0 1052.0" fill="none" stroke="#43a047" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2830.0 580.0 L2830.0 866.0 Q2830.0 882.0 2814.0 882.0 L2356.0 882.0 Q2340.0 882.0 2340.0 898.0 L2340.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M3144.0 580.0 L3144.0 900.0 Q3144.0 916.0 3128.0 916.0 L2444.0 916.0 Q2428.0 916.0 2428.0 932.0 L2428.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M3144.0 580.0 L3144.0 900.0 Q3144.0 916.0 3128.0 916.0 L2444.0 916.0 Q2428.0 916.0 2428.0 932.0 L2428.0 1052.0" fill="none" stroke="#e53935" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3144.0 580.0 L3144.0 900.0 Q3144.0 916.0 3128.0 916.0 L2444.0 916.0 Q2428.0 916.0 2428.0 932.0 L2428.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M3458.0 580.0 L3458.0 934.0 Q3458.0 950.0 3442.0 950.0 L2532.0 950.0 Q2516.0 950.0 2516.0 966.0 L2516.0 1052.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M3458.0 580.0 L3458.0 934.0 Q3458.0 950.0 3442.0 950.0 L2532.0 950.0 Q2516.0 950.0 2516.0 966.0 L2516.0 1052.0" fill="none" stroke="#c0a000" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3458.0 580.0 L3458.0 934.0 Q3458.0 950.0 3442.0 950.0 L2532.0 950.0 Q2516.0 950.0 2516.0 966.0 L2516.0 1052.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="764.0" y="1646.0" width="356.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="760.0" y="1640.0" width="356.0" height="372.0" rx="18" fill="white" stroke="#6d4c41" stroke-width="4"/>
+<path d="M778.0 1640.0 h320.0 a18 18 0 0 1 18 18 v38.0 h-356.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#6d4c41"/>
+<text x="786.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="start"></text>
+<text x="938.0" y="1678.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="middle">MOEDEIRO</text>
+<rect x="864.0" y="1762.0" width="148.0" height="156.0" rx="10" fill="#cfd8dc" stroke="#78909c" stroke-width="3"/>
+<rect x="908.0" y="1778.0" width="60.0" height="12.0" rx="5" fill="#263238" stroke="none" stroke-width="0"/>
+<circle cx="938.0" cy="1834.0" r="30.0" fill="#f9a825" stroke="#b47d00" stroke-width="3"/>
+<text x="938.0" y="1843.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#6d4c00" font-weight="bold" text-anchor="middle">R$</text>
+<circle cx="938.0" cy="1890.0" r="12.0" fill="#e53935" stroke="#8e0000" stroke-width="2"/>
+<rect x="784.0" y="1712.0" width="308.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="806.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="854.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">COIN</text>
+<circle cx="1070.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1022.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="1038.2" y="1596.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1070.0" y="1618.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M1070.0 1732.0 L1070.0 1634.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1070.0 1732.0 L1070.0 1634.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1070.0 1732.0 L1070.0 1634.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="938.0" y="1952.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#6d4c41" font-weight="bold" text-anchor="middle">COIN → A5</text>
+<text x="938.0" y="1986.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="normal" text-anchor="middle">12 V e GND do moedeiro: fonte dele</text>
+<rect x="1144.0" y="1646.0" width="356.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1140.0" y="1640.0" width="356.0" height="372.0" rx="18" fill="white" stroke="#f9a825" stroke-width="4"/>
+<path d="M1158.0 1640.0 h320.0 a18 18 0 0 1 18 18 v38.0 h-356.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#f9a825"/>
+<text x="1166.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="start"></text>
+<text x="1318.0" y="1678.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="middle">BOTÃO SELECT</text>
+<circle cx="1318.0" cy="1840.0" r="70.0" fill="#263238" stroke="#000" stroke-width="3"/>
+<circle cx="1318.0" cy="1840.0" r="56.0" fill="#f9a825" stroke="#00000066" stroke-width="3"/>
+<circle cx="1302.0" cy="1822.0" r="20.0" fill="white" stroke="none" stroke-width="0" opacity="0.35"/>
+<rect x="1164.0" y="1712.0" width="308.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="1186.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1234.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="1450.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1402.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="1418.2" y="1596.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1450.0" y="1618.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M1450.0 1732.0 L1450.0 1634.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1450.0 1732.0 L1450.0 1634.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1450.0 1732.0 L1450.0 1634.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="1318.0" y="1952.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#f9a825" font-weight="bold" text-anchor="middle">sinal → A4</text>
+<text x="1318.0" y="1986.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="normal" text-anchor="middle">um fio no A4, o outro no GND</text>
+<rect x="1524.0" y="1646.0" width="356.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1520.0" y="1640.0" width="356.0" height="372.0" rx="18" fill="white" stroke="#2e7d32" stroke-width="4"/>
+<path d="M1538.0 1640.0 h320.0 a18 18 0 0 1 18 18 v38.0 h-356.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#2e7d32"/>
+<text x="1546.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="start"></text>
+<text x="1698.0" y="1678.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="middle">BOTÃO START</text>
+<circle cx="1698.0" cy="1840.0" r="70.0" fill="#263238" stroke="#000" stroke-width="3"/>
+<circle cx="1698.0" cy="1840.0" r="56.0" fill="#2e7d32" stroke="#00000066" stroke-width="3"/>
+<circle cx="1682.0" cy="1822.0" r="20.0" fill="white" stroke="none" stroke-width="0" opacity="0.35"/>
+<rect x="1544.0" y="1712.0" width="308.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="1566.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1614.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="1830.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1782.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="1798.2" y="1596.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="1830.0" y="1618.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M1830.0 1732.0 L1830.0 1634.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1830.0 1732.0 L1830.0 1634.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1830.0 1732.0 L1830.0 1634.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="1698.0" y="1952.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#2e7d32" font-weight="bold" text-anchor="middle">sinal → A3</text>
+<text x="1698.0" y="1986.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="normal" text-anchor="middle">um fio no A3, o outro no GND</text>
+<rect x="1904.0" y="1646.0" width="356.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1900.0" y="1640.0" width="356.0" height="372.0" rx="18" fill="white" stroke="#fb8c00" stroke-width="4"/>
+<path d="M1918.0 1640.0 h320.0 a18 18 0 0 1 18 18 v38.0 h-356.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#fb8c00"/>
+<text x="1926.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="start"></text>
+<text x="2078.0" y="1678.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="middle">SENSOR G</text>
+<rect x="1992.0" y="1802.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="2008.0" y="1780.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="2148.0" cy="1786.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="2078.0" y="1850.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="2078.0" y="1874.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="2018.0" cy="1826.0" r="8.0" fill="#fb8c00" stroke="none" stroke-width="0"/>
+<rect x="1924.0" y="1712.0" width="308.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="1946.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="1994.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="2210.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2162.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="2178.2" y="1596.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="2210.0" y="1618.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M2210.0 1732.0 L2210.0 1634.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2210.0 1732.0 L2210.0 1634.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2210.0 1732.0 L2210.0 1634.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="2078.0" y="1952.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#fb8c00" font-weight="bold" text-anchor="middle">sinal → A2</text>
+<text x="2078.0" y="1986.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="normal" text-anchor="middle">um fio no A2, o outro no GND</text>
+<rect x="2284.0" y="1646.0" width="356.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="2280.0" y="1640.0" width="356.0" height="372.0" rx="18" fill="white" stroke="#00acc1" stroke-width="4"/>
+<path d="M2298.0 1640.0 h320.0 a18 18 0 0 1 18 18 v38.0 h-356.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#00acc1"/>
+<text x="2306.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="start"></text>
+<text x="2458.0" y="1678.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="middle">SENSOR F</text>
+<rect x="2372.0" y="1802.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="2388.0" y="1780.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="2528.0" cy="1786.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="2458.0" y="1850.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="2458.0" y="1874.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="2398.0" cy="1826.0" r="8.0" fill="#00acc1" stroke="none" stroke-width="0"/>
+<rect x="2304.0" y="1712.0" width="308.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="2326.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2374.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="2590.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2542.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="2558.2" y="1596.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="2590.0" y="1618.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M2590.0 1732.0 L2590.0 1634.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2590.0 1732.0 L2590.0 1634.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2590.0 1732.0 L2590.0 1634.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="2458.0" y="1952.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#00acc1" font-weight="bold" text-anchor="middle">sinal → A1</text>
+<text x="2458.0" y="1986.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="normal" text-anchor="middle">um fio no A1, o outro no GND</text>
+<rect x="2664.0" y="1646.0" width="356.0" height="372.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="2660.0" y="1640.0" width="356.0" height="372.0" rx="18" fill="white" stroke="#ab47bc" stroke-width="4"/>
+<path d="M2678.0 1640.0 h320.0 a18 18 0 0 1 18 18 v38.0 h-356.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#ab47bc"/>
+<text x="2686.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="start"></text>
+<text x="2838.0" y="1678.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="25" fill="white" font-weight="bold" text-anchor="middle">SENSOR E</text>
+<rect x="2752.0" y="1802.0" width="172.0" height="88.0" rx="10" fill="#1c1f24" stroke="#000" stroke-width="3"/>
+<rect x="2768.0" y="1780.0" width="150.0" height="16.0" rx="6" fill="#b0bec5" stroke="#607d8b" stroke-width="2"/>
+<circle cx="2908.0" cy="1786.0" r="13.0" fill="#eceff1" stroke="#607d8b" stroke-width="3"/>
+<text x="2838.0" y="1850.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#cfd8dc" font-weight="bold" text-anchor="middle">contato</text>
+<text x="2838.0" y="1874.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#90a4ae" font-weight="normal" text-anchor="middle">do alvo</text>
+<circle cx="2778.0" cy="1826.0" r="8.0" fill="#ab47bc" stroke="none" stroke-width="0"/>
+<rect x="2684.0" y="1712.0" width="308.0" height="40.0" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+<circle cx="2706.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2754.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">sinal</text>
+<circle cx="2970.0" cy="1732.0" r="11.0" fill="#cfd8dc" stroke="#607d8b" stroke-width="2"/>
+<text x="2922.0" y="1740.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<rect x="2938.2" y="1596.8" width="63.6" height="29.0" rx="8" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="2970.0" y="1618.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<path d="M2970.0 1732.0 L2970.0 1634.0" fill="none" stroke="#10151c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2970.0 1732.0 L2970.0 1634.0" fill="none" stroke="#262626" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2970.0 1732.0 L2970.0 1634.0" fill="none" stroke="white" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<text x="2838.0" y="1952.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="30" fill="#ab47bc" font-weight="bold" text-anchor="middle">sinal → A0</text>
+<text x="2838.0" y="1986.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#5d6d7e" font-weight="normal" text-anchor="middle">um fio no A0, o outro no GND</text>
+<path d="M806.0 1732.0 L806.0 1436.0 Q806.0 1420.0 822.0 1420.0 L1796.0 1420.0 Q1812.0 1420.0 1812.0 1404.0 L1812.0 1298.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M806.0 1732.0 L806.0 1436.0 Q806.0 1420.0 822.0 1420.0 L1796.0 1420.0 Q1812.0 1420.0 1812.0 1404.0 L1812.0 1298.0" fill="none" stroke="#6d4c41" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M806.0 1732.0 L806.0 1436.0 Q806.0 1420.0 822.0 1420.0 L1796.0 1420.0 Q1812.0 1420.0 1812.0 1404.0 L1812.0 1298.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M1186.0 1732.0 L1186.0 1470.0 Q1186.0 1454.0 1202.0 1454.0 L1884.0 1454.0 Q1900.0 1454.0 1900.0 1438.0 L1900.0 1298.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1186.0 1732.0 L1186.0 1470.0 Q1186.0 1454.0 1202.0 1454.0 L1884.0 1454.0 Q1900.0 1454.0 1900.0 1438.0 L1900.0 1298.0" fill="none" stroke="#f9a825" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1186.0 1732.0 L1186.0 1470.0 Q1186.0 1454.0 1202.0 1454.0 L1884.0 1454.0 Q1900.0 1454.0 1900.0 1438.0 L1900.0 1298.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M1566.0 1732.0 L1566.0 1504.0 Q1566.0 1488.0 1582.0 1488.0 L1972.0 1488.0 Q1988.0 1488.0 1988.0 1472.0 L1988.0 1298.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1566.0 1732.0 L1566.0 1504.0 Q1566.0 1488.0 1582.0 1488.0 L1972.0 1488.0 Q1988.0 1488.0 1988.0 1472.0 L1988.0 1298.0" fill="none" stroke="#2e7d32" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1566.0 1732.0 L1566.0 1504.0 Q1566.0 1488.0 1582.0 1488.0 L1972.0 1488.0 Q1988.0 1488.0 1988.0 1472.0 L1988.0 1298.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M1946.0 1732.0 L1946.0 1538.0 Q1946.0 1522.0 1962.0 1522.0 L2060.0 1522.0 Q2076.0 1522.0 2076.0 1506.0 L2076.0 1298.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M1946.0 1732.0 L1946.0 1538.0 Q1946.0 1522.0 1962.0 1522.0 L2060.0 1522.0 Q2076.0 1522.0 2076.0 1506.0 L2076.0 1298.0" fill="none" stroke="#fb8c00" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M1946.0 1732.0 L1946.0 1538.0 Q1946.0 1522.0 1962.0 1522.0 L2060.0 1522.0 Q2076.0 1522.0 2076.0 1506.0 L2076.0 1298.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M2326.0 1732.0 L2326.0 1470.0 Q2326.0 1454.0 2310.0 1454.0 L2180.0 1454.0 Q2164.0 1454.0 2164.0 1438.0 L2164.0 1298.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2326.0 1732.0 L2326.0 1470.0 Q2326.0 1454.0 2310.0 1454.0 L2180.0 1454.0 Q2164.0 1454.0 2164.0 1438.0 L2164.0 1298.0" fill="none" stroke="#00acc1" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2326.0 1732.0 L2326.0 1470.0 Q2326.0 1454.0 2310.0 1454.0 L2180.0 1454.0 Q2164.0 1454.0 2164.0 1438.0 L2164.0 1298.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<path d="M2706.0 1732.0 L2706.0 1436.0 Q2706.0 1420.0 2690.0 1420.0 L2268.0 1420.0 Q2252.0 1420.0 2252.0 1404.0 L2252.0 1298.0" fill="none" stroke="#10151c" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2706.0 1732.0 L2706.0 1436.0 Q2706.0 1420.0 2690.0 1420.0 L2268.0 1420.0 Q2252.0 1420.0 2252.0 1404.0 L2252.0 1298.0" fill="none" stroke="#ab47bc" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2706.0 1732.0 L2706.0 1436.0 Q2706.0 1420.0 2690.0 1420.0 L2268.0 1420.0 Q2252.0 1420.0 2252.0 1404.0 L2252.0 1298.0" fill="none" stroke="white" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="2846.0" y="1010.0" width="900.0" height="330.0" rx="24" fill="#000" stroke="none" stroke-width="0" opacity="0.2"/>
+<rect x="2840.0" y="1000.0" width="900.0" height="330.0" rx="24" fill="#0f141b" stroke="#000" stroke-width="4"/>
+<rect x="2870.0" y="1030.0" width="840.0" height="150.0" rx="14" fill="#17202b" stroke="#263545" stroke-width="3"/>
+<text x="3290.0" y="1096.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="44" fill="#ffd54f" font-weight="bold" text-anchor="middle">TV BOX ou TV ANDROID</text>
+<text x="3290.0" y="1146.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="white" font-weight="normal" text-anchor="middle">o jogo Gol Flash Arena (APK)   ·   no PC: a mesma porta USB (COM5)</text>
+<text x="3290.0" y="1226.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="middle">USB: dados + alimenta o Arduino</text>
+<text x="3290.0" y="1268.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="#b0bec5" font-weight="normal" text-anchor="middle">1ª vez: na janela do Android marque “Usar por padrão” e OK</text>
+<text x="3290.0" y="1302.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#78909c" font-weight="normal" text-anchor="middle">HDMI na TV · controle remoto opera o jogo</text>
+<path d="M2710.0 1175.0 L2840.0 1175.0" fill="none" stroke="#10151c" stroke-width="20" stroke-linejoin="round" stroke-linecap="round" opacity="0.55"/>
+<path d="M2710.0 1175.0 L2840.0 1175.0" fill="none" stroke="#8a9399" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2710.0 1175.0 L2840.0 1175.0" fill="none" stroke="white" stroke-width="4.0" stroke-linejoin="round" stroke-linecap="round" opacity="0.28"/>
+<rect x="2703.5" y="1122.3" width="143.0" height="31.7" rx="8" fill="#455a64" stroke="#00000055" stroke-width="1.5"/>
+<text x="2775.0" y="1145.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">CABO USB</text>
+<rect x="2840.0" y="1380.0" width="900.0" height="200.0" rx="16" fill="#fff8e1" stroke="#f9a825" stroke-width="3"/>
+<text x="2866.0" y="1426.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Na TV Box / TV Android tudo passa pelo Arduino:</tspan> LEDs,</text>
+<text x="2866.0" y="1459.3" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="#1b2a41" font-weight="normal" text-anchor="start">sensores, START, SELECT e ficha — um cabo USB só.</text>
+<text x="2866.0" y="1492.7" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">No PC (Windows)</tspan> o jogo fala com ele pela COM5, como</text>
+<text x="2866.0" y="1526.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="23" fill="#1b2a41" font-weight="normal" text-anchor="start">sempre; a placa Zero Delay continua funcionando lá.</text>
+<rect x="1186.0" y="1020.0" width="1440.0" height="330.0" rx="22" fill="#000" stroke="none" stroke-width="0" opacity="0.22"/>
+<rect x="1180.0" y="1010.0" width="1440.0" height="330.0" rx="22" fill="#1b4f9c" stroke="#0d2f63" stroke-width="5"/>
+<path d="M1330.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1418.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1506.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1594.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1682.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1770.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1858.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M1946.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M2034.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M2122.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M2210.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M2298.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M2386.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<path d="M2474.0 1080.0 v60 h40" fill="none" stroke="#2a66bd" stroke-width="3" opacity="0.7"/>
+<rect x="1820.0" y="1128.0" width="110.0" height="96.0" rx="6" fill="#1c1c1c" stroke="#000" stroke-width="2"/>
+<text x="1875.0" y="1172.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="17" fill="#cfd8dc" font-weight="bold" text-anchor="middle">ATMEGA</text>
+<text x="1875.0" y="1194.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="17" fill="#cfd8dc" font-weight="bold" text-anchor="middle">328P</text>
+<rect x="1680.0" y="1152.0" width="90.0" height="46.0" rx="22" fill="#cfd8dc" stroke="#78909c" stroke-width="2"/>
+<text x="1725.0" y="1182.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="15" fill="#37474f" font-weight="bold" text-anchor="middle">16.000</text>
+<rect x="1510.0" y="1136.0" width="70.0" height="70.0" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="3"/>
+<circle cx="1545.0" cy="1171.0" r="21.0" fill="#263238" stroke="none" stroke-width="0"/>
+<text x="1545.0" y="1228.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="14" fill="#dfe9f5" font-weight="bold" text-anchor="middle">RESET</text>
+<text x="2220.0" y="1168.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="34" fill="white" font-weight="bold" text-anchor="middle">ARDUINO NANO</text>
+<text x="2220.0" y="1202.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="19" fill="#cfe0f5" font-weight="normal" text-anchor="middle">5 V · 16 MHz · no Uno: mesmos nomes de pinos</text>
+<rect x="2614.0" y="1114.0" width="96.0" height="122.0" rx="8" fill="#cfd8dc" stroke="#78909c" stroke-width="3"/>
+<rect x="2642.0" y="1148.0" width="56.0" height="54.0" rx="6" fill="#263238" stroke="none" stroke-width="0"/>
+<circle cx="1284.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1284.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1284.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">TX1</text>
+<circle cx="1372.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1372.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1372.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">RX0</text>
+<circle cx="1460.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1460.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1460.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">RST</text>
+<circle cx="1548.0" cy="1052.0" r="27.0" fill="none" stroke="#262626" stroke-width="6"/>
+<circle cx="1548.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1548.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1548.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<circle cx="1636.0" cy="1052.0" r="27.0" fill="none" stroke="#1565c0" stroke-width="6"/>
+<circle cx="1636.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1636.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1636.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D2</text>
+<circle cx="1724.0" cy="1052.0" r="27.0" fill="none" stroke="#2e7d32" stroke-width="6"/>
+<circle cx="1724.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1724.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1724.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D3</text>
+<circle cx="1812.0" cy="1052.0" r="27.0" fill="none" stroke="#c62828" stroke-width="6"/>
+<circle cx="1812.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1812.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1812.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D4</text>
+<circle cx="1900.0" cy="1052.0" r="27.0" fill="none" stroke="#f9a825" stroke-width="6"/>
+<circle cx="1900.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1900.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1900.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D5</text>
+<circle cx="1988.0" cy="1052.0" r="27.0" fill="none" stroke="#8e24aa" stroke-width="6"/>
+<circle cx="1988.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1988.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1988.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D6</text>
+<circle cx="2076.0" cy="1052.0" r="27.0" fill="none" stroke="#00838f" stroke-width="6"/>
+<circle cx="2076.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2076.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2076.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D7</text>
+<circle cx="2164.0" cy="1052.0" r="27.0" fill="none" stroke="#ef6c00" stroke-width="6"/>
+<circle cx="2164.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2164.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2164.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D8</text>
+<circle cx="2252.0" cy="1052.0" r="27.0" fill="none" stroke="#5c6bc0" stroke-width="6"/>
+<circle cx="2252.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2252.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2252.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D9</text>
+<circle cx="2340.0" cy="1052.0" r="27.0" fill="none" stroke="#43a047" stroke-width="6"/>
+<circle cx="2340.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2340.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2340.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D10</text>
+<circle cx="2428.0" cy="1052.0" r="27.0" fill="none" stroke="#e53935" stroke-width="6"/>
+<circle cx="2428.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2428.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2428.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D11</text>
+<circle cx="2516.0" cy="1052.0" r="27.0" fill="none" stroke="#c0a000" stroke-width="6"/>
+<circle cx="2516.0" cy="1052.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2516.0" cy="1052.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2516.0" y="1110.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">D12</text>
+<circle cx="1284.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1284.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1284.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">VIN</text>
+<circle cx="1372.0" cy="1298.0" r="27.0" fill="none" stroke="#262626" stroke-width="6"/>
+<circle cx="1372.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1372.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1372.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">GND</text>
+<circle cx="1460.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1460.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1460.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">RST</text>
+<circle cx="1548.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1548.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1548.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">5V</text>
+<circle cx="1636.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1636.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1636.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">A7</text>
+<circle cx="1724.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1724.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1724.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">A6</text>
+<circle cx="1812.0" cy="1298.0" r="27.0" fill="none" stroke="#6d4c41" stroke-width="6"/>
+<circle cx="1812.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1812.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1812.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">A5</text>
+<circle cx="1900.0" cy="1298.0" r="27.0" fill="none" stroke="#f9a825" stroke-width="6"/>
+<circle cx="1900.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1900.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1900.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">A4</text>
+<circle cx="1988.0" cy="1298.0" r="27.0" fill="none" stroke="#2e7d32" stroke-width="6"/>
+<circle cx="1988.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="1988.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="1988.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">A3</text>
+<circle cx="2076.0" cy="1298.0" r="27.0" fill="none" stroke="#fb8c00" stroke-width="6"/>
+<circle cx="2076.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2076.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2076.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">A2</text>
+<circle cx="2164.0" cy="1298.0" r="27.0" fill="none" stroke="#00acc1" stroke-width="6"/>
+<circle cx="2164.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2164.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2164.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">A1</text>
+<circle cx="2252.0" cy="1298.0" r="27.0" fill="none" stroke="#ab47bc" stroke-width="6"/>
+<circle cx="2252.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2252.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2252.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="white" font-weight="bold" text-anchor="middle">A0</text>
+<circle cx="2340.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2340.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2340.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">AREF</text>
+<circle cx="2428.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2428.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2428.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">3V3</text>
+<circle cx="2516.0" cy="1298.0" r="19.0" fill="#d4a829" stroke="#8a6a12" stroke-width="2.5"/>
+<circle cx="2516.0" cy="1298.0" r="8.0" fill="#3b2f0a" stroke="none" stroke-width="0"/>
+<text x="2516.0" y="1258.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="21" fill="#9db7dd" font-weight="normal" text-anchor="middle">D13</text>
+<circle cx="1210.0" cy="1040.0" r="15.0" fill="#e8eef5" stroke="#8fa1b5" stroke-width="3"/>
+<circle cx="2590.0" cy="1040.0" r="15.0" fill="#e8eef5" stroke="#8fa1b5" stroke-width="3"/>
+<circle cx="1210.0" cy="1310.0" r="15.0" fill="#e8eef5" stroke="#8fa1b5" stroke-width="3"/>
+<circle cx="2590.0" cy="1310.0" r="15.0" fill="#e8eef5" stroke="#8fa1b5" stroke-width="3"/>
+<rect x="64.0" y="1646.0" width="640.0" height="650.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="60.0" y="1640.0" width="640.0" height="650.0" rx="18" fill="white" stroke="#37474f" stroke-width="4"/>
+<path d="M78.0 1640.0 h604.0 a18 18 0 0 1 18 18 v38.0 h-640.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#37474f"/>
+<text x="86.0" y="1679.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="27" fill="white" font-weight="bold" text-anchor="start">TABELA DE PINOS</text>
+<circle cx="96.0" cy="1716.0" r="9.0" fill="#1565c0" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1724.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D2</text>
+<text x="275.0" y="1724.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo A (DIN, 330 Ω)</text>
+<rect x="72.0" y="1731.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="1745.5" r="9.0" fill="#2e7d32" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1753.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D3</text>
+<text x="275.0" y="1753.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo B (DIN, 330 Ω)</text>
+<circle cx="96.0" cy="1775.0" r="9.0" fill="#c62828" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1783.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D4</text>
+<text x="275.0" y="1783.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo C (DIN, 330 Ω)</text>
+<rect x="72.0" y="1790.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="1804.5" r="9.0" fill="#f9a825" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1812.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D5</text>
+<text x="275.0" y="1812.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo D (DIN, 330 Ω)</text>
+<circle cx="96.0" cy="1834.0" r="9.0" fill="#8e24aa" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1842.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D6</text>
+<text x="275.0" y="1842.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo E (DIN, 330 Ω)</text>
+<rect x="72.0" y="1849.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="1863.5" r="9.0" fill="#00838f" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1871.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D7</text>
+<text x="275.0" y="1871.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo F (DIN, 330 Ω)</text>
+<circle cx="96.0" cy="1893.0" r="9.0" fill="#ef6c00" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1901.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D8</text>
+<text x="275.0" y="1901.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">LED do alvo G (DIN, 330 Ω)</text>
+<rect x="72.0" y="1908.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="1922.5" r="9.0" fill="#5c6bc0" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1930.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D9</text>
+<text x="275.0" y="1930.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo A</text>
+<circle cx="96.0" cy="1952.0" r="9.0" fill="#43a047" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1960.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D10</text>
+<text x="275.0" y="1960.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo B</text>
+<rect x="72.0" y="1967.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="1981.5" r="9.0" fill="#e53935" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="1989.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D11</text>
+<text x="275.0" y="1989.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo C</text>
+<circle cx="96.0" cy="2011.0" r="9.0" fill="#c0a000" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2019.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D12</text>
+<text x="275.0" y="2019.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo D</text>
+<rect x="72.0" y="2026.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="2040.5" r="9.0" fill="#ab47bc" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2048.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">A0</text>
+<text x="275.0" y="2048.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo E</text>
+<circle cx="96.0" cy="2070.0" r="9.0" fill="#00acc1" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2078.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">A1</text>
+<text x="275.0" y="2078.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo F</text>
+<rect x="72.0" y="2085.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="2099.5" r="9.0" fill="#fb8c00" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2107.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">A2</text>
+<text x="275.0" y="2107.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">sensor do alvo G</text>
+<circle cx="96.0" cy="2129.0" r="9.0" fill="#2e7d32" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2137.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">A3</text>
+<text x="275.0" y="2137.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">botão START</text>
+<rect x="72.0" y="2144.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="2158.5" r="9.0" fill="#f9a825" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2166.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">A4</text>
+<text x="275.0" y="2166.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">botão SELECT (COPA)</text>
+<circle cx="96.0" cy="2188.0" r="9.0" fill="#6d4c41" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2196.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">A5</text>
+<text x="275.0" y="2196.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">moedeiro / noteiro (COIN)</text>
+<rect x="72.0" y="2203.5" width="616.0" height="29.5" rx="0" fill="#f1f4f7" stroke="none" stroke-width="0"/>
+<circle cx="96.0" cy="2217.5" r="9.0" fill="#262626" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2225.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">GND</text>
+<text x="275.0" y="2225.5" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">GND de tudo (todos juntos)</text>
+<circle cx="96.0" cy="2247.0" r="9.0" fill="#9e9e9e" stroke="#00000055" stroke-width="1.5"/>
+<text x="118.0" y="2255.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="bold" text-anchor="start">D13, A6, A7</text>
+<text x="275.0" y="2255.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="22" fill="#1b2a41" font-weight="normal" text-anchor="start">livres</text>
+<rect x="64.0" y="2336.0" width="900.0" height="480.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="60.0" y="2330.0" width="900.0" height="480.0" rx="18" fill="white" stroke="#b71c1c" stroke-width="4"/>
+<path d="M78.0 2330.0 h864.0 a18 18 0 0 1 18 18 v38.0 h-900.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#b71c1c"/>
+<text x="86.0" y="2369.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="start">A FONTE E AS FITAS</text>
+<text x="90.0" y="2422.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Conta da fonte:</tspan> 0,05 A por LED aceso em branco.</text>
+<text x="90.0" y="2456.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">7 alvos × 30 LEDs = 210 LEDs → <tspan font-weight="bold">fonte 5 V 10 A</tspan>.</text>
+<text x="90.0" y="2491.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Menos LEDs? 7 alvos × 12 LEDs → 5 V 5 A basta.</text>
+<text x="90.0" y="2561.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">No .ino: <tspan font-weight="bold">LEDS_POR_ALVO</tspan> = quantos LEDs tem CADA</text>
+<text x="90.0" y="2596.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">alvo (pode sobrar). <tspan font-weight="bold">BRILHO_MAX</tspan> baixa o consumo.</text>
+<text x="90.0" y="2630.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Cor trocada (pede vermelho, acende verde): troque</text>
+<text x="90.0" y="2665.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">TIPO_FITA</tspan> para NEO_RGB ou NEO_BRG.</text>
+<text x="90.0" y="2700.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Fita WS2811 de <tspan font-weight="bold">12 V</tspan>: +12 V na fita (fonte 12 V),</text>
+<text x="90.0" y="2735.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">DIN e GND iguais ao desenho.</text>
+<rect x="994.0" y="2336.0" width="900.0" height="480.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="990.0" y="2330.0" width="900.0" height="480.0" rx="18" fill="white" stroke="#1565c0" stroke-width="4"/>
+<path d="M1008.0 2330.0 h864.0 a18 18 0 0 1 18 18 v38.0 h-900.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#1565c0"/>
+<text x="1016.0" y="2369.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="start">PRIMEIRA VEZ (passo a passo)</text>
+<text x="1020.0" y="2422.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">1.</tspan> IDE do Arduino: instale a biblioteca <tspan font-weight="bold">Adafruit</tspan></text>
+<text x="1020.0" y="2456.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">NeoPixel</tspan> e grave <tspan font-weight="bold">gol_flash_arena.ino</tspan> (placa Nano:</text>
+<text x="1020.0" y="2491.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">processador “ATmega328P (Old Bootloader)” se falhar).</text>
+<text x="1020.0" y="2526.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">2.</tspan> Monitor Serial a <tspan font-weight="bold">9600</tspan>: aparece OLA:GOL_FLASH:1.</text>
+<text x="1020.0" y="2561.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Digite SET:A=255,0,0 (alvo A vermelho) e OFF.</text>
+<text x="1020.0" y="2596.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">3.</tspan> Bata em cada alvo: aparece S:A ... S:G.</text>
+<text x="1020.0" y="2630.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">START mostra B:START:1 e a ficha mostra FICHA.</text>
+<text x="1020.0" y="2665.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">4.</tspan> USB na TV Box, abra o jogo, aceite a janela</text>
+<text x="1020.0" y="2700.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">do USB com <tspan font-weight="bold">“Usar por padrão”</tspan>.</text>
+<text x="1020.0" y="2735.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">5.</tspan> No jogo: MENU do controle → Central da Máquina</text>
+<text x="1020.0" y="2770.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">→ teste os 7 LEDs e os 7 sensores.</text>
+<rect x="1924.0" y="2336.0" width="900.0" height="480.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="1920.0" y="2330.0" width="900.0" height="480.0" rx="18" fill="white" stroke="#2e7d32" stroke-width="4"/>
+<path d="M1938.0 2330.0 h864.0 a18 18 0 0 1 18 18 v38.0 h-900.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#2e7d32"/>
+<text x="1946.0" y="2369.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="start">SENSORES, START, SELECT E MOEDEIRO</text>
+<text x="1950.0" y="2422.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Contato simples</tspan> (microchave, sensor de impacto,</text>
+<text x="1950.0" y="2456.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">botão): um fio no pino, o outro no <tspan font-weight="bold">GND</tspan>. Não precisa</text>
+<text x="1950.0" y="2491.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">de resistor: o Arduino já puxa o pino para 5 V.</text>
+<text x="1950.0" y="2526.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Sensor de 3 fios (NPN, 5 V):</tspan> marrom no pino <tspan font-weight="bold">5V</tspan></text>
+<text x="1950.0" y="2561.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">do Arduino, azul no GND, preto (sinal) no pino. <tspan font-weight="bold">Nunca PNP.</tspan></text>
+<text x="1950.0" y="2596.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Contato que ABRE ao acionar: <tspan font-weight="bold">SENSOR_NF 1</tspan> no .ino.</text>
+<text x="1950.0" y="2630.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Moedeiro:</tspan> só o fio COIN no A5 e o GND junto;</text>
+<text x="1950.0" y="2665.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">o 12 V dele vem da fonte dele. Se ele mandar 12 V</text>
+<text x="1950.0" y="2700.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">no COIN, use um optoacoplador.</text>
+<text x="1950.0" y="2735.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">No PC</tspan> a placa Zero Delay continua valendo: os</text>
+<text x="1950.0" y="2770.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">sensores podem ficar nela (use um OU outro).</text>
+<rect x="2854.0" y="2336.0" width="890.0" height="480.0" rx="18" fill="#000000" stroke="none" stroke-width="0" opacity="0.1"/>
+<rect x="2850.0" y="2330.0" width="890.0" height="480.0" rx="18" fill="white" stroke="#c62828" stroke-width="4"/>
+<path d="M2868.0 2330.0 h854.0 a18 18 0 0 1 18 18 v38.0 h-890.0 v-38.0 a18 18 0 0 1 18 -18 z" fill="#c62828"/>
+<text x="2876.0" y="2369.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="28" fill="white" font-weight="bold" text-anchor="start">CUIDADOS</text>
+<text x="2880.0" y="2422.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Todos os GND juntos:</tspan> Arduino, fonte 5 V, fitas,</text>
+<text x="2880.0" y="2456.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">sensores, botões e moedeiro.</text>
+<text x="2880.0" y="2491.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Nunca 12 V num pino</tspan> do Arduino: meça cada fio</text>
+<text x="2880.0" y="2526.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">de sinal antes de ligar.</text>
+<text x="2880.0" y="2561.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Fitas pela fonte</tspan>, não pelo Arduino (o pino 5V</text>
+<text x="2880.0" y="2596.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">aguenta só o Arduino).</text>
+<text x="2880.0" y="2630.8" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start"><tspan font-weight="bold">Resistor de 330 Ω</tspan> em cada DIN, perto da fita;</text>
+<text x="2880.0" y="2665.6" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">fio do DIN curto (até ~2 m; mais que isso use</text>
+<text x="2880.0" y="2700.4" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">cabo blindado ou um conversor de nível 74HCT245).</text>
+<text x="2880.0" y="2735.2" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Ligue a <tspan font-weight="bold">fonte 5 V antes</tspan> (ou junto) do USB.</text>
+<text x="2880.0" y="2770.0" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="24" fill="#1b2a41" font-weight="normal" text-anchor="start">Desligue tudo da tomada para mexer nos fios.</text>
+</svg>

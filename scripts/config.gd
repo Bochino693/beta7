@@ -84,7 +84,7 @@ func _criar_interface() -> void:
 
 	# Três cards compactos na mesma linha: sempre cabem em 1280 x 720.
 	var resumo := HBoxContainer.new()
-	resumo.custom_minimum_size.y = 172
+	resumo.custom_minimum_size.y = 172 if not ArduinoBridge.tem_plugin() else 260
 	resumo.add_theme_constant_override("separation", 12)
 	app.add_child(resumo)
 	var box_modo := _painel("MODO DE OPERAÇÃO", "Como as partidas são liberadas", resumo, Color(0.12, 0.65, 1.0))
@@ -115,6 +115,14 @@ func _criar_interface() -> void:
 	var mural := _botao("LIMPAR MURAL DE CAMPEÕES", Color(1.0, 0.18, 0.25))
 	mural.pressed.connect(_resetar_mural)
 	box_acoes.add_child(mural)
+	if ArduinoBridge.tem_plugin():
+		# TV Box / TV Android: o jogo como tela inicial (abre sozinho ao ligar)
+		var inicio := _botao("ABRIR SOZINHO AO LIGAR A TV", Color(0.18, 0.92, 0.46))
+		inicio.pressed.connect(_escolher_tela_inicial)
+		box_acoes.add_child(inicio)
+		var sair := _botao("SAIR PARA A TELA DA TV", Color(0.7, 0.75, 0.82))
+		sair.pressed.connect(_sair_para_tv)
+		box_acoes.add_child(sair)
 
 	var box_teste := _painel("DIAGNÓSTICO DOS 7 ALVOS", "Pressione o sensor físico ou selecione um alvo para testar LED + entrada", app, Color(0.08, 0.86, 0.78))
 	box_teste.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -136,7 +144,7 @@ func _criar_interface() -> void:
 	rodape.custom_minimum_size.y = 52
 	rodape.add_theme_constant_override("separation", 12)
 	app.add_child(rodape)
-	var atalho := _label("F9 ou ESC para fechar esta tela", 14, Color(0.50, 0.60, 0.70))
+	var atalho := _label("F9, ESC ou VOLTAR do controle para fechar  •  setas + OK escolhem", 14, Color(0.50, 0.60, 0.70))
 	atalho.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	atalho.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	rodape.add_child(atalho)
@@ -287,6 +295,14 @@ func _voltar_seguro() -> void:
 		status_label.text = "●  ERRO AO VOLTAR — TENTE NOVAMENTE"
 
 func _abrir_serial() -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		ArduinoBridge.pedir_permissao_agora()
+		await ArduinoBridge.preparar()
+		_mensagem("●  " + ArduinoBridge.status.to_upper())
+		if not ArduinoBridge.mudou.is_connected(_arduino_mudou):
+			ArduinoBridge.mudou.connect(_arduino_mudou)
+		return
 	caminho_fila = ProjectSettings.globalize_path("user://arduino_queue_config"); caminho_script = ProjectSettings.globalize_path("user://arduino_bridge_config.ps1"); var log := ProjectSettings.globalize_path("user://arduino_log_config.txt"); DirAccess.make_dir_recursive_absolute(caminho_fila)
 	var script := """$ErrorActionPreference='Stop'
 $p=New-Object System.IO.Ports.SerialPort 'COM5',9600,'None',8,'One'
@@ -306,6 +322,11 @@ try{$p.Open();Start-Sleep -Milliseconds 180;$p.WriteLine('OFF');Add-Content '%s'
 	_mensagem("PRONTO • TESTE OS LEDS E SENSORES A–G")
 
 func _serial_write(comando: String) -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		ArduinoBridge.enviar(comando)
+		return
+
 	if caminho_fila == "":
 		return
 	var nome := "%020d_%06d.cmd" % [Time.get_ticks_msec(), randi() % 1000000]
@@ -315,3 +336,22 @@ func _serial_write(comando: String) -> void:
 		f.close()
 
 func _exit_tree() -> void: _serial_write("OFF")
+
+
+func _arduino_mudou() -> void:
+	if not voltando:
+		_mensagem("●  " + ArduinoBridge.status.to_upper())
+
+
+func _escolher_tela_inicial() -> void:
+	match ArduinoBridge.tela_inicial():
+		"jogo":
+			_mensagem("●  A TV JÁ ABRE O JOGO SOZINHA AO LIGAR")
+		_:
+			_mensagem("●  NA JANELA DO ANDROID: ESCOLHA GOL FLASH ARENA E \"SEMPRE\"")
+			ArduinoBridge.escolher_tela_inicial()
+
+
+func _sair_para_tv() -> void:
+	_serial_write("OFF")
+	ArduinoBridge.sair_para_tv()

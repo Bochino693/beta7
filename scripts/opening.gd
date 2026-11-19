@@ -2416,6 +2416,11 @@ func _animacao_leds_players_confirmados() -> void:
 
 
 func _abrir_serial_arduino_opening() -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		await ArduinoBridge.preparar()
+		return
+
 	if not USAR_ARDUINO:
 		return
 
@@ -2620,6 +2625,11 @@ catch {
 
 
 func _serial_write_opening(texto: String) -> void:
+	# TV Box / TV Android: o Arduino vai pelo USB (ArduinoBridge), sem PowerShell.
+	if ArduinoBridge.ativo():
+		ArduinoBridge.enviar(texto)
+		return
+
 	if not USAR_ARDUINO:
 		return
 
