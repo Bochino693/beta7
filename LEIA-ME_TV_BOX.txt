@@ -44,15 +44,16 @@ Dando certo, o jogo vira a tela inicial da TV Box: ligou, abre o jogo, sem
 janela nenhuma. (A tela da ROM continua instalada: HOME 5 vezes seguidas no
 controle abre ela; um HOME volta ao jogo.)
 
-SE A TV BOX NÃO DEIXAR (sem root e sem depuração), o Android obriga a uma
-confirmação, uma vez só, e o jogo abre a tela certa sozinho com o menu
-parado há 20 segundos:
-  - Android 10 ou mais novo: tela "Sobrepor a outros apps" -> deixe GOL
-    FLASH ARENA permitido e aperte VOLTAR;
-  - Android 9 ou mais antigo: escolha da tela inicial -> GOL FLASH ARENA e
-    "SEMPRE".
-Não existe jeito de pular isso num Android sem root: é trava do sistema,
-vale para qualquer app.
+SE A TV BOX NÃO DEIXAR (sem root e sem depuração) - A PERMISSÃO, UMA VEZ:
+  - Android 10 ou mais novo: uns 10 segundos depois de o menu aparecer, o
+    jogo mostra um aviso grande: "PARA O JOGO ABRIR SOZINHO AO LIGAR".
+    Aperte OK. Abre a tela "Sobrepor a outros apps" do Android: deixe GOL
+    FLASH ARENA PERMITIDO (ligado) e aperte VOLTAR. O jogo mostra "PRONTO!".
+    Daí em diante nunca mais pede e abre sempre que a TV Box liga.
+    Se você voltar sem permitir, ele pede de novo na próxima abertura.
+  - Android 9 ou mais antigo: não precisa de permissão; nada é pedido.
+Não existe jeito de pular essa confirmação num Android 10+ sem root: é
+trava do sistema, vale para qualquer app.
 
 PELO PC, SEM DEPENDER DE NADA DISSO: PREPARAR_TV.bat (dois cliques, pede o
 IP da TV Box, com a Depuração USB ligada nela). Instala o APK e deixa a TV
