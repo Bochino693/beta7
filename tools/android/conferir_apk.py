@@ -56,7 +56,8 @@ confere("Verified using v2 scheme (APK Signature Scheme v2): true" in assinatura
 confere("CN=Gol Flash Arena" in assinatura, "chave do projeto (instala por cima do anterior)")
 pck = [n for n in nomes if n.startswith("assets/")]
 confere(any(n.endswith("project.binary") for n in pck), "jogo dentro do APK (%d arquivos em assets)" % len(pck))
-for fora in ("patro/", "init_old", "inite.mp4", ".ino", "GERAR_APK"):
+confere(any(n.endswith("medias/init_tv.ogv") for n in pck), "vídeo leve da abertura (init_tv.ogv)")
+for fora in ("patro/", "medias/init.ogv", "init_old", "inite.mp4", ".ino", "GERAR_APK", "PREPARAR_TV"):
     confere(not any(fora in n for n in pck), "sem %s no APK" % fora)
 print("tamanho: %.1f MB" % (os.path.getsize(apk) / 1048576.0))
 if falhas:

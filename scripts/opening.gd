@@ -26,6 +26,9 @@ const CENA_JOGO: String = "res://scenes/play.tscn"
 const CENA_LOBBY: String = "res://scenes/lobby.tscn"
 const IMAGEM_CAPA: String = "res://images/fut_cap.jpeg"
 const VIDEO_CAPA: String = "res://medias/init.ogv"
+# Na TV Box / TV Android o Godot decodifica o vídeo só pelo processador:
+# lá roda a versão leve (768x512, 1,8 Mbps), que fica lisa.
+const VIDEO_CAPA_TV: String = "res://medias/init_tv.ogv"
 const MUSICA_FUNDO: String = "res://songs/song_fut.mp3"
 
 
@@ -989,11 +992,12 @@ func _criar_fundo() -> void:
 
 	# Vídeo por cima, em modo cover (sem esticar). Fica vivo o tempo todo
 	# para poder VOLTAR em loop com fade suave.
-	if VIDEO_CAPA != "" and ResourceLoader.exists(VIDEO_CAPA):
+	var video_capa: String = _video_da_capa()
+	if video_capa != "":
 		fundo_video = VideoStreamPlayer.new()
 		fundo_video.set_anchors_preset(Control.PRESET_TOP_LEFT)  # tamanho/posição manuais
 		fundo_video.expand = true
-		fundo_video.stream = load(VIDEO_CAPA)
+		fundo_video.stream = load(video_capa)
 		fundo_video.autoplay = false
 		fundo_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -5033,3 +5037,14 @@ func _leds_fluxo_ida_volta_ag(passo: int) -> void:
 	mapa[atual] = rgb_main
 
 	_set_leds_mapa_rgb(mapa)
+
+
+## O vídeo da abertura deste aparelho: o leve na TV Box / TV Android (ou
+## quando o grande não veio no pacote), o original no PC. "" = sem vídeo.
+func _video_da_capa() -> String:
+	var leve: bool = OS.get_name() == "Android" or not ResourceLoader.exists(VIDEO_CAPA)
+	if leve and ResourceLoader.exists(VIDEO_CAPA_TV):
+		return VIDEO_CAPA_TV
+	if VIDEO_CAPA != "" and ResourceLoader.exists(VIDEO_CAPA):
+		return VIDEO_CAPA
+	return ""
