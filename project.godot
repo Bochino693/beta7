@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Gol Flash Arena"
 config/description="Gol Flash Arena - jogo arcade de futebol da Lazer & Sport Games"
-run/main_scene="uid://bmvwkecuhv101"
+run/main_scene="res://scenes/opening.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.003, 0.008, 0.016, 1)
 boot_splash/image="res://branding/splash_gol_flash_arena.png"
@@ -21,9 +21,9 @@ config/quit_on_go_back=false
 
 [autoload]
 
-PlayersGlobal="*uid://bkh2eiv3pk7gb"
-CupGlobal="*uid://bwmkltvnd15vw"
-ChampionsDb="*uid://vkuq2fbw4bkw"
+PlayersGlobal="*res://players_global.gd"
+CupGlobal="*res://scripts/CupGlobal.gd"
+ChampionsDb="*res://scripts/champions_db.gd"
 ArcadeData="*res://scripts/arcade_data.gd"
 ArduinoBridge="*res://scripts/arduino_bridge.gd"
 Efeitos="*res://scripts/efeitos.gd"
