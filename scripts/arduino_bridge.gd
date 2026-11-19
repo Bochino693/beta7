@@ -59,6 +59,7 @@ var _pedidos: ConfigFile
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_imagem_da_tv()
 	for l in LETRAS:
 		contagem[l] = 0
 	if OS.get_name() == "Windows":
@@ -183,6 +184,23 @@ func confirmar_aviso() -> void:
 	if not bool(_plugin.call("pedir_sobrepor")):
 		# a TV Box não tem essa tela: a escolha da tela inicial ("Sempre")
 		print("ABRIR AO LIGAR: sem a tela de sobrepor; tela inicial: ", str(_plugin.call("escolher_tela_inicial")))
+
+
+## IMAGEM LISA NA TV BOX: o jogo é desenhado em 720 linhas e a própria TV
+## Box estica para a tela (1080p ou 4K). Sem isso uma caixa ligada em 4K
+## desenharia 9 vezes mais pontos por quadro e o jogo arrastaria. As telas
+## do jogo já se montam pelo tamanho da imagem (a partir de 1280 x 720).
+## ALTURA_NA_TV = 0 desenha no tamanho da tela (mais nítido, mais pesado).
+const ALTURA_NA_TV := 720
+
+
+func _imagem_da_tv() -> void:
+	if OS.get_name() != "Android" or ALTURA_NA_TV <= 0:
+		return
+	var janela := get_tree().root
+	janela.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+	janela.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	janela.content_scale_size = Vector2i(int(round(ALTURA_NA_TV * 16.0 / 9.0)), ALTURA_NA_TV)
 
 
 ## true = os comandos de LED passam por aqui (tudo que não é Windows).

@@ -61,7 +61,7 @@ func _ready() -> void:
 	_luzes = CPUParticles2D.new()
 	_luzes.texture = _tex_luz
 	_luzes.material = _aditivo()
-	_luzes.amount = 18 if _leve else 34
+	_luzes.amount = 14 if _leve else 34
 	_luzes.lifetime = 9.0
 	_luzes.preprocess = 9.0
 	_luzes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -182,6 +182,9 @@ func _entrou_tela() -> void:
 	match nome:
 		"opening":
 			_cor_ambiente = COR_MENU
+			# na TV Box o vídeo da abertura já é o movimento da tela: o
+			# processador fica todo para ele
+			visivel = not _leve
 		"play", "torment_play":
 			_cor_ambiente = COR_PADRAO
 		"cup_play", "cup_lobby", "lobby", "cup_setup_36", "champions_wall", "champions_ranking":
