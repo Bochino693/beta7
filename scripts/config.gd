@@ -116,7 +116,7 @@ func _criar_interface() -> void:
 	mural.pressed.connect(_resetar_mural)
 	box_acoes.add_child(mural)
 	if ArduinoBridge.tem_plugin():
-		# TV Box / TV Android: o jogo como tela inicial (abre sozinho ao ligar)
+		# TV Box / TV Android: o jogo abre sozinho depois que a TV liga
 		var inicio := _botao("ABRIR SOZINHO AO LIGAR A TV", Color(0.18, 0.92, 0.46))
 		inicio.pressed.connect(_escolher_tela_inicial)
 		box_acoes.add_child(inicio)
@@ -344,12 +344,16 @@ func _arduino_mudou() -> void:
 
 
 func _escolher_tela_inicial() -> void:
-	match ArduinoBridge.tela_inicial():
-		"jogo":
-			_mensagem("●  A TV JÁ ABRE O JOGO SOZINHA AO LIGAR")
+	if ArduinoBridge.pode_abrir_sozinho():
+		_mensagem("●  OK: O JOGO ABRE SOZINHO DEPOIS QUE A TV LIGA")
+		return
+	match ArduinoBridge.pedir_abrir_sozinho():
+		"permissao":
+			_mensagem("●  LIGUE A CHAVE DO GOL FLASH ARENA E APERTE VOLTAR")
+		"app":
+			_mensagem("●  NOS AJUSTES DO APP: PERMITA \"APARECER SOBRE OUTROS APPS\"")
 		_:
-			_mensagem("●  NA JANELA DO ANDROID: ESCOLHA GOL FLASH ARENA E \"SEMPRE\"")
-			ArduinoBridge.escolher_tela_inicial()
+			_mensagem("●  ESTA TV NÃO TEM ESSA TELA: DEIXE O ARDUINO NO USB (USAR POR PADRÃO)")
 
 
 func _sair_para_tv() -> void:

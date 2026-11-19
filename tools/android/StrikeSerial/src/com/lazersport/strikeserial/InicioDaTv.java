@@ -1,13 +1,11 @@
 package com.lazersport.strikeserial;
 
 import android.app.Activity;
-import android.app.role.RoleManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -21,39 +19,36 @@ import android.util.Log;
 
 import org.godotengine.godot.utils.ProcessPhoenix;
 
-import java.util.List;
-
 /**
- * O JOGO ABRE SOZINHO AO LIGAR A TV - de qualquer jeito que ela seja ligada.
+ * O JOGO ABRE SOZINHO DEPOIS QUE A TV LIGA - SEM TOMAR O LUGAR DA ROM.
  *
- * 1. TELA INICIAL: o jogo é uma tela inicial do Android (StrikeInicioAtivo).
- *    Escolhido como a tela inicial da TV, é ele que o Android abre ao ligar
- *    na tomada, ao voltar para o início e a cada HOME. estado() diz se já é;
- *    escolher() abre a escolha do Android (o papel HOME do Android 10+, os
- *    ajustes da tela inicial ou a janela "Sempre / Só uma vez") - o jogo
- *    pede sozinho na tela de espera enquanto não for (sozinho = true).
- * 2. VOLTA DA ESPERA: desligada pelo CONTROLE, a TV não desliga de verdade
- *    (fica em espera) e nada "liga" de novo - um app de "abrir ao ligar" não
- *    percebe nada. Com o processo do jogo vivo (mesmo fechado ou atrás de
- *    outro app), ouvirTela() percebe a tela apagar e acender: depois de 10 s
- *    ou mais apagada, o jogo reinicia do zero (como ao ligar na tomada) e
- *    vem para a frente, sem a imagem travada da placa de vídeo depois da
- *    espera. Ligada na tomada, StrikeLigou também abre o jogo.
- * 3. SAÍDA DO OPERADOR: sairParaTv() abre a tela inicial da própria TV (o
- *    menu do operador, ou HOME 5 vezes seguidas - pediuParaSair()).
+ * A tela inicial da TV (a ROM) continua sendo a dela: ela abre normalmente
+ * e o jogo entra POR CIMA logo depois. O jogo NÃO é uma "tela inicial" do
+ * Android: nenhuma janela "Sempre / Só uma vez", nenhum conflito com a ROM.
+ * Três caminhos, um reforça o outro:
+ *
+ * 1. A TV LIGOU (StrikeLigou, aviso BOOT_COMPLETED do Android): alguns
+ *    segundos depois da tela da ROM o jogo é aberto. Até o Android 9 isso
+ *    basta. No Android 10 ou mais novo o sistema só deixa um app abrir uma
+ *    tela "sozinho" se ele tiver a permissão "aparecer sobre outros apps":
+ *    podeAbrirSozinho() diz se tem, pedirPermissao() abre a tela dela (uma
+ *    chave para ligar, uma vez só).
+ * 2. O ARDUINO NO USB (StrikeArduinoAtivo): com "Usar por padrão" marcado,
+ *    é o próprio Android que abre o jogo ao enxergar o Arduino - ao ligar a
+ *    TV e ao encaixar o cabo - em qualquer versão, sem permissão extra.
+ * 3. VOLTA DA ESPERA: desligada pelo CONTROLE, a TV só dorme. ouvirTela()
+ *    percebe a tela apagar e acender: depois de 10 s ou mais apagada, o
+ *    jogo reinicia do zero e vem para a frente.
+ *
+ * O Android só entrega o aviso de "ligou" a um app que já foi aberto uma
+ * vez: depois de instalar, abra o jogo uma vez pelo controle.
  */
 final class InicioDaTv {
 
 	private static final String TAG = "StrikeSerial";
-	static final int PEDIDO_PAPEL = 7501;
-	private static final String PREFS = "strike_inicio";
-	private static final int VEZES_PARA_SAIR = 5;
-	private static final long JANELA_SAIR_MS = 10000;
 	private static final long APAGADA_PARA_REINICIAR_MS = 10000;
 	private static final long ESPERA_AO_ACENDER_MS = 1500;
 
-	private static long pedidoEm = 0;
-	private static boolean pedidoSozinho = false;
 	private static long apagouEm = 0;
 	private static BroadcastReceiver tela;
 
@@ -81,113 +76,55 @@ final class InicioDaTv {
 	/** O jogo, como o lançador o abre (só traz para a frente se já está aberto). */
 	static void abrirJogo(Context c) {
 		Intent jogo = c.getPackageManager().getLaunchIntentForPackage(c.getPackageName());
+		if (jogo == null) {
+			// TV que só lista apps de TV (leanback)
+			jogo = c.getPackageManager().getLeanbackLaunchIntentForPackage(c.getPackageName());
+		}
 		if (jogo != null) {
 			jogo.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
 			c.startActivity(jogo);
 		}
 	}
 
-	// ------------------------------------------------------------ tela inicial
-	/** A tela inicial que o Android abre hoje (null, ou a janela de escolha). */
-	private static ResolveInfo padrao(Context c) {
-		return c.getPackageManager().resolveActivity(home(), PackageManager.MATCH_DEFAULT_ONLY);
-	}
-
-	private static boolean ehCandidata(Context c, ResolveInfo ri) {
-		List<ResolveInfo> todas = c.getPackageManager().queryIntentActivities(home(), PackageManager.MATCH_DEFAULT_ONLY);
-		for (ResolveInfo r : todas) {
-			if (r.activityInfo.packageName.equals(ri.activityInfo.packageName) && r.activityInfo.name.equals(ri.activityInfo.name)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/** "jogo" (a TV já abre o jogo), "escolher" (o Android ainda pergunta) ou "outra|Nome". */
-	static String estado(Context c) {
-		ResolveInfo ri = padrao(c);
-		if (ri == null || ri.activityInfo == null) {
-			return "escolher";
-		}
-		if (ri.activityInfo.packageName.equals(c.getPackageName())) {
-			return "jogo";
-		}
-		// sem uma escolhida, o Android devolve a própria janela de escolha
-		if (!ehCandidata(c, ri)) {
-			return "escolher";
-		}
-		return "outra|" + ri.loadLabel(c.getPackageManager());
-	}
-
-	/**
-	 * Abre a escolha da tela inicial: "ja" (já é o jogo), "papel" (a janela do
-	 * Android 10+), "ajustes", "escolha" (a janela "Sempre / Só uma vez"),
-	 * "app" (a página da tela inicial da TV: "Limpar padrões"), "config" ou ""
-	 * (nada abriu). sozinho (o jogo pedindo na tela de espera): só as janelas
-	 * de escolha, nunca a página do app nem os ajustes gerais.
-	 */
-	static String escolher(Activity a, boolean sozinho) {
-		String agora = estado(a);
-		if (agora.equals("jogo")) {
-			return "ja";
-		}
-		pedidoSozinho = sozinho;
-		if (Build.VERSION.SDK_INT >= 29 && pedirPapel(a)) {
-			return "papel";
-		}
-		return semPapel(a, agora, sozinho);
-	}
-
-	private static boolean pedirPapel(Activity a) {
-		try {
-			RoleManager rm = a.getSystemService(RoleManager.class);
-			if (rm == null || !rm.isRoleAvailable(RoleManager.ROLE_HOME) || rm.isRoleHeld(RoleManager.ROLE_HOME)) {
-				return false;
-			}
-			pedidoEm = SystemClock.elapsedRealtime();
-			a.startActivityForResult(rm.createRequestRoleIntent(RoleManager.ROLE_HOME), PEDIDO_PAPEL);
+	// ------------------------------------------------------------ permissão
+	/** O Android deixa o jogo abrir sozinho depois de ligar? (até o Android 9, sempre) */
+	static boolean podeAbrirSozinho(Context c) {
+		if (Build.VERSION.SDK_INT < 29) {
 			return true;
+		}
+		try {
+			return Settings.canDrawOverlays(c);
 		} catch (Throwable t) {
-			Log.i(TAG, "inicio: papel: " + t);
 			return false;
 		}
 	}
 
-	/** A janela do papel voltou: se ela nem apareceu (TV sem essa janela), segue pelos ajustes. */
-	static void depoisDoPapel(Activity a, int resultado) {
-		if (resultado == Activity.RESULT_OK || SystemClock.elapsedRealtime() - pedidoEm > 1500) {
-			return;
+	/**
+	 * Abre a tela "aparecer sobre outros apps" do jogo (Android 10+): "ja"
+	 * (não precisa), "permissao" (abriu a tela: ligue a chave), "app" (abriu
+	 * a página do jogo nos ajustes) ou "" (a TV não tem essa tela: vale o
+	 * caminho do Arduino no USB).
+	 */
+	static String pedirPermissao(Context c) {
+		if (podeAbrirSozinho(c)) {
+			return "ja";
 		}
-		String agora = estado(a);
-		if (!agora.equals("jogo")) {
-			semPapel(a, agora, pedidoSozinho);
+		Uri pacote = Uri.parse("package:" + c.getPackageName());
+		if (abrir(c, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, pacote))) {
+			return "permissao";
 		}
-	}
-
-	private static String semPapel(Activity a, String agora, boolean sozinho) {
-		if (abrir(a, new Intent(Settings.ACTION_HOME_SETTINGS))) {
-			return "ajustes";
+		if (abrir(c, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION))) {
+			return "permissao";
 		}
-		if (agora.equals("escolher") && abrir(a, home())) {
-			return "escolha";
-		}
-		if (sozinho) {
-			return "";
-		}
-		ResolveInfo ri = padrao(a);
-		if (ri != null && ri.activityInfo != null && !ri.activityInfo.packageName.equals(a.getPackageName())
-				&& abrir(a, new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ri.activityInfo.packageName)))) {
+		if (abrir(c, new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pacote))) {
 			return "app";
-		}
-		if (abrir(a, new Intent(Settings.ACTION_SETTINGS))) {
-			return "config";
 		}
 		return "";
 	}
 
 	// ------------------------------------------------------------ saída
-	/** A tela inicial da própria TV (a de maior prioridade que não é o jogo), ou null. */
-	private static ResolveInfo outraTela(Context c) {
+	/** A tela inicial da TV (a de maior prioridade), ou null. */
+	private static ResolveInfo telaDaTv(Context c) {
 		PackageManager pm = c.getPackageManager();
 		ResolveInfo melhor = null;
 		for (ResolveInfo r : pm.queryIntentActivities(home(), PackageManager.MATCH_DEFAULT_ONLY)) {
@@ -207,40 +144,22 @@ final class InicioDaTv {
 		return (r.activityInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
 	}
 
-	/** Abre a tela inicial da própria TV (ou os ajustes): o nome dela, "config" ou "". */
+	/** Sai do jogo para a tela inicial da TV: "tv", "config" (os ajustes) ou "". */
 	static String sairParaTv(Context c) {
-		ResolveInfo outra = outraTela(c);
-		if (outra != null) {
-			Intent i = home().setClassName(outra.activityInfo.packageName, outra.activityInfo.name)
-					.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-			if (abrir(c, i)) {
-				return outra.loadLabel(c.getPackageManager()).toString();
-			}
+		if (abrir(c, home())) {
+			return "tv";
+		}
+		ResolveInfo outra = telaDaTv(c);
+		if (outra != null && abrir(c, home().setClassName(outra.activityInfo.packageName, outra.activityInfo.name))) {
+			return "tv";
 		}
 		return abrir(c, new Intent(Settings.ACTION_SETTINGS)) ? "config" : "";
-	}
-
-	/** HOME 5 vezes em 10 s (ou o jogo caindo sem parar): true = sair para a tela da TV. */
-	static boolean pediuParaSair(Context c) {
-		SharedPreferences p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-		long agora = SystemClock.elapsedRealtime();
-		long desde = p.getLong("desde", 0);
-		int vezes = p.getInt("vezes", 0);
-		if (agora < desde || agora - desde > JANELA_SAIR_MS) {
-			desde = agora;
-			vezes = 0;
-		}
-		vezes++;
-		boolean sair = vezes >= VEZES_PARA_SAIR;
-		p.edit().putLong("desde", sair ? 0 : desde).putInt("vezes", sair ? 0 : vezes).commit();
-		return sair;
 	}
 
 	// ------------------------------------------------------------ volta da espera
 	/**
 	 * Tela apagada 10 s ou mais e acesa de novo = o jogo reinicia do zero.
-	 * Fica ouvindo enquanto o processo do jogo viver (mesmo com o jogo
-	 * fechado ou atrás de outro app).
+	 * Fica ouvindo enquanto o processo do jogo viver.
 	 */
 	static void ouvirTela(Activity atividade) {
 		if (tela != null) {

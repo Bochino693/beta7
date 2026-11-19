@@ -16,8 +16,8 @@
 #    templates Android do Godot (so a parte Android, ~300 MB, nao o pacote
 #    inteiro de 1,2 GB);
 #  - gera o APK pelo Gradle COM o plugin StrikeSerial (addons\StrikeSerial):
-#    o Arduino pelo USB (LEDs, sensores, START, SELECT e ficha), o jogo como
-#    tela inicial (abre sozinho ao ligar a TV) e o banner da Android TV. So
+#    o Arduino pelo USB (LEDs, sensores, START, SELECT e ficha), o jogo
+#    abrindo sozinho depois que a TV liga e o banner da Android TV. So
 #    se o Gradle nao funcionar de jeito nenhum sai um APK sem ele (e avisa);
 #  - nenhum passo fica parado para sempre: cada programa tem tempo-limite.
 # 1a vez: de 15 a 40 min (downloads). Depois: 2 a 5 min.
@@ -1095,10 +1095,12 @@ function Principal {
     Write-Host "  SHA256:  $hash"
     if ($comArduino) {
         Write-Host "  Arduino pelo USB (7 LEDs, 7 sensores, START, SELECT, ficha): INCLUIDO." -ForegroundColor Green
-        Write-Host "  Abrir sozinho ao ligar a TV e banner da Android TV: INCLUIDOS." -ForegroundColor Green
-        Write-Host "  Na 1a vez a TV pergunta 2 coisas (so uma vez cada):"
+        Write-Host "  Abrir sozinho depois que a TV liga e banner da Android TV: INCLUIDOS." -ForegroundColor Green
+        Write-Host "  Depois de instalar, ABRA O JOGO UMA VEZ pelo controle. Na 1a vez:"
         Write-Host "   - o Arduino no USB: marque 'Usar por padrao' e OK;"
-        Write-Host "   - a tela inicial: escolha 'Gol Flash Arena' e 'Sempre'."
+        Write-Host "   - Android 10 ou mais novo: ligue a chave 'aparecer sobre outros apps'"
+        Write-Host "     do Gol Flash Arena (a tela abre sozinha) e aperte VOLTAR."
+        Write-Host "  A tela da TV (ROM) abre normal e o jogo entra por cima em alguns segundos."
     } else {
         Write-Host "  Arduino pelo USB: NAO incluido (o Gradle falhou). Este APK so serve para ver o jogo na TV." -ForegroundColor Red
         if ($motivo) { Write-Host "  Motivo: $motivo" -ForegroundColor Yellow }
