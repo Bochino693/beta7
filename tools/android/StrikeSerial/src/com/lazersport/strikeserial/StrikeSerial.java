@@ -445,52 +445,34 @@ public class StrikeSerial extends GodotPlugin {
 		return null;
 	}
 
-	/** A TV abre o jogo sozinha ao ligar? "jogo", "escolher" ou "outra|Nome" ("" = sem resposta). */
+	/** O Android deixa o jogo abrir sozinho depois que a TV liga? */
 	@UsedByGodot
-	public String tela_inicial() {
+	public boolean pode_abrir_sozinho() {
+		Activity a = getActivity();
+		try {
+			return a != null && InicioDaTv.podeAbrirSozinho(a);
+		} catch (Throwable t) {
+			anotar("inicio: " + t);
+			return false;
+		}
+	}
+
+	/** Abre a tela da permissão "aparecer sobre outros apps": "ja", "permissao", "app" ou "". */
+	@UsedByGodot
+	public String pedir_abrir_sozinho() {
 		Activity a = getActivity();
 		if (a == null) {
 			return "";
 		}
 		try {
-			return InicioDaTv.estado(a);
+			return InicioDaTv.pedirPermissao(a);
 		} catch (Throwable t) {
-			anotar("tela inicial: " + t);
+			anotar("inicio: " + t);
 			return "";
 		}
 	}
 
-	/** Abre a escolha da tela inicial do Android (o que abriu: InicioDaTv.escolher). */
-	@UsedByGodot
-	public String escolher_tela_inicial() {
-		Activity a = getActivity();
-		if (a == null) {
-			return "";
-		}
-		try {
-			return InicioDaTv.escolher(a, false);
-		} catch (Throwable t) {
-			anotar("tela inicial: " + t);
-			return "";
-		}
-	}
-
-	/** O jogo pedindo sozinho (menu): só as janelas de escolha do Android. */
-	@UsedByGodot
-	public String pedir_tela_inicial() {
-		Activity a = getActivity();
-		if (a == null) {
-			return "";
-		}
-		try {
-			return InicioDaTv.escolher(a, true);
-		} catch (Throwable t) {
-			anotar("tela inicial: " + t);
-			return "";
-		}
-	}
-
-	/** Abre a tela inicial da própria TV: o nome dela, "config" (os ajustes) ou "". */
+	/** Sai do jogo para a tela inicial da TV: "tv", "config" (os ajustes) ou "". */
 	@UsedByGodot
 	public String sair_para_tv() {
 		Activity a = getActivity();
@@ -502,18 +484,6 @@ public class StrikeSerial extends GodotPlugin {
 		} catch (Throwable t) {
 			anotar("sair para a TV: " + t);
 			return "";
-		}
-	}
-
-	@Override
-	public void onMainActivityResult(int pedido, int resultado, Intent dados) {
-		Activity a = getActivity();
-		if (pedido == InicioDaTv.PEDIDO_PAPEL && a != null) {
-			try {
-				InicioDaTv.depoisDoPapel(a, resultado);
-			} catch (Throwable t) {
-				anotar("tela inicial: " + t);
-			}
 		}
 	}
 

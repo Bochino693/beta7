@@ -74,28 +74,31 @@ func _ready() -> void:
 		set_process(false)
 		return
 	_plugin = Engine.get_singleton("StrikeSerial")
-	_pedir_tela_inicial_uma_vez()
+	_pedir_abrir_sozinho_uma_vez()
 
 
-## ABRIR SOZINHO AO LIGAR: na primeira vez que o jogo abre na TV, o Android
-## mostra a escolha da tela inicial (escolha "Gol Flash Arena" e "Sempre").
-## Depois disso a TV liga direto no jogo. Só pede sozinho UMA vez; de novo,
-## só pela Central da Máquina ("ABRIR SOZINHO AO LIGAR A TV").
-func _pedir_tela_inicial_uma_vez() -> void:
+## ABRIR SOZINHO DEPOIS QUE A TV LIGA (a tela da ROM abre e o jogo entra por
+## cima; o jogo NÃO vira a tela inicial da TV). Até o Android 9 não precisa
+## de nada. No Android 10+ o sistema pede a permissão "aparecer sobre outros
+## apps": na primeira vez que o jogo abre, a tela dessa permissão aparece
+## UMA vez (ligue a chave do Gol Flash Arena e aperte VOLTAR). De novo, só
+## pela Central da Máquina. Com o Arduino no USB e "Usar por padrão"
+## marcado, o Android já abre o jogo sozinho mesmo sem ela.
+func _pedir_abrir_sozinho_uma_vez() -> void:
 	await get_tree().create_timer(12.0, true, false, true).timeout
+	if pode_abrir_sozinho():
+		return
 	var cfg := ConfigFile.new()
 	cfg.load(PERMISSOES)
-	if bool(cfg.get_value("inicio", "ja_pediu", false)):
-		return
-	if tela_inicial() == "jogo":
+	if bool(cfg.get_value("inicio", "ja_pediu_abrir", false)):
 		return
 	# uma janela do Android por vez: espera a do USB fechar
 	while bool(_plugin.call("permissao_pendente")):
 		await get_tree().create_timer(2.0, true, false, true).timeout
-	cfg.set_value("inicio", "ja_pediu", true)
+	cfg.set_value("inicio", "ja_pediu_abrir", true)
 	cfg.save(PERMISSOES)
 	_pedidos = null
-	print("TELA INICIAL: pedindo ao Android (", str(_plugin.call("pedir_tela_inicial")), ")")
+	print("ABRIR SOZINHO: pedindo a permissão ao Android (", pedir_abrir_sozinho(), ")")
 
 
 ## true = os comandos de LED passam por aqui (tudo que não é Windows).
@@ -319,18 +322,18 @@ func _pulsar(acao: String) -> void:
 	get_tree().create_timer(0.07, true, false, true).timeout.connect(_acao.bind(acao, false))
 
 
-# ------------------------------------------------------------ tela inicial
-## A TV abre o jogo sozinha ao ligar? "jogo", "escolher", "outra|Nome" ou "".
-func tela_inicial() -> String:
-	return str(_plugin.call("tela_inicial")) if _plugin != null else ""
+# ------------------------------------------------------------ abrir ao ligar
+## O Android deixa o jogo abrir sozinho depois que a TV liga?
+func pode_abrir_sozinho() -> bool:
+	return _plugin != null and bool(_plugin.call("pode_abrir_sozinho"))
 
 
-## Abre a escolha da tela inicial do Android (marque o Gol Flash Arena e "Sempre").
-func escolher_tela_inicial() -> String:
-	return str(_plugin.call("escolher_tela_inicial")) if _plugin != null else ""
+## Abre a tela da permissão do Android: "ja", "permissao", "app" ou "".
+func pedir_abrir_sozinho() -> String:
+	return str(_plugin.call("pedir_abrir_sozinho")) if _plugin != null else ""
 
 
-## Abre a tela inicial da própria TV (saída do operador).
+## Sai do jogo para a tela inicial da TV (saída do operador).
 func sair_para_tv() -> String:
 	return str(_plugin.call("sair_para_tv")) if _plugin != null else ""
 

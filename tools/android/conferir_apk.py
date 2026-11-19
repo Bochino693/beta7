@@ -2,7 +2,7 @@
 """Confere o APK da TV Box / TV Android (aapt2 + apksigner do Android SDK):
    python3 -I tools/android/conferir_apk.py <apk> <pasta build-tools/35.0.1>
 Pacote certo, assinado, plugin do Arduino (StrikeSerial v2) com as classes
-dentro, tela inicial (HOME), receptor de "a TV ligou", filtro USB do Arduino,
+dentro, receptor de "a TV ligou" (sem virar tela inicial), filtro USB do Arduino,
 Android TV (leanback + banner) e as bibliotecas arm64 + arm32 do Godot."""
 import os
 import re
@@ -40,9 +40,13 @@ confere("application-label:'Gol Flash Arena'" in cracha, "nome Gol Flash Arena")
 for abi in ("arm64-v8a", "armeabi-v7a"):
     confere("lib/%s/libgodot_android.so" % abi in nomes, "motor do Godot para %s" % abi)
 confere("org.godotengine.plugin.v2.StrikeSerial" in manifesto, "plugin StrikeSerial registrado (v2)")
-for classe in ("StrikeSerial", "InicioDaTv", "StrikeInicioAtivo", "StrikeLigou", "StrikeArduinoAtivo"):
+for classe in ("StrikeSerial", "InicioDaTv", "StrikeLigou", "StrikeArduinoAtivo"):
     confere(("Lcom/lazersport/strikeserial/%s;" % classe).encode() in dex, "classe %s dentro do APK" % classe)
-confere("android.intent.category.HOME" in manifesto, "tela inicial (HOME): abre sozinho ao ligar")
+# o jogo NAO pode ser uma tela inicial (disputaria com a ROM da TV): a
+# categoria HOME so pode aparecer dentro de <queries>, nunca num intent-filter
+filtros = manifesto.split("E: queries")[0] + "".join(manifesto.split("E: application")[1:])
+confere("android.intent.category.HOME" not in filtros, "o jogo NÃO é tela inicial (não disputa com a ROM)")
+confere("android.permission.SYSTEM_ALERT_WINDOW" in manifesto, "permissão para abrir sozinho no Android 10+")
 confere("android.intent.action.BOOT_COMPLETED" in manifesto and "RECEIVE_BOOT_COMPLETED" in manifesto, "receptor de \"a TV ligou\" + permissão")
 confere("USB_DEVICE_ATTACHED" in manifesto, "filtro USB do Arduino (permissão guardada)")
 confere("android.intent.category.LEANBACK_LAUNCHER" in manifesto, "aparece na tela da Android TV (leanback)")
