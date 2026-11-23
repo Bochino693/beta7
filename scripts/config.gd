@@ -13,6 +13,10 @@ var caminho_script := ""
 var apagar_timer := 0.0
 var ultimo_sensor := -1
 var voltando := false
+var ordem_cores := -1
+var ensinando := -1               # qual entrada está sendo pedida (-1 = não está ensinando)
+var ensinado := {}
+var ensinar_desde := 0
 var inicio_label: Label
 
 func _ready() -> void:
@@ -26,7 +30,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("input_credit"):
 		ArcadeData.adicionar_credito()
 		_atualizar_dados()
-		_mensagem("CRÉDITO ADICIONADO PELO L3")
+		_mensagem("●  CRÉDITO ADICIONADO")
 	for i in range(LEDS.size()):
 		var acao := "input_led_" + LEDS[i].to_lower()
 		if Input.is_action_just_pressed(acao):
@@ -38,6 +42,9 @@ func _process(delta: float) -> void:
 			if ultimo_sensor >= 0: botoes_led[ultimo_sensor].modulate = Color.WHITE
 
 func _input(event: InputEvent) -> void:
+	if ensinando >= 0:
+		_ensinar_recebeu(event)
+		return
 	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_ESCAPE or event.keycode == KEY_F9):
 		get_viewport().set_input_as_handled()
 		_solicitar_voltar()
@@ -110,7 +117,7 @@ func _criar_interface() -> void:
 
 	var box_acoes := _painel("AÇÕES RÁPIDAS", "Créditos e dados da máquina", resumo, Color(0.08, 0.86, 0.78))
 	box_acoes.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var credito_btn := _botao("+  ADICIONAR CRÉDITO (L3)", Color(0.12, 0.78, 1.0), true)
+	var credito_btn := _botao("+  ADICIONAR CRÉDITO", Color(0.12, 0.78, 1.0), true)
 	credito_btn.pressed.connect(_adicionar_credito_manual)
 	box_acoes.add_child(credito_btn)
 	var mural := _botao("LIMPAR MURAL DE CAMPEÕES", Color(1.0, 0.18, 0.25))
@@ -137,9 +144,23 @@ func _criar_interface() -> void:
 		b.pressed.connect(_testar_alvo.bind(i, false))
 		grade.add_child(b)
 		botoes_led.append(b)
+	var linha_teste := HBoxContainer.new()
+	linha_teste.add_theme_constant_override("separation", 10)
+	box_teste.add_child(linha_teste)
 	var todos := _botao("TESTAR TODOS OS LEDS", Color(0.08, 0.86, 0.78), true)
+	todos.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	todos.pressed.connect(_testar_todos)
-	box_teste.add_child(todos)
+	linha_teste.add_child(todos)
+	# a cor errada nos LEDs (pede vermelho, acende verde...) se acerta aqui
+	var ordem := _botao("ORDEM DAS CORES DOS LEDS", Color(1.0, 0.25, 0.25))
+	ordem.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ordem.pressed.connect(_trocar_ordem_das_cores)
+	linha_teste.add_child(ordem)
+	# sensores e botões na placa Zero Delay: ensina qual é qual nesta TV Box
+	var ensinar := _botao("ENSINAR SENSORES E BOTÕES", Color(1.0, 0.82, 0.12))
+	ensinar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ensinar.pressed.connect(_ensinar_entradas)
+	linha_teste.add_child(ensinar)
 
 	var rodape := HBoxContainer.new()
 	rodape.custom_minimum_size.y = 52
@@ -248,7 +269,7 @@ func _atualizar_dados() -> void:
 	modo_option.select(1 if ArcadeData.modo_operacao == "credito" else 0)
 	if ArcadeData.modo_operacao == "credito":
 		if ArcadeData.creditos <= 0:
-			creditos_label.text = "SEM CRÉDITOS\nPressione L3 para liberar uma partida"
+			creditos_label.text = "SEM CRÉDITOS\nInsira a ficha para liberar uma partida"
 			creditos_label.add_theme_color_override("font_color", Color(1.0, 0.32, 0.25))
 		else:
 			creditos_label.text = "%d CRÉDITO(S) DISPONÍVEL(IS)" % ArcadeData.creditos
@@ -382,3 +403,79 @@ func _atualizar_inicio() -> void:
 func _sair_para_tv() -> void:
 	_serial_write("OFF")
 	ArduinoBridge.sair_para_tv()
+
+
+# ------------------------------------------------------------ ordem das cores
+## Cada aperto passa para a próxima ordem (são 6) e acende TODOS os alvos em
+## VERMELHO: quando os anéis ficarem vermelhos de verdade, é essa. O Arduino
+## guarda; não precisa regravar nada.
+const NOMES_ORDEM := ["GRB", "RGB", "BRG", "RBG", "GBR", "BGR"]
+
+
+func _trocar_ordem_das_cores() -> void:
+	if ordem_cores < 0:
+		ordem_cores = maxi(ArduinoBridge.ordem_da_fita(), 0)
+	else:
+		ordem_cores = (ordem_cores + 1) % 6
+		_serial_write("ORDEM:%d" % ordem_cores)
+		await get_tree().create_timer(0.25).timeout
+	var itens: Array[String] = []
+	for letra in LEDS:
+		itens.append("%s=255,0,0" % letra)
+	_serial_write("SET:" + ";".join(itens))
+	apagar_timer = 6.0
+	_mensagem("●  ORDEM %d (%s): OS ALVOS ESTÃO VERMELHOS?  SE NÃO, APERTE DE NOVO" % [ordem_cores + 1, NOMES_ORDEM[ordem_cores]])
+
+
+# ------------------------------------------------------- ensinar as entradas
+## Para a placa Zero Delay ligada na TV Box: pede cada sensor e botão na
+## ordem e guarda qual botão do Android é qual (ArduinoBridge).
+const NOMES_ENTRADA := ["BATA NO ALVO A", "BATA NO ALVO B", "BATA NO ALVO C", "BATA NO ALVO D", "BATA NO ALVO E", "BATA NO ALVO F", "BATA NO ALVO G", "APERTE O BOTÃO START", "APERTE O BOTÃO SELECT"]
+
+
+func _ensinar_entradas() -> void:
+	if ensinando >= 0:
+		return
+	ensinado.clear()
+	ensinando = 0
+	ensinar_desde = Time.get_ticks_msec()
+	ArduinoBridge.ensinando = true
+	_pedir_entrada()
+
+
+func _pedir_entrada() -> void:
+	_mensagem("●  ENSINANDO %d/9:  %s   (VOLTAR cancela)" % [ensinando + 1, NOMES_ENTRADA[ensinando]])
+	if ensinando < LEDS.size():
+		_serial_write("SET:%s=255,255,255" % LEDS[ensinando])
+		apagar_timer = 0.0
+
+
+func _ensinar_recebeu(event: InputEvent) -> void:
+	get_viewport().set_input_as_handled()
+	if event is InputEventKey and event.pressed and event.keycode in [KEY_BACK, KEY_ESCAPE]:
+		_ensinar_fim(false)
+		return
+	# (o aperto que abriu o ensino ainda está chegando)
+	if Time.get_ticks_msec() - ensinar_desde < 500:
+		return
+	var txt := ArduinoBridge.texto_do_evento(event)
+	if txt == "" or ensinado.values().has(txt):
+		return
+	ensinado[ArduinoBridge.ENTRADAS[ensinando]] = txt
+	ensinando += 1
+	ensinar_desde = Time.get_ticks_msec()
+	if ensinando >= ArduinoBridge.ENTRADAS.size():
+		_ensinar_fim(true)
+	else:
+		_pedir_entrada()
+
+
+func _ensinar_fim(guardar: bool) -> void:
+	ensinando = -1
+	ArduinoBridge.ensinando = false
+	_serial_write("OFF")
+	if guardar:
+		ArduinoBridge.guardar_entradas(ensinado)
+		_mensagem("●  PRONTO: SENSORES E BOTÕES GUARDADOS — TESTE BATENDO NOS ALVOS")
+	else:
+		_mensagem("●  ENSINO CANCELADO (NADA FOI MUDADO)")

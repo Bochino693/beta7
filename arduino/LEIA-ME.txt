@@ -29,24 +29,44 @@ MATERIAL
   1 capacitor eletrolítico 1000 uF 16 V (no + e - da fonte)
   7 sensores de contato (microchave / sensor de impacto) + 2 botões
 
-GRAVAR
+GRAVAR (firmware GOL_FLASH:2)
   1. IDE do Arduino > Ferramentas > Gerenciar bibliotecas >
      "Adafruit NeoPixel" > Instalar.
-  2. Abra gol_flash_arena.ino. No começo do arquivo, confira:
-       LEDS_POR_ALVO   quantos LEDs tem a fita de CADA alvo
-       TIPO_FITA       NEO_GRB (WS2812B). Cor trocada: NEO_RGB ou NEO_BRG
-       BRILHO_MAX      0 a 255
-       SENSOR_NF       1 se o sensor ABRE o contato ao ser acionado
-       TESTE_AO_LIGAR  1 = cada alvo pisca ao ligar (teste de bancada)
-  3. Ferramentas > Placa: Arduino Nano (Processador "ATmega328P (Old
-     Bootloader)" se der erro ao gravar) ou Arduino Uno. Carregar.
+  2. Abra gol_flash_arena.ino e carregue (placa: Arduino Nano - processador
+     "ATmega328P (Old Bootloader)" se der erro ao gravar - ou Arduino Uno).
+  Não precisa mexer em nada no arquivo para começar:
+   - AO LIGAR FICA TUDO APAGADO. Só o jogo acende os alvos. (A fita de LED
+     liga sozinha com cores soltas quando recebe energia: o Arduino apaga
+     ao ligar e reforça de tempo em tempo a cor que o jogo pediu.)
+   - O ANEL ACENDE INTEIRO sem contar LEDs: o Arduino manda a cor para 64
+     LEDs por alvo. Só se um alvo tiver MAIS de 64 e o fim ficar apagado,
+     aumente LEDS_POR_ALVO (máximo 150).
+   - COR ERRADA (o jogo pede vermelho e acende verde ou azul): NÃO regrave.
+     No jogo: MENU > Central da Máquina > "ORDEM DAS CORES DOS LEDS". Cada
+     aperto troca a ordem e acende todos os alvos em VERMELHO; pare quando
+     ficarem vermelhos de verdade. O Arduino guarda.
+   - SENSOR_NF 1 se o sensor ABRE o contato ao ser acionado.
+
+SENSORES E BOTÕES: DOIS JEITOS
+  a) NO ARDUINO (recomendado na TV Box): sensor A..G nos pinos D9, D10,
+     D11, D12, A0, A1, A2; START no A3; SELECT no A4. Um fio no pino, o
+     outro no GND.
+  b) NA PLACA ZERO DELAY (como no PC), ligada na USB da TV Box: o Android
+     numera os botões de outro jeito, então no jogo use MENU > Central da
+     Máquina > "ENSINAR SENSORES E BOTÕES" e siga a tela (bata no alvo A,
+     depois B... START, SELECT). Fica guardado na TV Box.
+  CONFERIR: na Central da Máquina, cada batida num alvo acende o quadro
+  dele na tela ("SENSOR x RECEBIDO"). Se não acender, o sinal não está
+  chegando: é fio, pino ou GND.
 
 TESTAR NO PC (Monitor Serial, 9600, "Nova linha")
-  aparece   OLA:GOL_FLASH:1
-  digite    PING                 -> PONG:GOL_FLASH:1
+  aparece   OLA:GOL_FLASH:2
+  digite    PING                 -> PONG:GOL_FLASH:2
             SET:A=255,0,0        -> alvo A vermelho (os outros apagam)
             SET:A=0,0,255;G=0,255,0
             OFF                  -> apaga tudo
+            ORDEM:1              -> troca a ordem das cores (0 a 5)
+            CFG?                 -> CFG:ORDEM=1;LEDS=64
   bata num alvo      -> S:A ... S:G
   aperte START       -> B:START:1  (solte: B:START:0)
   aperte SELECT      -> B:SELECT:1 (solte: B:SELECT:0)

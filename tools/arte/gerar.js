@@ -29,6 +29,15 @@ const fs = require('fs');
   await p.evaluate('quadro(100)');
   await p.screenshot({ path: path.join(saida, 'banner.png') });
   await p.close();
+  // camadas da abertura animada (TV Box, sem vídeo)
+  p = await pagina('fundo', 1920, 1080);
+  await p.evaluate('quadro(100)');
+  await p.screenshot({ path: path.join(saida, 'capa_fundo.png') });
+  await p.close();
+  p = await pagina('logo', 1920, 1080);
+  await p.evaluate('quadro(100)');
+  await p.screenshot({ path: path.join(saida, 'capa_logo.png'), omitBackground: true });
+  await p.close();
   // video: 10 s a 24 quadros por segundo, 1280 x 720 (16:9, como a TV)
   p = await pagina('video', 1280, 720);
   for (let i = 0; i < 240; i++) {

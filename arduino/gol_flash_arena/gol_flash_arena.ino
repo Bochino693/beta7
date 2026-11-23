@@ -1,5 +1,5 @@
 // ============================================================================
-//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:1
+//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:2
 //  Lazer & Sport Games
 // ============================================================================
 //  O QUE ELE FAZ
@@ -21,15 +21,18 @@
 //    (botoes, sensores e moedeiro: um fio no pino, o outro no GND)
 //
 //  CONVERSA COM O JOGO (texto, 9600, uma linha por comando)
-//    jogo -> Arduino   PING                    responde PONG:GOL_FLASH:1
+//    jogo -> Arduino   PING                    responde PONG:GOL_FLASH:2
 //                      OFF                     apaga tudo
 //                      SET:A=255,0,0;C=0,0,255 acende A e C (r,g,b de 0 a
 //                                              255) e APAGA os outros alvos
-//    Arduino -> jogo   OLA:GOL_FLASH:1         ao ligar
+//    Arduino -> jogo   OLA:GOL_FLASH:2         ao ligar
 //                      S:A ... S:G             a bola bateu no alvo
 //                      B:START:1 / B:START:0   START apertado / solto
 //                      B:SELECT:1 / B:SELECT:0 SELECT apertado / solto
 //                      FICHA                   entrou 1 credito
+//                      ORDEM:0..5              ordem das cores da fita (guarda)
+//                      CFG?                    responde CFG:ORDEM=n;LEDS=m
+//  AO LIGAR FICA TUDO APAGADO: so o jogo acende.
 //  E o mesmo "SET / OFF" que o jogo sempre usou: funciona igual no PC (COM5)
 //  e na TV Box (USB).
 //
@@ -37,21 +40,27 @@
 //  bibliotecas > "Adafruit NeoPixel" > Instalar). Placa: Arduino Uno (ou Nano).
 // ============================================================================
 #include <Adafruit_NeoPixel.h>
+#include <EEPROM.h>
 
 // ------------------------------------------------------------------ AJUSTES
-#define FIRMWARE "GOL_FLASH:1"
+#define FIRMWARE "GOL_FLASH:2"
 
-// Quantos LEDs tem a fita (ou o anel) de CADA alvo. Pode por a mais: sobra
-// nao atrapalha. A menos, o fim da fita fica apagado.
-#define LEDS_POR_ALVO 30
+// Quantos LEDs o Arduino acende em CADA alvo. Ele sempre manda a cor para
+// todos esses: com um anel/fita MENOR (8, 16, 24, 60 LEDs) acende inteiro do
+// mesmo jeito, sem precisar contar. So aumente se o alvo tiver MAIS de 64
+// LEDs e o fim do anel ficar apagado (maximo 150). Nao ponha a mais sem
+// precisar: enquanto a fita recebe a cor o Arduino nao escuta o jogo, e com
+// 64 LEDs isso dura 2 milesimos de segundo (seguro); com 150, quase 5.
+#define LEDS_POR_ALVO 64
 
-// Tipo da fita: WS2812B / WS2811 de 5 V = NEO_GRB. Se as cores sairem
-// trocadas (pede vermelho e acende verde), troque para NEO_RGB ou NEO_BRG
-// (comum na fita WS2811 de 12 V).
-#define TIPO_FITA (NEO_GRB + NEO_KHZ800)
+// A ORDEM DAS CORES da fita nao precisa mais mexer aqui: se pedir vermelho e
+// acender outra cor, entre no jogo em MENU > Central da Maquina e aperte
+// "ORDEM DAS CORES DOS LEDS" ate o anel ficar VERMELHO. Fica guardado no
+// Arduino. (Comando: ORDEM:0 a ORDEM:5.)  Fita RGBW (4 cores) nao serve.
+#define ORDEM_PADRAO 0   // 0 = GRB (WS2812B, a mais comum)
 
-// Brilho maximo (0 a 255). 255 = tudo; menos = fonte mais folgada.
-#define BRILHO_MAX 200
+// Brilho (0 a 255). 255 = cor cheia, como o jogo manda.
+#define BRILHO_MAX 255
 
 // Sensores, botoes e moedeiro: 0 = contato que FECHA para o GND ao acionar
 // (o comum: microchave / sensor NA). 1 = contato que ABRE ao acionar (NF).
@@ -92,13 +101,30 @@ struct Entrada {
 // -------------------------------------------------------------------- LEDS
 // Uma fita so na memoria: todos os LEDs de um alvo tem a mesma cor, entao o
 // mesmo desenho e mandado para o pino de cada alvo (gasta pouca memoria).
-Adafruit_NeoPixel fita(LEDS_POR_ALVO, PINO_LED[0], TIPO_FITA);
+// A fita e criada como "RGB puro" e a ordem das cores e trocada aqui (ordem).
+Adafruit_NeoPixel fita(LEDS_POR_ALVO, PINO_LED[0], NEO_RGB + NEO_KHZ800);
 uint8_t corAtual[ALVOS][3];   // o que esta aceso
 uint8_t corNova[ALVOS][3];    // o que o jogo pediu
-bool primeiraVez = true;
+uint8_t ordem = ORDEM_PADRAO; // 0 GRB, 1 RGB, 2 BRG, 3 RBG, 4 GBR, 5 BGR
+uint8_t proximoReforco = 0;
+unsigned long ultimoReforco = 0;
+#define EEPROM_MARCA 0x4C     // "L": a ordem foi guardada
+#define REFORCO_MS 400        // de tempo em tempo um alvo e reenviado (ver loop)
+
+// r, g, b do jogo -> a ordem de fios desta fita
+uint32_t corDaFita(uint8_t r, uint8_t g, uint8_t b) {
+  switch (ordem) {
+    case 1: return fita.Color(r, g, b);
+    case 2: return fita.Color(b, r, g);
+    case 3: return fita.Color(r, b, g);
+    case 4: return fita.Color(g, b, r);
+    case 5: return fita.Color(b, g, r);
+    default: return fita.Color(g, r, b);
+  }
+}
 
 void mostrarAlvo(uint8_t i) {
-  uint32_t c = fita.Color(corNova[i][0], corNova[i][1], corNova[i][2]);
+  uint32_t c = corDaFita(corNova[i][0], corNova[i][1], corNova[i][2]);
   for (uint16_t p = 0; p < LEDS_POR_ALVO; p++) fita.setPixelColor(p, c);
   fita.setPin(PINO_LED[i]);
   fita.show();
@@ -111,17 +137,33 @@ void mostrarAlvo(uint8_t i) {
 // escuta o USB: quanto menos, melhor).
 void aplicarLeds() {
   for (uint8_t i = 0; i < ALVOS; i++) {
-    if (primeiraVez || corAtual[i][0] != corNova[i][0] || corAtual[i][1] != corNova[i][1] || corAtual[i][2] != corNova[i][2]) {
+    if (corAtual[i][0] != corNova[i][0] || corAtual[i][1] != corNova[i][1] || corAtual[i][2] != corNova[i][2]) {
       mostrarAlvo(i);
     }
   }
-  primeiraVez = false;
 }
 
 void apagarTudo() {
   for (uint8_t i = 0; i < ALVOS; i++) {
     corNova[i][0] = 0; corNova[i][1] = 0; corNova[i][2] = 0;
   }
+}
+
+// Manda de novo a cor de TODOS os alvos (ao ligar e ao trocar a ordem).
+void reenviarTudo() {
+  for (uint8_t i = 0; i < ALVOS; i++) mostrarAlvo(i);
+}
+
+// SO O JOGO ACENDE: a fita de LED liga sozinha com cores soltas quando recebe
+// energia (e a fonte dela pode ligar depois do Arduino). Por isso, alem de
+// apagar tudo ao ligar, o Arduino reenvia um alvo a cada REFORCO_MS com a
+// cor que o jogo pediu por ultimo (apagado, se o jogo nao pediu nada).
+void reforcar() {
+  unsigned long agora = millis();
+  if (agora - ultimoReforco < REFORCO_MS) return;
+  ultimoReforco = agora;
+  mostrarAlvo(proximoReforco);
+  proximoReforco = (proximoReforco + 1) % ALVOS;
 }
 
 // ---------------------------------------------------------------- COMANDOS
@@ -155,6 +197,13 @@ void comandoSet(const char *p) {
   }
 }
 
+void responderCfg() {
+  Serial.print(F("CFG:ORDEM="));
+  Serial.print((int)ordem);
+  Serial.print(F(";LEDS="));
+  Serial.println((int)LEDS_POR_ALVO);
+}
+
 bool igual(const char *a, const char *b) {
   while (*a && *b) {
     char c = *a;
@@ -171,6 +220,15 @@ void executar() {
   } else if (igual(linha, "OFF")) {
     apagarTudo();
     aplicarLeds();
+  } else if (igual(linha, "CFG?")) {
+    responderCfg();
+  } else if ((linha[0] == 'O' || linha[0] == 'o') && linha[5] == ':' && linha[6] >= '0' && linha[6] <= '5' && linha[7] == 0) {
+    // ORDEM:n - a ordem das cores desta fita (guardada no Arduino)
+    ordem = linha[6] - '0';
+    EEPROM.update(0, EEPROM_MARCA);
+    EEPROM.update(1, ordem);
+    reenviarTudo();
+    responderCfg();
   } else if ((linha[0] == 'S' || linha[0] == 's') && (linha[1] == 'E' || linha[1] == 'e') && (linha[2] == 'T' || linha[2] == 't') && linha[3] == ':') {
     comandoSet(linha + 4);
     aplicarLeds();
@@ -270,10 +328,14 @@ void setup() {
   botaoSelect.bruto = botaoSelect.firme = lerAcionada(botaoSelect);
   ficha.bruto = ficha.firme = lerAcionada(ficha);
 
+  if (EEPROM.read(0) == EEPROM_MARCA && EEPROM.read(1) <= 5) ordem = EEPROM.read(1);
   fita.begin();
   fita.setBrightness(BRILHO_MAX);
+  // AO LIGAR, TUDO APAGADO: duas passadas (a fita pode estar acordando)
   apagarTudo();
-  aplicarLeds();
+  reenviarTudo();
+  delay(30);
+  reenviarTudo();
 #if TESTE_AO_LIGAR
   for (uint8_t k = 0; k < 3; k++) {
     for (uint8_t i = 0; i < ALVOS; i++) {
@@ -292,4 +354,6 @@ void setup() {
 void loop() {
   lerUsb();
   lerEntradas();
+  // (so reforca com o USB quieto: nunca no meio de um comando chegando)
+  if (tamLinha == 0 && Serial.available() == 0) reforcar();
 }

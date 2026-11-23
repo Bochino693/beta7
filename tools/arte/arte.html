@@ -121,6 +121,13 @@ function quadro(t) {
 const modo = new URLSearchParams(location.search).get("modo") || "capa";
 function ajustar() {
   const palco = document.getElementById("palco"), W = innerWidth, H = innerHeight;
+  // camadas soltas para a abertura animada do jogo (sem vídeo, na TV Box):
+  //   fundo = só o estádio;  logo = só o logo, fundo transparente
+  if (modo === "fundo") { for (const id of ["logo", "ls", "faiscas"]) document.getElementById(id).style.display = "none"; }
+  if (modo === "logo") {
+    for (const id of ["fundo", "escuro", "ls", "faiscas", "clarao", "preto"]) document.getElementById(id).style.display = "none";
+    document.body.style.background = "transparent"; document.documentElement.style.background = "transparent"; palco.style.background = "transparent";
+  }
   if (modo === "icone" || modo === "banner") {
     // so o logo, grande, sobre o gramado
     document.getElementById("ls").style.display = "none";

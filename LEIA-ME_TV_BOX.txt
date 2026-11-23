@@ -49,8 +49,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 12  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 12" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 14  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 14" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -62,7 +62,7 @@ IMPORTANTE: com a tela da ROM desligada, NÃO desinstale o jogo antes de
 desfazer (a caixa ficaria sem tela inicial). Para atualizar, instale o APK
 novo POR CIMA.
 
-POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 12)
+POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 14)
 Ao ligar, o Android procura a tela inicial antes de destravar o
 armazenamento. A tela inicial do jogo não estava marcada para existir nessa
 hora (directBootAware), a lista de telas ficava diferente da do dia da
@@ -134,7 +134,19 @@ MENU -> Central da Máquina:
   - "DIAGNÓSTICO DOS 7 ALVOS": marque um alvo e OK = o LED acende;
     bata no alvo = o quadro dele acende na tela;
   - "TESTAR TODOS OS LEDS";
+  - "ORDEM DAS CORES DOS LEDS": se a cor do anel não é a que o jogo pede,
+    aperte até os alvos ficarem VERMELHOS (o Arduino guarda);
+  - "ENSINAR SENSORES E BOTÕES": para a placa Zero Delay na TV Box (bata
+    em cada alvo e aperte START e SELECT na ordem que a tela pede);
   - modo LIVRE ou CRÉDITO, contador de partidas, limpar o mural.
+
+NO CANTO DE BAIXO DA TELA (pequeno):
+  TV 14 • Mali-G31 • 58 q/s • nível 1 • 720p • Android 10 • tela inicial...
+  = versão do jogo, placa de vídeo da caixa, quadros por segundo, nível de
+  desempenho e resolução. O jogo mede sozinho e, se a caixa não dá conta,
+  desce de nível (sem neon -> 540 linhas -> 480 linhas -> 30 q/s fixos).
+  ATENÇÃO: este jogo é Godot 4 e precisa de placa com OpenGL ES 3. Em
+  caixa com Mali-400/450 (só ES 2) ele não abre: lá só a edição GLES2.
 
 
 SE ALGO NÃO FUNCIONAR

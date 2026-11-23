@@ -29,7 +29,8 @@ signal sensor(letra: String)
 
 const BAUD := 9600
 const LETRAS := ["A", "B", "C", "D", "E", "F", "G"]
-const ESPACO_MS := 30            # entre dois comandos (o Arduino fica surdo enquanto acende a fita)
+const REPETIR_MS := 700
+const ESPACO_MS := 35            # entre dois comandos (o Arduino fica surdo enquanto acende a fita)
 const PING_MS := 2000
 const PROCURAR_MS := 1500
 const REINICIO_UNO_MS := 2300    # o Uno reinicia ao abrir a porta
@@ -50,6 +51,8 @@ var _desde := 0
 var _ultimo_rx := 0
 var _ultimo_tx := 0
 var _ultimo_ping := 0
+var _ultimo_led := 0
+var fita := ""                    # resposta do CFG? ("ORDEM=0;LEDS=64")
 var _ultima_procura := -100000
 var _pendente := ""              # comando de LED esperando a vez (o último vale)
 var _falhou := {}
@@ -60,9 +63,9 @@ var _pedidos: ConfigFile
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_carimbo()
-	_imagem_da_tv()
 	for l in LETRAS:
 		contagem[l] = 0
+	_carregar_entradas()
 	if OS.get_name() == "Windows":
 		status = "Arduino: ponte PowerShell (COM5)"
 		set_process(false)
@@ -73,7 +76,6 @@ func _ready() -> void:
 		return
 	if not Engine.has_singleton("StrikeSerial"):
 		status = "Arduino: este APK não tem o plugin USB — gere pelo GERAR_APK.bat"
-		set_process(false)
 		# sem o plugin nada da máquina funciona (Arduino, abrir ao ligar): avisa na tela
 		get_tree().create_timer(10.0, true, false, true).timeout.connect(func() -> void:
 			_mostrar_aviso("ESTE APK ESTÁ INCOMPLETO", "Ele foi gerado sem o plugin da máquina (o Gradle falhou):\no Arduino não funciona e o jogo não abre sozinho ao ligar.\n\nGere de novo pelo GERAR_APK.bat e envie o arquivo\nbuild\\android\\GERACAO-COMPLETA.log se falhar.", "", 20000, false)
@@ -146,7 +148,7 @@ func _olhar_inicio(agora: int) -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(PERMISSOES)
 	if _carimbo_label != null:
-		_carimbo_label.text = "%s  •  Android %s  •  tela inicial: %s  •  sobrepor: %s" % [VERSAO, d.get("android", "?"),
+		_carimbo_inicio = "Android %s  •  tela inicial: %s  •  sobrepor: %s" % [d.get("android", "?"),
 			"JOGO" if str(d.get("tela_inicial", "")) == "jogo" else "NÃO", str(d.get("sobrepor", "?")).to_upper()]
 	if _inicio_pediu:
 		# voltou da tela do Android: um pedido por abertura, sem insistir
@@ -183,7 +185,7 @@ func _cartao_do_aviso(largura: float, altura: float, cor: Color) -> Control:
 	add_child(_aviso)
 	var fundo := ColorRect.new()
 	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fundo.color = Color(0.0, 0.01, 0.03, 0.88)
+	fundo.color = Color(0.0, 0.02, 0.06, 0.62)
 	_aviso.add_child(fundo)
 	var tela := get_viewport().get_visible_rect().size
 	var k: float = minf(tela.x / 1280.0, tela.y / 720.0)
@@ -448,8 +450,10 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 12"
+const VERSAO := "TV 14"
 var _carimbo_label: Label
+var _carimbo_inicio := ""
+var _carimbo_em := 0
 
 
 func _carimbo() -> void:
@@ -466,23 +470,6 @@ func _carimbo() -> void:
 	_carimbo_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
 	_carimbo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	camada.add_child(_carimbo_label)
-
-
-## IMAGEM LISA NA TV BOX: o jogo é desenhado em 720 linhas e a própria TV
-## Box estica para a tela (1080p ou 4K). Sem isso uma caixa ligada em 4K
-## desenharia 9 vezes mais pontos por quadro e o jogo arrastaria. As telas
-## do jogo já se montam pelo tamanho da imagem (a partir de 1280 x 720).
-## ALTURA_NA_TV = 0 desenha no tamanho da tela (mais nítido, mais pesado).
-const ALTURA_NA_TV := 720
-
-
-func _imagem_da_tv() -> void:
-	if OS.get_name() != "Android" or ALTURA_NA_TV <= 0:
-		return
-	var janela := get_tree().root
-	janela.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
-	janela.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
-	janela.content_scale_size = Vector2i(int(round(ALTURA_NA_TV * 16.0 / 9.0)), ALTURA_NA_TV)
 
 
 ## true = os comandos de LED passam por aqui (tudo que não é Windows).
@@ -510,14 +497,22 @@ func enviar(texto: String) -> void:
 	var cmd := texto.strip_edges()
 	if cmd == "" or cmd == "__EXIT__":
 		return
+	if cmd.begins_with("ORDEM:") or cmd == "CFG?":
+		if _plugin != null and _fase == "conectado":
+			_escrever(cmd, Time.get_ticks_msec())
+		return
 	ultimo_comando = cmd
 	_pendente = cmd
 
 
 func _process(_delta: float) -> void:
+	var agora := Time.get_ticks_msec()
+	# o carimbo do canto: versão, placa de vídeo, quadros por segundo e nível
+	if _carimbo_label != null and agora - _carimbo_em >= 2000:
+		_carimbo_em = agora
+		_carimbo_label.text = "%s  •  %s%s" % [VERSAO, Visual.texto(), ("  •  " + _carimbo_inicio) if _carimbo_inicio != "" else ""]
 	if _plugin == null:
 		return
-	var agora := Time.get_ticks_msec()
 	_olhar_inicio(agora)
 	match _fase:
 		"procurando":
@@ -549,6 +544,12 @@ func _process(_delta: float) -> void:
 				if _pendente != "":
 					_escrever(_pendente, agora)
 					_pendente = ""
+					_ultimo_led = agora
+				elif ultimo_comando != "" and agora - _ultimo_led >= REPETIR_MS:
+					# repete o último comando de LED: se o Arduino perdeu um
+					# (estava ocupado acendendo a fita), ele se acerta sozinho
+					_ultimo_led = agora
+					_escrever(ultimo_comando, agora)
 				elif agora - _ultimo_ping >= PING_MS:
 					_ultimo_ping = agora
 					_escrever("PING", agora)
@@ -672,6 +673,10 @@ func _receber(linha: String, agora: int) -> void:
 				_set_status("Arduino conectado (%s): LEDs, sensores, botões e ficha OK" % chip)
 			mudou.emit()
 		return
+	if linha.begins_with("CFG:"):
+		fita = linha.substr(4)
+		mudou.emit()
+		return
 	if linha.begins_with("S:") or linha.begins_with("HIT:"):
 		var letra := linha.substr(linha.find(":") + 1, 1)
 		if LETRAS.has(letra):
@@ -761,6 +766,85 @@ func pedir_sobrepor() -> bool:
 ## Sai do jogo para a tela inicial da TV (saída do operador).
 func sair_para_tv() -> String:
 	return str(_plugin.call("sair_para_tv")) if _plugin != null else ""
+
+
+## A ordem das cores da fita de LED (0..5), guardada no Arduino. Vale no PC
+## também: a Central da Máquina manda "ORDEM:n" pelo mesmo caminho dos LEDs.
+func ordem_da_fita() -> int:
+	var k := fita.find("ORDEM=")
+	return int(fita.substr(k + 6, 1)) if k >= 0 else -1
+
+
+# ------------------------------------------------------- entradas ensinadas
+## A PLACA ZERO DELAY NA TV BOX: o Android numera os botões dela de um jeito
+## diferente do Windows, então os sensores e os botões "trocam de lugar". Na
+## Central da Máquina, "ENSINAR SENSORES E BOTÕES" pede cada um na ordem
+## (alvo A...G, START, SELECT) e guarda aqui qual botão é qual. Vale só para
+## este aparelho (user://entradas.cfg) e não mexe no que já funciona no PC.
+const ARQUIVO_ENTRADAS := "user://entradas.cfg"
+const ENTRADAS: Array[String] = ["input_led_a", "input_led_b", "input_led_c", "input_led_d", "input_led_e", "input_led_f", "input_led_g", "input_start", "input_cup"]
+var tem_mapa := false
+var ensinando := false            # a Central da Máquina está pedindo os botões
+
+
+func _carregar_entradas() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(ARQUIVO_ENTRADAS) != OK:
+		return
+	for acao in ENTRADAS:
+		var v: String = str(cfg.get_value("entradas", acao, ""))
+		var ev := _evento_de(v)
+		if ev == null or not InputMap.has_action(acao):
+			continue
+		InputMap.action_erase_events(acao)
+		InputMap.action_add_event(acao, ev)
+		tem_mapa = true
+
+
+## "b:7" botão de joystick, "e:5:1" eixo (número e lado), "t:65" tecla.
+func _evento_de(v: String) -> InputEvent:
+	var p := v.split(":")
+	if p.size() >= 2 and p[0] == "b":
+		var b := InputEventJoypadButton.new()
+		b.device = -1
+		b.button_index = int(p[1]) as JoyButton
+		return b
+	if p.size() >= 3 and p[0] == "e":
+		var e := InputEventJoypadMotion.new()
+		e.device = -1
+		e.axis = int(p[1]) as JoyAxis
+		e.axis_value = float(p[2])
+		return e
+	if p.size() >= 2 and p[0] == "t":
+		var t := InputEventKey.new()
+		t.keycode = int(p[1]) as Key
+		return t
+	return null
+
+
+## O texto que guarda este aperto ("" = não serve para ensinar).
+func texto_do_evento(ev: InputEvent) -> String:
+	if ev is InputEventJoypadButton and ev.pressed:
+		return "b:%d" % ev.button_index
+	if ev is InputEventJoypadMotion and absf(ev.axis_value) > 0.6:
+		return "e:%d:%d" % [ev.axis, 1 if ev.axis_value > 0.0 else -1]
+	if ev is InputEventKey and ev.pressed and not ev.echo and not (ev.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_BACK, KEY_ESCAPE, KEY_MENU, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_F9]):
+		return "t:%d" % ev.keycode
+	return ""
+
+
+func guardar_entradas(mapa: Dictionary) -> void:
+	var cfg := ConfigFile.new()
+	for acao in mapa:
+		cfg.set_value("entradas", acao, mapa[acao])
+	cfg.save(ARQUIVO_ENTRADAS)
+	_carregar_entradas()
+
+
+func esquecer_entradas() -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(ARQUIVO_ENTRADAS))
+	tem_mapa = false
+	InputMap.load_from_project_settings()
 
 
 func relatorio() -> String:

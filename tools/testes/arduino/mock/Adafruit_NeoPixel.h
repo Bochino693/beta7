@@ -15,5 +15,5 @@ struct Adafruit_NeoPixel {
   void setPin(int16_t p) { pino = p; }
   void setBrightness(uint8_t) {}
   void setPixelColor(uint16_t, uint32_t c) { cor = c; }
-  static uint32_t Color(uint8_t r, uint8_t g, uint8_t b) { return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b; }
+  uint32_t Color(uint8_t r, uint8_t g, uint8_t b) { return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b; }
 };
