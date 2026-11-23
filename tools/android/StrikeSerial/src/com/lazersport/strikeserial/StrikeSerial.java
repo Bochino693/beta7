@@ -250,6 +250,42 @@ public class StrikeSerial extends GodotPlugin {
 		return "pedido";
 	}
 
+	private volatile String usbSemJanela = "";
+
+	/**
+	 * Tenta a permissão do Arduino SEM JANELA e para sempre (root / adb da
+	 * TV: InicioDaTv.usbSemJanela), em segundo plano. usb_sem_janela_estado()
+	 * diz "rodando", "ok" ou "sem_acesso".
+	 */
+	@UsedByGodot
+	public void usb_sem_janela() {
+		final Activity a = getActivity();
+		if (a == null || "rodando".equals(usbSemJanela)) {
+			return;
+		}
+		usbSemJanela = "rodando";
+		final Context app = a.getApplicationContext();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				String r = "sem_acesso";
+				try {
+					r = InicioDaTv.usbSemJanela(app);
+				} catch (Throwable t) {
+					anotar("usb sem janela: " + t);
+				}
+				anotar("usb sem janela: " + r);
+				listadaEm = 0;
+				usbSemJanela = r;
+			}
+		}, "GolFlashUsb").start();
+	}
+
+	@UsedByGodot
+	public String usb_sem_janela_estado() {
+		return usbSemJanela;
+	}
+
 	// ------------------------------------------------------------ abrir
 	@UsedByGodot
 	public String estado() {

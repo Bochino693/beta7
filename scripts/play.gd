@@ -912,8 +912,12 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	panel.add_child(faixa)
 
 	# TÍTULO
-	var titulo := _novo_label_card("PLAYER %d" % [index + 1], W, c_titulo, fs_titulo, cor)
+	# (nome em BRANCO com contorno escuro: na cor do jogador ele sumia quando
+	# o card acende na mesma cor; a cor fica no brilho em volta)
+	var titulo := _novo_label_card("PLAYER %d" % [index + 1], W, c_titulo, fs_titulo, Color.WHITE)
 	titulo.add_theme_color_override("font_shadow_color", cor)
+	titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
+	titulo.add_theme_constant_override("outline_size", 6)
 	panel.add_child(titulo)
 
 	# rótulo GOL
@@ -1349,9 +1353,15 @@ func _rodar_contagem_inicio() -> void:
 
 
 
+## A ORDEM DO COMEÇO DE CADA TURNO: o modal some -> os LEDs ficam apagados
+## -> o APITO toca inteiro -> só então os alvos acendem e o tempo começa a
+## contar. (Antes os LEDs acendiam no meio do apito e o tempo já corria.)
+const ESPERA_DO_APITO: float = 1.05
+
+
 func _iniciar_turno_player() -> void:
-	partida_ativa = true
-	em_contagem_inicio = false
+	partida_ativa = false
+	em_contagem_inicio = true
 
 	await _esconder_overlay()
 
@@ -1371,7 +1381,16 @@ func _iniciar_turno_player() -> void:
 
 	_tocar_apito_init()
 
-	await get_tree().create_timer(0.18).timeout
+	await get_tree().create_timer(ESPERA_DO_APITO).timeout
+
+	# agora sim: alvos acesos e tempo valendo
+	agora = float(Time.get_ticks_msec())
+	_ultimo_motivacional_ms = agora
+	_ultimo_acerto_ms = agora
+	_ultimo_ponto_ms = agora
+	_ultima_pressao_ms = agora
+	em_contagem_inicio = false
+	partida_ativa = true
 
 	_sortear_novo_grupo_de_fileiras()
 
@@ -1643,7 +1662,7 @@ func _explosao_gol(index: int) -> void:
 		Color(0.2, 0.9, 1.0),
 	]
 
-	for i: int in range(24):
+	for i: int in range(10 if Visual.nivel >= 1 else 24):   # (TV Box: menos faíscas por gol = gol sem engasgo)
 		var faisca: ColorRect = ColorRect.new()
 
 		var s: float = clampf(ref * 0.022, 6.0, 16.0)
@@ -1838,7 +1857,7 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
 
 	var score_antes: int = scores[player_atual]
 	scores[player_atual] += valor
@@ -2369,6 +2388,8 @@ func _mostrar_modal_final() -> void:
 	t.tween_property(fundo, "color", Color(0, 0, 0, 0.80), 0.25)
 	t.tween_property(panel, "modulate", Color.WHITE, 0.25)
 	t.tween_property(panel, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# a apresentação do resultado: o painel sobe, as linhas entram uma a uma
+	Efeitos.apresentar(panel, cor_vencedor)
 
 	var confete_root := Control.new()
 	confete_root.set_anchors_preset(Control.PRESET_FULL_RECT)

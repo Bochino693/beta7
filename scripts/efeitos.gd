@@ -87,16 +87,11 @@ func _ready() -> void:
 
 
 func _aquecer() -> void:
-	var p := CPUParticles2D.new()
-	p.one_shot = true
-	p.amount = 4
-	p.lifetime = 0.3
-	p.position = Vector2(-400, -400)
-	add_child(p)
-	p.emitting = true
-	get_tree().create_timer(1.0, true, false, true).timeout.connect(p.queue_free)
-	_lista_ondas.append([Time.get_ticks_msec() - 640, Color(0, 0, 0, 0)])
-	_ondas.queue_redraw()
+	_criar_canhoes()
+	for p in _canhoes:
+		p.position = Vector2(-600, -600)
+		p.restart()
+		p.emitting = true
 
 
 func _cheio(c: Control) -> Control:
@@ -284,14 +279,31 @@ func _piscar(cor: Color, forca: float, tempo: float) -> void:
 
 
 # -------------------------------------------------------------------- gol
-## As telas de partida chamam a cada gol (jogador 0..3 dá a cor).
-func gol(jogador: int = 0) -> void:
+## O GOL, NA COR DE QUEM MARCOU (as telas de partida chamam a cada gol e
+## passam a cor do jogador; sem a cor, vale a do número do jogador):
+##   - a moldura da tela acende na cor do jogador e apaga suave (luz de
+##     estádio) - sem clarão cobrindo a tela inteira;
+##   - duas chuvas de papel picado sobem dos cantos de baixo: cor do
+##     jogador, branco e a cor mais clara.
+## Nada é criado na hora do gol: os dois "canhões" de papel já existem e só
+## disparam de novo (sem engasgo), e a moldura são 8 retângulos.
+var _canhoes: Array[CPUParticles2D] = []
+var _rampas: Array[Gradient] = []
+var _borda_cor := Color(1.0, 0.12, 0.12)
+
+
+func gol(jogador: int = 0, cor_do_jogador: Variant = null) -> void:
 	if not LIGADO:
 		return
 	var cor: Color = CORES_JOGADOR[posmod(jogador, CORES_JOGADOR.size())]
-	_piscar(cor, 0.30, 0.45)
-	_lista_ondas.append([Time.get_ticks_msec(), cor])
-	_ondas.queue_redraw()
+	if cor_do_jogador is Color:
+		cor = cor_do_jogador
+	# (uma cor viva, mesmo que a do jogador seja escura)
+	if cor.v < 0.75:
+		cor.v = 0.75
+	_borda_cor = cor
+	_borda_alfa = 0.85
+	_borda.queue_redraw()
 	_confete(cor)
 
 
@@ -299,37 +311,29 @@ func gol(jogador: int = 0) -> void:
 func erro() -> void:
 	if not LIGADO:
 		return
+	_borda_cor = Color(1.0, 0.12, 0.12)
 	_borda_alfa = 0.55
 	_borda.queue_redraw()
 
 
-func _confete(cor: Color) -> void:
-	var t := _tela()
-	var escala := t.x / 1280.0
+func _criar_canhoes() -> void:
 	for lado in [-1.0, 1.0]:
 		var p := CPUParticles2D.new()
 		p.one_shot = true
 		p.emitting = false
-		p.amount = 22 if _leve else 40
-		p.lifetime = 1.7
+		p.amount = 20 if _leve else 36
+		p.lifetime = 1.6
 		p.explosiveness = 0.92
-		p.position = Vector2(t.x * (0.5 - 0.42 * lado), t.y * 1.02)
 		p.direction = Vector2(0.55 * lado, -1.0)
 		p.spread = 26.0
-		p.initial_velocity_min = 620.0 * escala
-		p.initial_velocity_max = 1150.0 * escala
-		p.gravity = Vector2(0, 1250.0 * escala)
 		p.angle_min = 0.0
 		p.angle_max = 360.0
 		p.angular_velocity_min = -520.0
 		p.angular_velocity_max = 520.0
-		p.scale_amount_min = 7.0 * escala
-		p.scale_amount_max = 15.0 * escala
 		var g := Gradient.new()
-		g.set_color(0, cor)
-		g.add_point(0.35, Color.WHITE)
-		g.add_point(0.65, cor.lightened(0.35))
-		g.set_color(g.get_point_count() - 1, Color(1.0, 0.85, 0.2))
+		g.set_color(0, Color.WHITE)
+		g.add_point(0.4, Color.WHITE)
+		g.set_color(g.get_point_count() - 1, Color.WHITE)
 		p.color_initial_ramp = g
 		var some := Gradient.new()
 		some.set_color(0, Color(1, 1, 1, 1))
@@ -338,8 +342,30 @@ func _confete(cor: Color) -> void:
 		p.color_ramp = some
 		add_child(p)
 		move_child(p, _ondas.get_index())
+		_canhoes.append(p)
+		_rampas.append(g)
+
+
+func _confete(cor: Color) -> void:
+	if _canhoes.is_empty():
+		_criar_canhoes()
+	var t := _tela()
+	var escala := t.x / 1280.0
+	for i in range(_canhoes.size()):
+		var lado: float = -1.0 if i == 0 else 1.0
+		var p := _canhoes[i]
+		p.position = Vector2(t.x * (0.5 - 0.42 * lado), t.y * 1.02)
+		p.initial_velocity_min = 620.0 * escala
+		p.initial_velocity_max = 1150.0 * escala
+		p.gravity = Vector2(0, 1250.0 * escala)
+		p.scale_amount_min = 7.0 * escala
+		p.scale_amount_max = 15.0 * escala
+		var g := _rampas[i]
+		g.set_color(0, cor)
+		g.set_color(1, Color.WHITE)
+		g.set_color(2, cor.lightened(0.45))
+		p.restart()
 		p.emitting = true
-		get_tree().create_timer(p.lifetime + 0.4, true, false, true).timeout.connect(p.queue_free)
 
 
 func _desenhar_ondas() -> void:
@@ -364,9 +390,117 @@ func _desenhar_borda() -> void:
 	if _borda_alfa <= 0.0:
 		return
 	var t := _tela()
-	var g := t.y * 0.045
-	var cor := Color(1.0, 0.12, 0.12, _borda_alfa)
-	_borda.draw_rect(Rect2(0, 0, t.x, g), cor)
-	_borda.draw_rect(Rect2(0, t.y - g, t.x, g), cor)
-	_borda.draw_rect(Rect2(0, g, g, t.y - 2.0 * g), cor)
-	_borda.draw_rect(Rect2(t.x - g, g, g, t.y - 2.0 * g), cor)
+	# duas molduras, a de fora forte e a de dentro fraca: parece luz, não tarja
+	for passo in range(2):
+		var g: float = t.y * (0.022 if passo == 0 else 0.05)
+		var cor := Color(_borda_cor.r, _borda_cor.g, _borda_cor.b, _borda_alfa * (0.75 if passo == 0 else 0.30))
+		_borda.draw_rect(Rect2(0, 0, t.x, g), cor)
+		_borda.draw_rect(Rect2(0, t.y - g, t.x, g), cor)
+		_borda.draw_rect(Rect2(0, g, g, t.y - 2.0 * g), cor)
+		_borda.draw_rect(Rect2(t.x - g, g, g, t.y - 2.0 * g), cor)
+
+
+# ------------------------------------------------------- resultado final
+## A APRESENTAÇÃO DO RESULTADO, como nos jogos de futebol de console: as
+## telas de partida montam o modal do resultado do jeito delas e chamam
+## Efeitos.apresentar(painel, cor_do_vencedor). Aqui ele ganha a entrada:
+##   - o fundo deixa de ser preto: escurece na COR do vencedor e um halo de
+##     luz acende atrás do painel;
+##   - o painel sobe do rodapé e assenta;
+##   - cada linha (título, colocados, vencedor, dica) entra na sua vez,
+##     alternando da esquerda e da direita;
+##   - um reflexo de luz atravessa o painel uma vez.
+## Tudo com 1 textura pequena e poucos "tweens": nada pesa na TV Box.
+var _tex_halo: Texture2D
+
+
+func apresentar(painel: Control, cor: Color = COR_PADRAO) -> void:
+	if not LIGADO or painel == null or not is_instance_valid(painel) or not painel.is_inside_tree():
+		return
+	var pai := painel.get_parent()
+	var tela := _tela()
+	if cor.v < 0.7:
+		cor.v = 0.7
+
+	# 1. o fundo escuro vira "noite" na cor do vencedor
+	if pai != null:
+		for irmao in pai.get_children():
+			if irmao is ColorRect and irmao != painel:
+				var cr := irmao as ColorRect
+				if cr.size.x >= tela.x * 0.9 and cr.size.y >= tela.y * 0.9 and cr.color.get_luminance() < 0.1:
+					var tf := cr.create_tween()
+					tf.tween_interval(0.30)
+					tf.tween_property(cr, "color", Color(cor.r * 0.16, cor.g * 0.16, cor.b * 0.16 + 0.03, 0.78), 0.6)
+					break
+
+	# 2. o halo de luz atrás do painel
+	if pai != null:
+		if _tex_halo == null:
+			_tex_halo = _textura_luz()
+		var halo := TextureRect.new()
+		halo.texture = _tex_halo
+		halo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		halo.stretch_mode = TextureRect.STRETCH_SCALE
+		halo.size = painel.size * Vector2(1.9, 2.1)
+		halo.position = painel.position + painel.size * 0.5 - halo.size * 0.5
+		halo.pivot_offset = halo.size * 0.5
+		halo.modulate = Color(cor.r, cor.g, cor.b, 0.0)
+		halo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pai.add_child(halo)
+		pai.move_child(halo, painel.get_index())
+		var th := halo.create_tween()
+		th.tween_property(halo, "modulate:a", 0.55, 0.5)
+		var respira := halo.create_tween()
+		respira.set_loops()
+		respira.tween_property(halo, "scale", Vector2(1.08, 1.08), 1.8).set_trans(Tween.TRANS_SINE)
+		respira.tween_property(halo, "scale", Vector2.ONE, 1.8).set_trans(Tween.TRANS_SINE)
+
+	# 3. o painel sobe e assenta
+	var destino := painel.position
+	painel.position = destino + Vector2(0, tela.y * 0.10)
+	var tp := painel.create_tween()
+	tp.tween_property(painel, "position", destino, 0.55).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+
+	# 4. cada linha na sua vez, alternando os lados
+	var ordem := 0
+	for filho in painel.get_children():
+		if not (filho is Control) or not (filho as Control).visible:
+			continue
+		var c := filho as Control
+		if c.size.x >= painel.size.x * 0.9 and c.size.y >= painel.size.y * 0.9:
+			continue   # (imagem / escurecimento de fundo do painel)
+		if c.size.y < 6.0 or c.modulate.a < 0.99:
+			continue   # (fios separadores e o que a tela já anima)
+		var lado: float = -1.0 if ordem % 2 == 0 else 1.0
+		var fim := c.position
+		c.position = fim + Vector2(46.0 * lado, 0)
+		c.modulate.a = 0.0
+		var espera: float = 0.22 + 0.07 * mini(ordem, 12)
+		var tl := c.create_tween()
+		tl.set_parallel(true)
+		tl.tween_property(c, "position", fim, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(espera)
+		tl.tween_property(c, "modulate:a", 1.0, 0.24).set_delay(espera)
+		ordem += 1
+
+	# 5. o reflexo que atravessa o painel
+	var mascara := Control.new()
+	mascara.position = Vector2(8, 8)
+	mascara.size = painel.size - Vector2(16, 16)
+	mascara.clip_contents = true
+	mascara.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	painel.add_child(mascara)
+	var reflexo := TextureRect.new()
+	reflexo.texture = _textura_feixe()
+	reflexo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	reflexo.stretch_mode = TextureRect.STRETCH_SCALE
+	reflexo.size = Vector2(painel.size.x * 0.22, painel.size.y * 1.8)
+	reflexo.rotation = 0.35
+	reflexo.material = _aditivo()
+	reflexo.modulate = Color(1, 1, 1, 0.16)
+	reflexo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reflexo.position = Vector2(-painel.size.x * 0.4, -painel.size.y * 0.4)
+	mascara.add_child(reflexo)
+	var tr := reflexo.create_tween()
+	tr.tween_interval(0.75)
+	tr.tween_property(reflexo, "position:x", painel.size.x * 1.25, 0.85).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tr.tween_callback(mascara.queue_free)

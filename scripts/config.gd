@@ -77,11 +77,11 @@ func _criar_interface() -> void:
 	margem.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margem.add_theme_constant_override("margin_left", 30)
 	margem.add_theme_constant_override("margin_right", 30)
-	margem.add_theme_constant_override("margin_top", 20)
-	margem.add_theme_constant_override("margin_bottom", 20)
+	margem.add_theme_constant_override("margin_top", 14)
+	margem.add_theme_constant_override("margin_bottom", 14)
 	palco.add_child(margem)
 	var app := VBoxContainer.new()
-	app.add_theme_constant_override("separation", 12)
+	app.add_theme_constant_override("separation", 10)
 	margem.add_child(app)
 
 	var header := PanelContainer.new()
@@ -91,23 +91,24 @@ func _criar_interface() -> void:
 	var header_box := HBoxContainer.new()
 	header_box.add_theme_constant_override("separation", 14)
 	header.add_child(header_box)
-	var marca := _label("OLHO NO LANCE  /  SISTEMA", 15, Color(0.18, 0.78, 1.0))
-	marca.custom_minimum_size.x = 210
+	var marca := _label("OLHO NO LANCE  /  SISTEMA", 17, Color(0.18, 0.78, 1.0))
+	marca.custom_minimum_size.x = 250
 	marca.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header_box.add_child(marca)
-	var titulo := _label("CENTRAL DA MÁQUINA", 24, Color.WHITE)
+	var titulo := _label("CENTRAL DA MÁQUINA", 30, Color.WHITE)
 	titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header_box.add_child(titulo)
-	status_label = _label("●  CONECTANDO À COM5", 15, Color(0.35, 0.92, 1.0))
+	status_label = _label("●  CONECTANDO À COM5", 17, Color(0.35, 0.92, 1.0))
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	status_label.custom_minimum_size.x = 390
+	status_label.custom_minimum_size.x = 520
 	header_box.add_child(status_label)
 
 	# Três cards compactos na mesma linha: sempre cabem em 1280 x 720.
 	var resumo := HBoxContainer.new()
-	resumo.custom_minimum_size.y = 172 if not ArduinoBridge.tem_plugin() else 260
+	resumo.custom_minimum_size.y = 236
 	resumo.add_theme_constant_override("separation", 12)
 	app.add_child(resumo)
 	var box_modo := _painel("MODO DE OPERAÇÃO", "Como as partidas são liberadas", resumo, Color(0.12, 0.65, 1.0))
@@ -115,11 +116,11 @@ func _criar_interface() -> void:
 	modo_option = OptionButton.new()
 	modo_option.add_item("LIVRE — SEM CRÉDITO")
 	modo_option.add_item("CRÉDITO — 1 POR PARTIDA")
-	modo_option.custom_minimum_size.y = 42
-	modo_option.add_theme_font_size_override("font_size", 15)
+	modo_option.custom_minimum_size.y = 46
+	modo_option.add_theme_font_size_override("font_size", 18)
 	modo_option.item_selected.connect(_modo_alterado)
 	box_modo.add_child(modo_option)
-	creditos_label = _label("", 17, Color(1.0, 0.82, 0.12))
+	creditos_label = _label("", 18, Color(1.0, 0.82, 0.12))
 	box_modo.add_child(creditos_label)
 	# MODO FEIRA: cadastro dos jogadores (leads) que vai para o pendrive
 	feira_botao = _botao("", Color(0.30, 1.0, 0.50))
@@ -129,7 +130,7 @@ func _criar_interface() -> void:
 
 	var box_stats := _painel("PARTIDAS JOGADAS", "Histórico salvo automaticamente", resumo, Color(0.65, 0.35, 1.0))
 	box_stats.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	partidas_label = _label("", 16, Color.WHITE)
+	partidas_label = _label("", 19, Color.WHITE)
 	box_stats.add_child(partidas_label)
 	var zerar := _botao("ZERAR CONTADOR", Color(1.0, 0.48, 0.12))
 	zerar.pressed.connect(_zerar_estatisticas)
@@ -137,20 +138,30 @@ func _criar_interface() -> void:
 
 	var box_acoes := _painel("AÇÕES RÁPIDAS", "Créditos e dados da máquina", resumo, Color(0.08, 0.86, 0.78))
 	box_acoes.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var credito_btn := _botao("+  ADICIONAR CRÉDITO", Color(0.12, 0.78, 1.0), true)
+	# (os botões em grade de 2 colunas: cabem todos, com letra grande)
+	var acoes := GridContainer.new()
+	acoes.columns = 2
+	acoes.add_theme_constant_override("h_separation", 10)
+	acoes.add_theme_constant_override("v_separation", 10)
+	box_acoes.add_child(acoes)
+	var credito_btn := _botao("+  CRÉDITO", Color(0.12, 0.78, 1.0), true)
+	credito_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	credito_btn.pressed.connect(_adicionar_credito_manual)
-	box_acoes.add_child(credito_btn)
-	var mural := _botao("LIMPAR MURAL DE CAMPEÕES", Color(1.0, 0.18, 0.25))
+	acoes.add_child(credito_btn)
+	var mural := _botao("LIMPAR MURAL", Color(1.0, 0.18, 0.25))
+	mural.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mural.pressed.connect(_resetar_mural)
-	box_acoes.add_child(mural)
-	if ArduinoBridge.tem_plugin():
+	acoes.add_child(mural)
+	if ArduinoBridge.tem_plugin() or OS.get_environment("OLHO_TESTE_TV") != "":
 		# TV Box / TV Android: o jogo abre sozinho depois que a TV liga
-		var inicio := _botao("ABRIR SOZINHO AO LIGAR A TV", Color(0.18, 0.92, 0.46))
+		var inicio := _botao("ABRIR AO LIGAR", Color(0.18, 0.92, 0.46))
+		inicio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		inicio.pressed.connect(_escolher_tela_inicial)
-		box_acoes.add_child(inicio)
-		var sair := _botao("SAIR PARA A TELA DA TV", Color(0.7, 0.75, 0.82))
+		acoes.add_child(inicio)
+		var sair := _botao("SAIR PARA A TV", Color(0.7, 0.75, 0.82))
+		sair.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		sair.pressed.connect(_sair_para_tv)
-		box_acoes.add_child(sair)
+		acoes.add_child(sair)
 
 	var box_teste := _painel("DIAGNÓSTICO DOS 7 ALVOS", "Pressione o sensor físico ou selecione um alvo para testar LED + entrada", app, Color(0.08, 0.86, 0.78))
 	box_teste.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -186,11 +197,12 @@ func _criar_interface() -> void:
 	rodape.custom_minimum_size.y = 52
 	rodape.add_theme_constant_override("separation", 12)
 	app.add_child(rodape)
-	if ArduinoBridge.tem_plugin():
+	if ArduinoBridge.tem_plugin() or OS.get_environment("OLHO_TESTE_TV") != "":
 		# o estado do "abrir sozinho ao ligar" desta TV (para o suporte)
-		inicio_label = _label(_texto_inicio(), 13, Color(0.62, 0.72, 0.84))
+		inicio_label = _label(_texto_inicio(), 14, Color(0.62, 0.72, 0.84))
+		inicio_label.clip_text = true
 		app.add_child(inicio_label)
-	var atalho := _label("F9, ESC ou VOLTAR do controle para fechar  •  setas + OK escolhem", 14, Color(0.50, 0.60, 0.70))
+	var atalho := _label("F9, ESC ou VOLTAR do controle para fechar  •  setas + OK escolhem", 16, Color(0.56, 0.66, 0.78))
 	atalho.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	atalho.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	rodape.add_child(atalho)
@@ -206,9 +218,9 @@ func _painel(titulo_txt: String, subtitulo_txt: String, pai: Control, destaque: 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	painel.add_child(box)
-	var titulo := _label(titulo_txt, 18, Color.WHITE)
+	var titulo := _label(titulo_txt, 21, Color.WHITE)
 	box.add_child(titulo)
-	box.add_child(_label(subtitulo_txt, 13, Color(0.48, 0.59, 0.70)))
+	box.add_child(_label(subtitulo_txt, 15, Color(0.56, 0.66, 0.78)))
 	var linha := ColorRect.new()
 	linha.color = Color(destaque.r, destaque.g, destaque.b, 0.75)
 	linha.custom_minimum_size = Vector2(0, 2)
@@ -225,8 +237,9 @@ func _label(texto: String, tamanho: int, cor: Color) -> Label:
 func _botao(texto: String, cor: Color, preenchido: bool = false) -> Button:
 	var b := Button.new()
 	b.text = texto
-	b.custom_minimum_size = Vector2(190, 46)
-	b.add_theme_font_size_override("font_size", 15)
+	b.custom_minimum_size = Vector2(150, 48)
+	b.add_theme_font_size_override("font_size", 17)
+	b.clip_text = true
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for estado in ["normal", "hover", "pressed", "focus"]:
 		var st := StyleBoxFlat.new()
@@ -236,15 +249,18 @@ func _botao(texto: String, cor: Color, preenchido: bool = false) -> Button:
 		st.bg_color = Color(cor.r * intensidade, cor.g * intensidade, cor.b * intensidade, 0.98)
 		st.border_color = Color(cor.r, cor.g, cor.b, 0.95 if estado != "normal" else 0.55)
 		st.set_border_width_all(1 if estado == "normal" else 2)
-		st.set_corner_radius_all(10)
+		st.set_corner_radius_all(12)
+		st.content_margin_left = 10
+		st.content_margin_right = 10
 		b.add_theme_stylebox_override(estado, st)
 	return b
 
 func _botao_alvo(index: int) -> Button:
-	var b := _botao("ALVO  %s\n●  LED E SENSOR" % LEDS[index], CORES[index])
-	b.custom_minimum_size = Vector2(120, 90)
+	var b := _botao("ALVO  %s\nLED + SENSOR" % LEDS[index], CORES[index])
+	b.clip_text = false
+	b.custom_minimum_size = Vector2(120, 78)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_font_size_override("font_size", 18)
 	return b
 
 func _estilo_card(borda: Color, fundo: Color, raio: int, largura: int) -> StyleBoxFlat:
@@ -255,8 +271,8 @@ func _estilo_card(borda: Color, fundo: Color, raio: int, largura: int) -> StyleB
 	st.set_corner_radius_all(raio)
 	st.content_margin_left = 22
 	st.content_margin_right = 22
-	st.content_margin_top = 17
-	st.content_margin_bottom = 17
+	st.content_margin_top = 14
+	st.content_margin_bottom = 14
 	st.shadow_color = Color(0, 0, 0, 0.32)
 	st.shadow_size = 10
 	st.shadow_offset = Vector2(0, 4)
@@ -289,15 +305,15 @@ func _atualizar_dados() -> void:
 	modo_option.select(1 if ArcadeData.modo_operacao == "credito" else 0)
 	if ArcadeData.modo_operacao == "credito":
 		if ArcadeData.creditos <= 0:
-			creditos_label.text = "SEM CRÉDITOS\nInsira a ficha para liberar uma partida"
+			creditos_label.text = "SEM CRÉDITOS  •  insira a ficha"
 			creditos_label.add_theme_color_override("font_color", Color(1.0, 0.32, 0.25))
 		else:
 			creditos_label.text = "%d CRÉDITO(S) DISPONÍVEL(IS)" % ArcadeData.creditos
 			creditos_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.12))
 	else:
-		creditos_label.text = "ACESSO LIVRE\nNenhum crédito será consumido"
+		creditos_label.text = "ACESSO LIVRE  •  não gasta crédito"
 		creditos_label.add_theme_color_override("font_color", Color(0.22, 1.0, 0.48))
-	partidas_label.text = "TOTAL   %d\nARCADE   %d\nCOPA     %d" % [ArcadeData.partidas_total, ArcadeData.partidas_arcade, ArcadeData.partidas_copa]
+	partidas_label.text = "TOTAL  %d      ARCADE  %d      COPA  %d" % [ArcadeData.partidas_total, ArcadeData.partidas_arcade, ArcadeData.partidas_copa]
 
 func _zerar_estatisticas() -> void:
 	ArcadeData.zerar_estatisticas(); _atualizar_dados(); _mensagem("CONTADOR DE PARTIDAS ZERADO")
@@ -505,7 +521,7 @@ func _ensinar_fim(guardar: bool) -> void:
 func _atualizar_feira() -> void:
 	if feira_botao == null:
 		return
-	feira_botao.text = ("MODO FEIRA: LIGADO  •  %d JOGADORES  ▸" % Leads.total()) if Leads.ligado else "MODO FEIRA (CADASTRO DE JOGADORES)  ▸"
+	feira_botao.text = ("MODO FEIRA: LIGADO  •  %d  ▸" % Leads.total()) if Leads.ligado else "MODO FEIRA (CADASTROS)  ▸"
 
 
 func _abrir_feira() -> void:

@@ -118,12 +118,17 @@ func _criar_fundo() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(bg)
 
-	# Grade neon sutil (decorativa)
-	var grid_rect := ColorRect.new()
-	grid_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	grid_rect.color = Color(0.12, 0.58, 1.00, 0.03)
-	grid_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cl.add_child(grid_rect)
+	# O ESTÁDIO DA COPA NO FUNDO (o mesmo do Lobby da Copa), no lugar do
+	# preto: a tela fica viva e os cards continuam legíveis por cima.
+	if ResourceLoader.exists("res://fundos/back.png"):
+		var estadio := TextureRect.new()
+		estadio.set_anchors_preset(Control.PRESET_FULL_RECT)
+		estadio.texture = load("res://fundos/back.png")
+		estadio.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		estadio.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		estadio.modulate = Color(0.62, 0.66, 0.74)
+		estadio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cl.add_child(estadio)
 
 
 func _criar_ui_root() -> void:

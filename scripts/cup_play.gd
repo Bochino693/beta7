@@ -75,11 +75,11 @@ const PATROCINADORES_FIXOS: Array[String] = [
 const SFX_CAMPEAO: String = "res://songs/campeao.mp3"
 
 const TEMPO_PLAYER_REAL: float = 60.0
-const TEMPO_PLAYER_BOT: float = 6.0
+const TEMPO_PLAYER_BOT: float = 9.0
 
 # PRORROGAÇÃO: 50% do tempo normal.
 const TEMPO_PRORROGACAO_REAL: float = 30.0
-const TEMPO_PRORROGACAO_BOT: float = 3.0
+const TEMPO_PRORROGACAO_BOT: float = 5.0
 
 # PÊNALTIS
 const PENALTI_QTD_BOCAS: int = 1
@@ -89,11 +89,11 @@ const PENALTI_PROB_BOT: float = 0.6
 
 # AUTO START: vale APENAS para bots. Jogadores reais sempre apertam START.
 const AUTO_START_BOT: bool = true
-const AUTO_START_DELAY_BOT: float = 0.55
+const AUTO_START_DELAY_BOT: float = 1.80   # o cartão do bot fica na tela o bastante para ler
 
 const BOT_JOGA_SOZINHO: bool = true
-const BOT_INTERVALO_GOL_MIN: float = 0.45
-const BOT_INTERVALO_GOL_MAX: float = 0.95
+const BOT_INTERVALO_GOL_MIN: float = 0.95
+const BOT_INTERVALO_GOL_MAX: float = 1.75
 const BOT_PRIORIDADE_REAL: bool = true
 
 const MUSICAS_PLAYERS: Array[String] = [
@@ -1015,8 +1015,12 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	var fs_tempo: int = int(clampf(H * 0.100, 34.0, 64.0))
 	var fs_status: int = int(clampf(H * 0.038, 15.0, 26.0))
 
-	var titulo := _novo_label_card(nome_player, W, H * 0.090, fs_titulo, cor)
+	# (nome em BRANCO com contorno escuro: na cor do jogador ele sumia no
+	# fundo do card, que é da mesma cor; a cor fica no brilho em volta)
+	var titulo := _novo_label_card(nome_player, W, H * 0.090, fs_titulo, Color.WHITE)
 	titulo.add_theme_color_override("font_shadow_color", cor)
+	titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
+	titulo.add_theme_constant_override("outline_size", 6)
 	panel.add_child(titulo)
 
 	var score_titulo := _novo_label_card("GOLS", W, H * 0.285, fs_score_titulo, Color(0.75, 0.84, 0.90))
@@ -1262,8 +1266,8 @@ func _criar_overlay_turno() -> void:
 	overlay_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_layer.add_child(overlay_panel)
 
-	# Modal QUADRADO (sem cantos arredondados).
-	var raio_modal: float = 0.0
+	# Modal de cantos redondos (como os cards e a moldura da própria imagem).
+	var raio_modal: float = 26.0
 	var borda_modal: float = 4.0
 
 	var style := StyleBoxFlat.new()
@@ -1288,7 +1292,7 @@ func _criar_overlay_turno() -> void:
 
 	var moldura_st := StyleBoxFlat.new()
 	moldura_st.bg_color = Color(0.006, 0.009, 0.014, 1.0)
-	moldura_st.set_corner_radius_all(0)
+	moldura_st.set_corner_radius_all(int(raio_modal - inset))
 	overlay_fundo_moldura.add_theme_stylebox_override("panel", moldura_st)
 	overlay_fundo_moldura.visible = false
 	overlay_panel.add_child(overlay_fundo_moldura)
@@ -1304,6 +1308,8 @@ func _criar_overlay_turno() -> void:
 	overlay_fundo_img.stretch_mode = TextureRect.STRETCH_SCALE
 	overlay_fundo_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_fundo_img.modulate = Color(0.74, 0.74, 0.74, 1.0)  # escurece p/ texto legível
+	# (a imagem acompanha o canto redondo do modal)
+	overlay_fundo_img.material = _material_fundo_card_arredondado(tam_fundo, raio_modal - inset)
 	overlay_fundo_moldura.add_child(overlay_fundo_img)
 
 	overlay_titulo = _novo_label("", 42, Color.WHITE, COR_NEON)
@@ -1620,7 +1626,10 @@ func _rodar_contagem_inicio() -> void:
 	if eh_bot:
 		overlay_subtitulo.text = "BOT ENTRANDO EM CAMPO..."
 		overlay_numero.text = "GO!"
-		await get_tree().create_timer(0.45).timeout
+		overlay_numero.scale = Vector2(1.35, 1.35)
+		var tb := create_tween()
+		tb.tween_property(overlay_numero, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		await get_tree().create_timer(1.10).timeout
 		return
 
 	if fase_jogo == Fase.PRORROGACAO:
@@ -1648,9 +1657,15 @@ func _rodar_contagem_inicio() -> void:
 
 
 
+## A ORDEM DO COMEÇO DE CADA TURNO: o modal some -> os LEDs ficam apagados
+## -> o APITO toca inteiro -> só então os alvos acendem e o tempo começa a
+## contar. (Antes os LEDs acendiam no meio do apito e o tempo já corria.)
+const ESPERA_DO_APITO: float = 1.05
+
+
 func _iniciar_turno_player() -> void:
-	partida_ativa = true
-	em_contagem_inicio = false
+	partida_ativa = false
+	em_contagem_inicio = true
 	aguardando_start_turno = false
 
 	await _esconder_overlay()
@@ -1673,7 +1688,19 @@ func _iniciar_turno_player() -> void:
 
 	_tocar_audio(sfx_apito_init)
 
-	await get_tree().create_timer(0.18).timeout
+	await get_tree().create_timer(ESPERA_DO_APITO).timeout
+
+	if partida_finalizada:
+		return
+
+	# agora sim: alvos acesos e tempo valendo
+	agora = float(Time.get_ticks_msec())
+	_ultimo_motivacional_ms = agora
+	_ultimo_acerto_ms = agora
+	_ultimo_ponto_ms = agora
+	_ultima_pressao_ms = agora
+	em_contagem_inicio = false
+	partida_ativa = true
 
 	_sortear_novo_grupo_de_fileiras()
 
@@ -2001,7 +2028,7 @@ func _explosao_gol(index: int) -> void:
 		Color(0.2, 0.9, 1.0)
 	]
 
-	for i in range(24):
+	for i in range(10 if Visual.nivel >= 1 else 24):   # (TV Box: menos faíscas por gol = gol sem engasgo)
 		var faisca := ColorRect.new()
 
 		var s: float = clampf(ref * 0.022, 6.0, 16.0)
@@ -2045,7 +2072,7 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
 
 	var score_antes: int = scores[player_atual]
 
@@ -3073,6 +3100,8 @@ func _mostrar_modal_resultado_copa(ranking: Array) -> void:
 	entrada.set_parallel(true)
 	entrada.tween_property(panel, "modulate", Color.WHITE, 0.22)
 	entrada.tween_property(panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# a apresentação do resultado: o painel sobe, as linhas entram uma a uma
+	Efeitos.apresentar(panel, Color(1.0, 0.80, 0.15))
 
 	await entrada.finished
 
@@ -3587,12 +3616,13 @@ func _cobrar_penalti(p: int, num_rodada: int, participantes: Array, pen: Diction
 			leds_ativos.append(alvo)
 			cores_leds_ativos[alvo] = _rgb_aleatorio_alvo()
 
-	_atualizar_leds_hud()
-	_enviar_leds_para_arduino()
-
+	# (o apito primeiro; o alvo só acende depois dele)
 	_tocar_audio(sfx_apito_init)
 
-	await get_tree().create_timer(0.35).timeout
+	await get_tree().create_timer(ESPERA_DO_APITO).timeout
+
+	_atualizar_leds_hud()
+	_enviar_leds_para_arduino()
 
 	_pen_resultado = 0
 	_pen_aguardando = true
@@ -5172,13 +5202,13 @@ func _tempo_bot_por_fase() -> float:
 	# Bots evoluem conforme a Copa avança.
 	match fase_copa:
 		"OITAVAS":
-			return 9.0
+			return 11.0
 		"SEMIFINAL":
-			return 12.0
+			return 13.0
 		"FINAL":
 			return 18.0
 		_:
-			return TEMPO_PLAYER_BOT  # GRUPOS = 6s
+			return TEMPO_PLAYER_BOT  # GRUPOS
 
 
 

@@ -85,6 +85,8 @@ if ($sdk -ge 29) { [void](Adb @("shell", "cmd", "role", "add-role-holder", "andr
 [void](Adb @("shell", "appops", "set", $Pacote, "MANAGE_EXTERNAL_STORAGE", "allow"))
 [void](Adb @("shell", "pm", "grant", $Pacote, "android.permission.WRITE_EXTERNAL_STORAGE"))
 [void](Adb @("shell", "pm", "grant", $Pacote, "android.permission.READ_EXTERNAL_STORAGE"))
+# ARDUINO: o jogo vira o app padrao do aparelho USB (o Android nunca mais pede permissao)
+[void](Adb @("shell", ('P=' + $Pacote + '; A=$(pm path $P | head -n 1 | cut -d: -f2); U=$(dumpsys package $P | grep -m 1 userId= | sed "s/.*userId=\([0-9]*\).*/\1/"); CLASSPATH=$A app_process /system/bin com.lazersport.strikeserial.UsbPadrao $P $U')))
 foreach ($s in @("secure screensaver_enabled 0", "secure sleep_timeout -1", "secure attentive_timeout -1", "system screen_off_timeout 2147483647")) {
     [void](Adb (@("shell", "settings", "put") + $s.Split(" ")))
 }

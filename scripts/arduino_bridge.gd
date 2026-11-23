@@ -58,6 +58,7 @@ var _pendente := ""              # comando de LED esperando a vez (o último val
 var _falhou := {}
 var _pedir_agora := false
 var _pedidos_usb := 0
+var _usb_tentou := false
 var _pedidos: ConfigFile
 
 
@@ -497,7 +498,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 18"
+const VERSAO := "TV 19"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -674,20 +675,31 @@ func _procurar(agora: int) -> void:
 			sem_permissao = linha
 	if sem_permissao != "":
 		var p := sem_permissao.split("|")
-		# SEM A PERMISSÃO USB A MÁQUINA NÃO FUNCIONA: o jogo abre a janela do
-		# Android TODA VEZ que precisar (ao ligar, ao encaixar o cabo). A
-		# permissão dada sem marcar "Usar por padrão" vale só até desligar a
-		# TV Box - por isso a janela volta. Com a caixinha marcada o Android
-		# guarda para sempre e nunca mais pergunta.
-		if _pedidos_usb >= 3:
-			_set_status("Arduino no USB sem permissão: na janela do Android marque \"Usar por padrão\" e OK  (não apareceu? tire e ponha o cabo USB do Arduino)")
-		else:
-			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
-		if bool(_plugin.call("permissao_pendente")):
+		# ACEITOU UMA VEZ, NUNCA MAIS PERGUNTA.
+		# 1o SEM JANELA: pelo root da caixa ou pelo adb da própria TV (Depuração
+		#    USB ligada) o jogo vira o app PADRÃO do Arduino - fica guardado
+		#    no Android para sempre (UsbPadrao.java). Nada aparece na tela.
+		# 2o Só se a caixa não der esse acesso: a janela do Android, UMA vez
+		#    por abertura do jogo (marcando "Usar por padrão", o Android
+		#    também guarda para sempre). Recusou / fechou: não insiste; a
+		#    Central da Máquina pede de novo.
+		if not _usb_tentou and _plugin.has_method("usb_sem_janela"):
+			_usb_tentou = true
+			_plugin.call("usb_sem_janela")
+			_set_status("Arduino no USB: preparando...")
 			return
-		_pedir_agora = false
-		_pedidos_usb += 1
-		_plugin.call("pedir_permissao", p[0])
+		if _plugin.has_method("usb_sem_janela_estado") and str(_plugin.call("usb_sem_janela_estado")) == "rodando":
+			return
+		if bool(_plugin.call("permissao_pendente")):
+			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
+			return
+		if _pedir_agora or _pedidos_usb == 0:
+			_pedir_agora = false
+			_pedidos_usb += 1
+			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
+			_plugin.call("pedir_permissao", p[0])
+		else:
+			_set_status("Arduino no USB sem permissão: abra a Central da Máquina (ela pede de novo) ou tire e ponha o cabo USB")
 		return
 	if lista.strip_edges() == "":
 		_set_status("Arduino não encontrado: confira o cabo USB")
