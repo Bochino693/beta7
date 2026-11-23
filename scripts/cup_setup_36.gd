@@ -604,11 +604,28 @@ func _atualizar_estado_botao_iniciar() -> void:
 	btn_sortear.modulate = Color(1, 1, 1, 1.0) if liberar else Color(1, 1, 1, 0.32)
 
 
+var _feira_pedindo := false
+
+
 func _tentar_confirmar_cadastro() -> void:
 	if not _cadastro_ok_para_iniciar():
 		_play_select()
 		_validar_duplicatas_live()
 		return
+
+	# MODO FEIRA: cada jogador de verdade completa a ficha (e-mail e idade)
+	if Leads.ligado:
+		if _feira_pedindo:
+			return
+		_feira_pedindo = true
+		var reais: Array = []
+		for i in range(TOTAL_SLOTS):
+			if nomes[i].strip_edges() != "":
+				reais.append(nomes[i].strip_edges())
+		var feira_ok: bool = await Leads.cadastrar_nomes(reais, "TORNEIO")
+		_feira_pedindo = false
+		if not feira_ok:
+			return
 
 	_preencher_boots()
 	_montar_grupos()

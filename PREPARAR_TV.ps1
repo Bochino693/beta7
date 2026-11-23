@@ -81,6 +81,10 @@ if ($sdk -ge 29) { [void](Adb @("shell", "cmd", "role", "add-role-holder", "andr
 [void](Adb @("shell", "appops", "set", $Pacote, "SYSTEM_ALERT_WINDOW", "allow"))
 [void](Adb @("shell", "appops", "set", $Pacote, "TURN_SCREEN_ON", "allow"))
 [void](Adb @("shell", "dumpsys", "deviceidle", "whitelist", "+$Pacote"))
+# MODO FEIRA: o jogo escreve os cadastros na raiz do pendrive
+[void](Adb @("shell", "appops", "set", $Pacote, "MANAGE_EXTERNAL_STORAGE", "allow"))
+[void](Adb @("shell", "pm", "grant", $Pacote, "android.permission.WRITE_EXTERNAL_STORAGE"))
+[void](Adb @("shell", "pm", "grant", $Pacote, "android.permission.READ_EXTERNAL_STORAGE"))
 foreach ($s in @("secure screensaver_enabled 0", "secure sleep_timeout -1", "secure attentive_timeout -1", "system screen_off_timeout 2147483647")) {
     [void](Adb (@("shell", "settings", "put") + $s.Split(" ")))
 }

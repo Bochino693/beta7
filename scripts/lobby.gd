@@ -472,6 +472,9 @@ func _estilizar_lineedit_erro(edit: LineEdit) -> void:
 	edit.add_theme_stylebox_override("focus", s)
 
 
+var _feira_pedindo := false
+
+
 func _tentar_confirmar_cadastro() -> void:
 	# Segurança extra: não passa sem 8 jogadores válidos e nomes corretos.
 	if not _cadastro_ok_para_iniciar():
@@ -484,6 +487,20 @@ func _tentar_confirmar_cadastro() -> void:
 			else:
 				label_erro_global.text = "⚠ Corrija os nomes (mínimo %d letras e sem repetir)." % MIN_LETRAS_NOME
 		return
+
+	# MODO FEIRA: cada jogador de verdade completa a ficha (e-mail e idade)
+	if Leads.ligado:
+		if _feira_pedindo:
+			return
+		_feira_pedindo = true
+		var reais: Array = []
+		for i in range(TOTAL_SLOTS):
+			if nomes[i].strip_edges() != "":
+				reais.append(nomes[i].strip_edges())
+		var feira_ok: bool = await Leads.cadastrar_nomes(reais, "COPA")
+		_feira_pedindo = false
+		if not feira_ok:
+			return
 
 	_preencher_boots()
 	_montar_grupos()

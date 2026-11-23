@@ -20,6 +20,15 @@ extends CanvasLayer
 
 const COR_MARCA := Color(1.0, 0.86, 0.10)
 const LINHAS_TECLADO := ["1234567890", "QWERTYUIOP", "ASDFGHJKLÇ", "ZXCVBNM-.&"]
+# Teclados próprios para o campo (campo.set_meta("teclado", "email" / "numero")):
+const LINHAS_EMAIL := ["1234567890", "qwertyuiop", "asdfghjkl@", "zxcvbnm._-"]
+const ATALHOS_EMAIL := ["@gmail.com", "@hotmail.com", "@outlook.com", "@yahoo.com.br"]
+const LINHAS_NUMERO := ["1234567890"]
+
+## O teclado da tela fechou: pronto = true pelo botão PRONTO (ou ENTER / TAB
+## de um teclado USB); false pelo VOLTAR. Quem monta um formulário usa isto
+## para pular sozinho para o próximo campo.
+signal teclado_fechou(campo: LineEdit, pronto: bool)
 const VOLTAR_PARA_MENU := 5
 const VOLTAR_JANELA_MS := 3000
 
@@ -28,6 +37,8 @@ var _moldura: Control
 var _teclado: Control              # teclado na tela (null = fechado)
 var _teclas: Array[Button] = []
 var _campo: LineEdit               # campo que o teclado está escrevendo
+var _modo_teclado := ""            # "" (nomes), "email" ou "numero"
+var _fisico := false               # a última letra veio de um teclado USB
 var _visor: Label
 var _start_pelo_ok := false
 var _select_pela_seta := false
@@ -72,6 +83,15 @@ func _input(event: InputEvent) -> void:
 	var tecla := ""
 	var apertou := false
 	var eco := false
+	# a ficha do Modo Feira está na tela: VOLTAR / ESC é dela (com o teclado
+	# fechado) e qualquer tecla conta como "tem gente aqui"
+	if Leads.ficha_aberta() and (event is InputEventKey or event is InputEventJoypadButton):
+		Leads.tocou()
+		if _teclado == null and event is InputEventKey and event.keycode in [KEY_BACK, KEY_ESCAPE]:
+			_consumir()
+			if event.pressed and not event.echo:
+				Leads.voltar()
+			return
 	if event is InputEventKey:
 		apertou = event.pressed
 		eco = event.echo
@@ -83,6 +103,12 @@ func _input(event: InputEvent) -> void:
 			KEY_ENTER, KEY_KP_ENTER: tecla = "ok"
 			KEY_BACK: tecla = "voltar"
 			KEY_MENU: tecla = "menu"
+		if _teclado != null and apertou and event.keycode == KEY_TAB:
+			# teclado USB: TAB = pronto, próximo campo
+			_consumir()
+			if not eco:
+				_fechar_teclado(true)
+			return
 		if tecla == "" and _teclado != null and apertou:
 			_tecla_fisica(event)
 			return
@@ -120,6 +146,11 @@ func _input(event: InputEvent) -> void:
 					_start_pelo_ok = false
 					_acao("input_start", false)
 				return
+			if _teclado != null and _fisico:
+				# quem está escrevendo num teclado USB: ENTER = pronto
+				_consumir()
+				_fechar_teclado(true)
+				return
 			if _alvo != null and _vale(_alvo):
 				_consumir()
 				_apertar(_alvo)
@@ -149,6 +180,7 @@ func _input(event: InputEvent) -> void:
 					_acao("input_cup", true)
 				return
 			_consumir()
+			_fisico = false
 			_andar(tecla, lista)
 		"voltar":
 			if not apertou or eco:
@@ -387,15 +419,52 @@ func _no_novo(n: Node) -> void:
 				_abrir_teclado(campo))
 
 
+## Para quem monta um formulário (a ficha do Modo Feira): abrir o teclado
+## num campo e marcar um botão sem esperar as setas.
+func abrir_teclado(campo: LineEdit) -> void:
+	if _vale(campo):
+		_abrir_teclado(campo)
+
+
+func marcar(c: Control) -> void:
+	if _teclado == null and _vale(c):
+		_marcar(c)
+
+
+func teclado_aberto() -> bool:
+	return _teclado != null
+
+
+func fechar_teclado() -> void:
+	_fechar_teclado()
+
+
 func _abrir_teclado(campo: LineEdit) -> void:
 	_fechar_teclado()
 	_campo = campo
+	_fisico = false
+	_modo_teclado = str(campo.get_meta("teclado", ""))
+	var titulo := str(campo.get_meta("titulo", ""))
+	var linhas: Array = LINHAS_TECLADO
+	var atalhos: Array = []
+	var especiais: Array = [["ESPAÇO", 3.0, _digitar.bind(" ")], ["⌫ APAGAR", 2.5, _apagar], ["LIMPAR", 2.0, _limpar], ["✔ PRONTO", 2.5, _fechar_teclado.bind(true)]]
 	var tela := get_viewport().get_visible_rect().size
 	var escala := clampf(tela.x / 1280.0, 0.8, 2.0)
 	var lado := 62.0 * escala
+	match _modo_teclado:
+		"email":
+			linhas = LINHAS_EMAIL
+			atalhos = ATALHOS_EMAIL
+			lado = 56.0 * escala
+			especiais = [[".com", 1.5, _digitar.bind(".com")], [".com.br", 2.0, _digitar.bind(".com.br")], ["⌫ APAGAR", 2.5, _apagar], ["LIMPAR", 1.5, _limpar], ["✔ PRONTO", 2.5, _fechar_teclado.bind(true)]]
+		"numero":
+			linhas = LINHAS_NUMERO
+			especiais = [["⌫ APAGAR", 3.5, _apagar], ["LIMPAR", 3.0, _limpar], ["✔ PRONTO", 3.5, _fechar_teclado.bind(true)]]
 	var vao := 8.0 * escala
+	var topo := (76.0 + (30.0 if titulo != "" else 0.0)) * escala
+	var fileiras := linhas.size() + (1 if not atalhos.is_empty() else 0) + 1
 	var larg := lado * 10.0 + vao * 9.0 + 40.0 * escala
-	var alt := lado * 5.0 + vao * 4.0 + 120.0 * escala
+	var alt := topo + fileiras * (lado + vao) + 36.0 * escala
 
 	_teclado = Control.new()
 	_teclado.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -405,7 +474,7 @@ func _abrir_teclado(campo: LineEdit) -> void:
 
 	var fundo := ColorRect.new()
 	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fundo.color = Color(0, 0, 0, 0.55)
+	fundo.color = Color(0, 0, 0, 0.55 if titulo == "" else 0.25)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_teclado.add_child(fundo)
 
@@ -425,11 +494,25 @@ func _abrir_teclado(campo: LineEdit) -> void:
 	painel.add_theme_stylebox_override("panel", st)
 	_teclado.add_child(painel)
 
+	if titulo != "":
+		# o que está sendo pedido (o campo pode estar atrás do teclado)
+		var lt := Label.new()
+		lt.text = titulo
+		lt.position = Vector2(20.0 * escala, 10.0 * escala)
+		lt.size = Vector2(larg - 40.0 * escala, 28.0 * escala)
+		lt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lt.add_theme_font_size_override("font_size", int(19 * escala))
+		lt.add_theme_color_override("font_color", COR_MARCA)
+		painel.add_child(lt)
+
 	_visor = Label.new()
-	_visor.position = Vector2(20.0 * escala, 12.0 * escala)
+	_visor.position = Vector2(20.0 * escala, topo - 64.0 * escala)
 	_visor.size = Vector2(larg - 40.0 * escala, 56.0 * escala)
 	_visor.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_visor.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_visor.clip_text = true
+	_visor.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_visor.add_theme_font_size_override("font_size", int(30 * escala))
 	painel.add_child(_visor)
 
@@ -444,17 +527,25 @@ func _abrir_teclado(campo: LineEdit) -> void:
 
 	_teclas.clear()
 	var x0 := 20.0 * escala
-	var y0 := 76.0 * escala
-	for li in range(LINHAS_TECLADO.size()):
-		var linha: String = LINHAS_TECLADO[li]
+	var y0 := topo
+	for li in range(linhas.size()):
+		var linha: String = linhas[li]
 		for ci in range(linha.length()):
 			var letra := linha[ci]
 			var b := _tecla(letra, Vector2(lado, lado), escala)
 			b.position = Vector2(x0 + ci * (lado + vao), y0 + li * (lado + vao))
 			b.pressed.connect(_digitar.bind(letra))
 			painel.add_child(b)
-	var yb := y0 + 4.0 * (lado + vao)
-	var especiais := [["ESPAÇO", 3.0, _digitar.bind(" ")], ["⌫ APAGAR", 2.5, _apagar], ["LIMPAR", 2.0, _limpar], ["✔ PRONTO", 2.5, _fechar_teclado]]
+	var yb := y0 + linhas.size() * (lado + vao)
+	if not atalhos.is_empty():
+		# os finais de e-mail mais comuns, de uma vez
+		var wa: float = (lado * 10.0 + vao * 9.0 - vao * (atalhos.size() - 1)) / float(atalhos.size())
+		for ai in range(atalhos.size()):
+			var b := _tecla(str(atalhos[ai]), Vector2(wa, lado), escala)
+			b.position = Vector2(x0 + ai * (wa + vao), yb)
+			b.pressed.connect(_digitar.bind(str(atalhos[ai])))
+			painel.add_child(b)
+		yb += lado + vao
 	var xb := x0
 	for e in especiais:
 		var w: float = lado * float(e[1]) + vao * (float(e[1]) - 1.0)
@@ -464,7 +555,7 @@ func _abrir_teclado(campo: LineEdit) -> void:
 		painel.add_child(b)
 		xb += w + vao
 	_atualizar_visor()
-	_marcar(_teclas[10])   # começa no Q
+	_marcar(_teclas[10] if _teclas.size() > 20 else _teclas[0])   # começa no Q (números: no 1)
 
 
 func _tecla(texto: String, tam: Vector2, escala: float) -> Button:
@@ -484,15 +575,19 @@ func _tecla(texto: String, tam: Vector2, escala: float) -> Button:
 	return b
 
 
-func _fechar_teclado() -> void:
+func _fechar_teclado(pronto: bool = false) -> void:
 	if _teclado == null:
 		return
 	_teclado.queue_free()
 	_teclado = null
 	_teclas.clear()
 	_visor = null
+	var era := _campo
 	_alvo = _campo if _vale(_campo) else null
 	_campo = null
+	_fisico = false
+	if era != null and is_instance_valid(era):
+		teclado_fechou.emit(era, pronto)
 
 
 func _texto_do_campo(novo: String) -> void:
@@ -508,7 +603,15 @@ func _texto_do_campo(novo: String) -> void:
 
 
 func _digitar(letra: String) -> void:
-	if _campo != null and is_instance_valid(_campo):
+	if _campo == null or not is_instance_valid(_campo):
+		return
+	match _modo_teclado:
+		"email":
+			letra = letra.to_lower().replace(" ", "")
+		"numero":
+			if not letra.is_valid_int():
+				return
+	if letra != "":
 		_texto_do_campo(_campo.text + letra)
 
 
@@ -542,4 +645,6 @@ func _tecla_fisica(ev: InputEventKey) -> void:
 		_fechar_teclado()
 	elif ev.unicode >= 32:
 		_consumir()
-		_digitar(String.chr(ev.unicode).to_upper())
+		_fisico = true
+		var letra := String.chr(ev.unicode)
+		_digitar(letra if _modo_teclado == "email" else letra.to_upper())

@@ -18,6 +18,9 @@ var ensinando := -1               # qual entrada está sendo pedida (-1 = não e
 var ensinado := {}
 var ensinar_desde := 0
 var inicio_label: Label
+var palco: Control
+var feira_botao: Button
+var feira_painel: Control
 
 func _ready() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
@@ -47,16 +50,28 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_ESCAPE or event.keycode == KEY_F9):
 		get_viewport().set_input_as_handled()
+		if feira_painel != null:
+			_fechar_feira()
+			return
 		_solicitar_voltar()
 
 func _criar_interface() -> void:
 	var canvas := CanvasLayer.new()
 	add_child(canvas)
+	# A Central foi desenhada para 1280 x 720: na tela de 1080 linhas ela
+	# cresce inteira (letras e botões no tamanho de ler do sofá).
+	var tela := get_viewport_rect().size
+	var k := maxf(minf(tela.x / 1280.0, tela.y / 720.0), 0.5)
+	canvas.scale = Vector2(k, k)
+	palco = Control.new()
+	palco.size = tela / k
+	palco.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(palco)
 	var fundo := ColorRect.new()
 	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fundo.color = Color(0.006, 0.011, 0.024)
-	canvas.add_child(fundo)
-	_adicionar_luzes_fundo(canvas)
+	palco.add_child(fundo)
+	_adicionar_luzes_fundo(palco)
 
 	var margem := MarginContainer.new()
 	margem.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -64,7 +79,7 @@ func _criar_interface() -> void:
 	margem.add_theme_constant_override("margin_right", 30)
 	margem.add_theme_constant_override("margin_top", 20)
 	margem.add_theme_constant_override("margin_bottom", 20)
-	canvas.add_child(margem)
+	palco.add_child(margem)
 	var app := VBoxContainer.new()
 	app.add_theme_constant_override("separation", 12)
 	margem.add_child(app)
@@ -106,6 +121,11 @@ func _criar_interface() -> void:
 	box_modo.add_child(modo_option)
 	creditos_label = _label("", 17, Color(1.0, 0.82, 0.12))
 	box_modo.add_child(creditos_label)
+	# MODO FEIRA: cadastro dos jogadores (leads) que vai para o pendrive
+	feira_botao = _botao("", Color(0.30, 1.0, 0.50))
+	feira_botao.pressed.connect(_abrir_feira)
+	box_modo.add_child(feira_botao)
+	_atualizar_feira()
 
 	var box_stats := _painel("PARTIDAS JOGADAS", "Histórico salvo automaticamente", resumo, Color(0.65, 0.35, 1.0))
 	box_stats.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -242,7 +262,7 @@ func _estilo_card(borda: Color, fundo: Color, raio: int, largura: int) -> StyleB
 	st.shadow_offset = Vector2(0, 4)
 	return st
 
-func _adicionar_luzes_fundo(canvas: CanvasLayer) -> void:
+func _adicionar_luzes_fundo(canvas: Control) -> void:
 	var luz_azul := ColorRect.new()
 	luz_azul.position = Vector2(-180, -160)
 	luz_azul.size = Vector2(620, 480)
@@ -479,3 +499,28 @@ func _ensinar_fim(guardar: bool) -> void:
 		_mensagem("●  PRONTO: SENSORES E BOTÕES GUARDADOS — TESTE BATENDO NOS ALVOS")
 	else:
 		_mensagem("●  ENSINO CANCELADO (NADA FOI MUDADO)")
+
+
+# ----------------------------------------------------------------- modo feira
+func _atualizar_feira() -> void:
+	if feira_botao == null:
+		return
+	feira_botao.text = ("MODO FEIRA: LIGADO  •  %d JOGADORES  ▸" % Leads.total()) if Leads.ligado else "MODO FEIRA (CADASTRO DE JOGADORES)  ▸"
+
+
+func _abrir_feira() -> void:
+	if feira_painel != null or voltando:
+		return
+	feira_painel = Control.new()
+	feira_painel.set_script(load("res://scripts/feira_painel.gd"))
+	feira_painel.connect("fechou", _fechar_feira)
+	palco.add_child(feira_painel)
+
+
+func _fechar_feira() -> void:
+	if feira_painel == null:
+		return
+	feira_painel.queue_free()
+	feira_painel = null
+	_atualizar_feira()
+	_mensagem("●  MODO FEIRA " + ("LIGADO" if Leads.ligado else "DESLIGADO"))

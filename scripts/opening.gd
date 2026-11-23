@@ -159,7 +159,8 @@ var opening_loading_root: Control = null
 var opening_loading_label: Label = null
 var opening_loading_sub: Label = null
 var opening_loading_pct: Label = null
-var opening_loading_barra: ColorRect = null
+var opening_loading_barra: Control = null
+var status_feira: Label = null
 var opening_loading_barra_max_w: float = 0.0
 var opening_loading_frac: float = 0.0
 var opening_loading_tween: Tween = null
@@ -309,34 +310,33 @@ func _ready() -> void:
 	# Aqui continua mostrando loading + patrocinadores.
 	# =========================================================
 	_criar_loading_opening("OLHO NO LANCE", "ENTRANDO EM CAMPO...")
-	_set_loading_opening(0.10, "ENTRANDO EM CAMPO...", 0.12)
+	_set_loading_opening(0.04, "ENTRANDO EM CAMPO...", 0.12)
 
 	await get_tree().process_frame
 	await get_tree().process_frame
 
 	_garantir_acao_cup()
 
-	_set_loading_opening(0.28, "ARRUMANDO O GRAMADO...", 0.15)
+	_set_loading_opening(0.08, "ARRUMANDO O GRAMADO...", 0.15)
 	_criar_tela()
 
 	await get_tree().process_frame
 	await get_tree().create_timer(0.08).timeout
 
-	_set_loading_opening(0.45, "AQUECENDO A TORCIDA...", 0.15)
+	_set_loading_opening(0.12, "AQUECENDO A TORCIDA...", 0.15)
 	_criar_audios()
 	_tocar_musica()
 
-	await get_tree().create_timer(0.06).timeout
-
-	_set_loading_opening(0.62, "MONTANDO OS MODOS DE JOGO...", 0.14)
-
 	await get_tree().process_frame
 
-	_set_loading_opening(0.80, "ILUMINANDO A ARENA...", 0.25)
+	# TUDO NA MEMÓRIA ANTES DE O MENU APARECER (imagens, sons, fontes e
+	# telas): a barra anda de verdade e, daqui em diante, nenhuma troca de
+	# tela para o jogo para ler arquivo.
+	await Visual.carregar_tudo(_andou_o_carregamento)
+
+	_set_loading_opening(0.92, "ILUMINANDO A ARENA...", 0.20)
 
 	await _abrir_serial_arduino_opening()
-
-	_set_loading_opening(0.92, "QUASE LÁ...", 0.16)
 
 	_arduino_opening_pronto = true
 	_leds_atrativo_abertura_forte()
@@ -422,6 +422,10 @@ func _process(delta: float) -> void:
 
 	# Menu travado: durante loading/boot, patrocinadores, iniciando modo, ou indo pro Mural.
 	var menu_bloqueado: bool = patro_replay_ativo or (opening_loading_layer != null) or iniciando_jogo or combo_indo_mural or ranking_indo
+	# (um aviso do jogo na frente - permissão de abrir ao ligar - ou a ficha
+	# do Modo Feira: o menu continua vivo, mas não lê START / SELECT)
+	if ArduinoBridge.aviso_aberto or Leads.ficha_aberta():
+		return
 
 	# Leitura de input deste frame.
 	var cup_acao: bool = InputMap.has_action("input_cup")
@@ -2121,6 +2125,22 @@ func _preparar_inicio_partida() -> void:
 		sfx_game_start.play()
 
 	await _fechar_modal_players()
+
+	# MODO FEIRA: cada jogador preenche a ficha (e-mail, nome, idade) antes
+	# de a partida começar. Abandonou: o crédito volta e o menu continua.
+	if Leads.ligado:
+		var cores_ficha: Array = []
+		for i in range(total_players):
+			cores_ficha.append(cores_players[i])
+		if not await Leads.cadastrar_jogadores(total_players, cores_ficha, "ARCADE"):
+			ArcadeData.devolver_partida("arcade")
+			iniciando_jogo = false
+			_atualizar_status_arcade("CADASTRO CANCELADO")
+			_reiniciar_led_atrativo(0.8)
+			return
+		if sfx_game_start and sfx_game_start.stream:
+			sfx_game_start.play()
+
 	_mostrar_tela_iniciando()
 
 	await get_tree().create_timer(TEMPO_TELA_INICIANDO).timeout
@@ -3009,7 +3029,7 @@ func _criar_loading_opening(titulo_txt: String, sub_txt: String) -> void:
 
 	# Painel limpo de carregamento, sem logos ou apresentação de patrocinadores.
 	var loading_panel := Panel.new()
-	loading_panel.size = Vector2(tela.x * 0.70, 230.0)
+	loading_panel.size = Vector2(tela.x * 0.70, 330.0)
 	loading_panel.position = Vector2((tela.x - loading_panel.size.x) * 0.5, (tela.y - loading_panel.size.y) * 0.5)
 	loading_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	opening_loading_root.add_child(loading_panel)
@@ -3028,44 +3048,42 @@ func _criar_loading_opening(titulo_txt: String, sub_txt: String) -> void:
 
 	# barra correndo embaixo do texto: mostra que o jogo está carregando
 	var trilho := Panel.new()
-	trilho.size = Vector2(loading_panel.size.x * 0.56, 8.0)
-	trilho.position = Vector2((loading_panel.size.x - trilho.size.x) * 0.5, 184.0)
+	trilho.size = Vector2(loading_panel.size.x * 0.56, 12.0)
+	trilho.position = Vector2((loading_panel.size.x - trilho.size.x) * 0.5, 262.0)
 	trilho.clip_contents = true
 	trilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var st_trilho := StyleBoxFlat.new()
 	st_trilho.bg_color = Color(1, 1, 1, 0.10)
-	st_trilho.set_corner_radius_all(4)
+	st_trilho.set_corner_radius_all(6)
 	trilho.add_theme_stylebox_override("panel", st_trilho)
 	loading_panel.add_child(trilho)
 	var corre := Panel.new()
-	corre.size = Vector2(trilho.size.x * 0.32, 8.0)
+	corre.size = Vector2(6.0, 12.0)
 	corre.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var st_corre := StyleBoxFlat.new()
 	st_corre.bg_color = Color(0.30, 1.0, 0.50, 1.0)
-	st_corre.set_corner_radius_all(4)
+	st_corre.set_corner_radius_all(6)
 	corre.add_theme_stylebox_override("panel", st_corre)
 	trilho.add_child(corre)
-	corre.position.x = -corre.size.x
-	var tw_corre := corre.create_tween()
-	tw_corre.set_loops()
-	tw_corre.tween_property(corre, "position:x", trilho.size.x, 1.1).from(-corre.size.x).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# (a barra anda de verdade: é o quanto do jogo já está na memória)
+	corre.size.x = 6.0
+	opening_loading_barra = corre
+	opening_loading_barra_max_w = trilho.size.x
 
-	opening_loading_label = _label_loading_opening(titulo_txt, 46, Color.WHITE, Color(0.1, 0.75, 1.0))
-	opening_loading_label.position = Vector2(20, 34)
-	opening_loading_label.size = Vector2(loading_panel.size.x - 40, 62)
+	opening_loading_label = _label_loading_opening(titulo_txt, 78, Color.WHITE, Color(0.1, 0.75, 1.0))
+	opening_loading_label.position = Vector2(20, 40)
+	opening_loading_label.size = Vector2(loading_panel.size.x - 40, 100)
 	loading_panel.add_child(opening_loading_label)
 
-	opening_loading_sub = _label_loading_opening(sub_txt, 20, Color(0.82, 0.92, 1.0))
-	opening_loading_sub.position = Vector2(20, 112)
-	opening_loading_sub.size = Vector2(loading_panel.size.x - 40, 38)
+	opening_loading_sub = _label_loading_opening(sub_txt, 32, Color(0.82, 0.92, 1.0))
+	opening_loading_sub.position = Vector2(20, 164)
+	opening_loading_sub.size = Vector2(loading_panel.size.x - 40, 56)
 	loading_panel.add_child(opening_loading_sub)
 
 	# Loading visual limpo:
 	# sem texto embaixo, sem barra e sem porcentagem.
 	# A porcentagem continua existindo internamente para controlar o fluxo.
 	opening_loading_pct = null
-	opening_loading_barra = null
-	opening_loading_barra_max_w = 0.0
 	opening_loading_frac = 0.0
 
 
@@ -3410,6 +3428,13 @@ func _aplicar_frac_loading_opening(v: float) -> void:
 		opening_loading_pct.text = "%d%%" % int(round(frac * 100.0))
 
 
+func _andou_o_carregamento(frac: float) -> void:
+	var p := 0.12 + 0.78 * clampf(frac, 0.0, 1.0)
+	if p - opening_loading_frac < 0.02 and frac < 1.0:
+		return
+	_set_loading_opening(p, "CARREGANDO O JOGO...  %d%%" % int(round(frac * 100.0)), 0.10)
+
+
 func _set_loading_opening(p: float, texto: String, dur: float = 0.25) -> void:
 	if opening_loading_layer == null or not is_instance_valid(opening_loading_layer):
 		return
@@ -3480,8 +3505,6 @@ func _remover_loading_opening() -> void:
 	opening_loading_label = null
 	opening_loading_sub = null
 	opening_loading_pct = null
-	opening_loading_barra = null
-	opening_loading_barra_max_w = 0.0
 	opening_loading_frac = 0.0
 
 
@@ -4176,11 +4199,17 @@ func _criar_status_arcade() -> void:
 	if ResourceLoader.exists("res://fonts/BarlowCondensed-ExtraBoldItalic.ttf"):
 		fonte_titulo = load("res://fonts/BarlowCondensed-ExtraBoldItalic.ttf")
 
+	# (o selo foi desenhado pequeno: na tela de 1080 linhas ele cresce inteiro)
+	var status_base := Control.new()
+	status_base.position = Vector2(28, 22)
+	status_base.scale = Vector2(1.4, 1.4)
+	status_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(status_base)
 	status_painel = Panel.new()
-	status_painel.position = Vector2(20, 16)
+	status_painel.position = Vector2.ZERO
 	status_painel.size = Vector2(304, 74)
 	status_painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(status_painel)
+	status_base.add_child(status_painel)
 
 	# a "moeda" / selo redondo com o número ou o símbolo
 	status_icone = Panel.new()
@@ -4216,12 +4245,25 @@ func _criar_status_arcade() -> void:
 	status_sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	status_painel.add_child(status_sub)
 
+	# MODO FEIRA ligado: uma etiqueta embaixo do selo (e o aviso de pendrive fora)
+	status_feira = Label.new()
+	status_feira.position = Vector2(6, 78)
+	status_feira.size = Vector2(520, 24)
+	status_feira.add_theme_font_size_override("font_size", 15)
+	status_feira.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.09))
+	status_feira.add_theme_constant_override("outline_size", 5)
+	status_feira.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_base.add_child(status_feira)
+	if not Leads.mudou.is_connected(_atualizar_etiqueta_feira):
+		Leads.mudou.connect(_atualizar_etiqueta_feira)
+	_atualizar_etiqueta_feira()
+
 	# a faixa dos avisos de um instante
 	status_aviso = Label.new()
-	status_aviso.position = Vector2(340, 96)
-	status_aviso.size = Vector2(420, 46)
+	status_aviso.position = Vector2(34, 136)
+	status_aviso.size = Vector2(620, 56)
 	status_aviso.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	status_aviso.add_theme_font_size_override("font_size", 30)
+	status_aviso.add_theme_font_size_override("font_size", 40)
 	status_aviso.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.09))
 	status_aviso.add_theme_constant_override("outline_size", 8)
 	if fonte_titulo:
@@ -4231,6 +4273,20 @@ func _criar_status_arcade() -> void:
 	root.add_child(status_aviso)
 
 	_atualizar_status_arcade()
+
+
+func _atualizar_etiqueta_feira() -> void:
+	if status_feira == null or not is_instance_valid(status_feira):
+		return
+	status_feira.visible = Leads.ligado
+	if not Leads.ligado:
+		return
+	if Leads.tem_pendrive():
+		status_feira.text = "●  MODO FEIRA  •  %d cadastros" % Leads.total()
+		status_feira.add_theme_color_override("font_color", Color(0.45, 1.0, 0.62))
+	else:
+		status_feira.text = "●  MODO FEIRA  •  SEM PENDRIVE (guardando na máquina)"
+		status_feira.add_theme_color_override("font_color", Color(1.0, 0.84, 0.10))
 
 
 func _estilo_status(cor: Color) -> void:
@@ -4317,6 +4373,7 @@ func _mostrar_aviso_status(aviso: String, cor: Color) -> void:
 	if aviso.begins_with("SEM CRÉDITO"):
 		texto = "INSIRA A FICHA PARA JOGAR"
 	status_aviso.text = texto
+	status_aviso.position.y = 172.0 if Leads.ligado else 136.0
 	status_aviso.add_theme_color_override("font_color", cor.lightened(0.35))
 	if status_aviso_tw != null and status_aviso_tw.is_valid():
 		status_aviso_tw.kill()

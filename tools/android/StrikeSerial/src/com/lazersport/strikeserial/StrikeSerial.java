@@ -12,8 +12,11 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import org.godotengine.godot.Godot;
@@ -642,6 +645,14 @@ public class StrikeSerial extends GodotPlugin {
 	@Override
 	public void onMainActivityResult(int pedido, int resultado, Intent dados) {
 		Activity a = getActivity();
+		if (pedido == PendriveDaTv.PEDIDO_PASTA && a != null) {
+			try {
+				PendriveDaTv.depoisDeEscolher(a, resultado, dados);
+			} catch (Throwable t) {
+				anotar("pendrive: " + t);
+			}
+			return;
+		}
 		if (pedido == InicioDaTv.PEDIDO_PAPEL && a != null) {
 			try {
 				InicioDaTv.depoisDoPapel(a, resultado);
@@ -649,6 +660,129 @@ public class StrikeSerial extends GodotPlugin {
 				anotar("tela inicial: " + t);
 			}
 		}
+	}
+
+	// ------------------------------------------------------- pontos da tela
+	private boolean pontosMexidos = false;
+
+	private static SurfaceView acharTela(View v) {
+		if (v instanceof SurfaceView) {
+			return (SurfaceView) v;
+		}
+		if (v instanceof ViewGroup) {
+			ViewGroup g = (ViewGroup) v;
+			for (int i = 0; i < g.getChildCount(); i++) {
+				SurfaceView s = acharTela(g.getChildAt(i));
+				if (s != null) {
+					return s;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * QUANTOS PONTOS O JOGO PINTA (a nitidez), sem mudar o desenho dele: a
+	 * imagem é feita com "altura" linhas e o próprio Android estica até o
+	 * tamanho da TV (de graça, pelo hardware). altura 0, ou igual / maior que
+	 * a da TV = os pontos da TV. Devolve os pontos da TV ("1920x1080").
+	 */
+	@UsedByGodot
+	public String pontos_da_tela(final int altura) {
+		final Activity a = getActivity();
+		if (a == null) {
+			return "";
+		}
+		try {
+			DisplayMetrics m = new DisplayMetrics();
+			a.getWindowManager().getDefaultDisplay().getRealMetrics(m);
+			final int tw = Math.max(m.widthPixels, m.heightPixels);
+			final int th = Math.min(m.widthPixels, m.heightPixels);
+			final boolean inteira = altura <= 0 || altura >= th;
+			if (inteira && !pontosMexidos) {
+				return tw + "x" + th;   // nunca mexeu: fica como o Android entrega
+			}
+			pontosMexidos = true;
+			a.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						SurfaceView v = acharTela(a.getWindow().getDecorView());
+						if (v == null) {
+							return;
+						}
+						if (inteira) {
+							v.getHolder().setSizeFromLayout();
+						} else {
+							int w = Math.round(altura * (float) tw / (float) th);
+							w -= w % 2;
+							v.getHolder().setFixedSize(w, altura);
+						}
+					} catch (Throwable t) {
+						anotar("pontos da tela: " + t);
+					}
+				}
+			});
+			return tw + "x" + th;
+		} catch (Throwable t) {
+			anotar("pontos da tela: " + t);
+			return "";
+		}
+	}
+
+	// ------------------------------------------------------------ pendrive
+	// PendriveDaTv: os cadastros do MODO FEIRA vão para o pendrive.
+	/** A pasta OlhoNoLance_Leads de um pendrive onde dá para escrever ("" = nenhuma). */
+	@UsedByGodot
+	public String pen_pasta() {
+		Activity a = getActivity();
+		return a == null ? "" : PendriveDaTv.pastaDireta(a);
+	}
+
+	@UsedByGodot
+	public String arq_ler(String caminho) {
+		return PendriveDaTv.lerArquivo(caminho);
+	}
+
+	@UsedByGodot
+	public boolean arq_gravar(String caminho, String texto) {
+		return PendriveDaTv.gravarArquivo(caminho, texto);
+	}
+
+	/** Abre o seletor de pastas do Android (o operador escolhe o pendrive uma vez). */
+	@UsedByGodot
+	public boolean pen_escolher() {
+		Activity a = getActivity();
+		if (a == null) {
+			return false;
+		}
+		InicioDaTv.pausarGuarda(a, 3 * 60000L);
+		return PendriveDaTv.escolher(a);
+	}
+
+	/** O nome da pasta escolhida ("" = nenhuma, ou o pendrive dela não está espetado). */
+	@UsedByGodot
+	public String pen_nome() {
+		Activity a = getActivity();
+		return a == null ? "" : PendriveDaTv.nome(a);
+	}
+
+	@UsedByGodot
+	public String pen_ler(String rel) {
+		Activity a = getActivity();
+		return a == null ? "" : PendriveDaTv.ler(a, rel);
+	}
+
+	@UsedByGodot
+	public boolean pen_gravar(String rel, String texto) {
+		Activity a = getActivity();
+		return a != null && PendriveDaTv.gravar(a, rel, texto);
+	}
+
+	/** Antes de tirar o pendrive: o Android grava de verdade o que ainda estava na memória. */
+	@UsedByGodot
+	public void pen_sincronizar() {
+		PendriveDaTv.sincronizar();
 	}
 
 	// ------------------------------------------------------------ relatório

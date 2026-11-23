@@ -131,8 +131,20 @@ func _o_que_falta(d: Dictionary, cfg: ConfigFile) -> String:
 
 func _olhar_inicio(agora: int) -> void:
 	if aviso_aberto:
+		# Sem resposta no tempo do aviso: ele some e o jogo segue. Nunca abre
+		# uma tela do Android sozinho (a máquina não fica presa numa tela de
+		# ajustes sem ninguém por perto). Pede de novo na próxima abertura.
 		if _aviso_ate > 0 and agora >= _aviso_ate:
-			confirmar_aviso()
+			if _aviso_pede:
+				_inicio_resolvido = true
+				# (ninguém viu: este pedido não conta como uma das tentativas)
+				var cfg0 := ConfigFile.new()
+				cfg0.load(PERMISSOES)
+				var chave0 := "ped_sobrepor" if _inicio_modo == "sobrepor" else "ped_tela"
+				cfg0.set_value("inicio", chave0, maxi(int(cfg0.get_value("inicio", chave0, 1)) - 1, 0))
+				cfg0.save(PERMISSOES)
+				_pedidos = null
+			_fechar_aviso()
 		return
 	if _inicio_resolvido or agora - _inicio_olhou < 2000 or agora - _abriu_em < ESPERA_INICIO_MS:
 		return
@@ -191,8 +203,10 @@ func _cartao_do_aviso(largura: float, altura: float, cor: Color) -> Control:
 	var k: float = minf(tela.x / 1280.0, tela.y / 720.0)
 	var cartao := Panel.new()
 	cartao.size = Vector2(largura, altura)
+	# (cresce a partir do centro: a posição é a do cartão sem escala)
+	cartao.pivot_offset = cartao.size * 0.5
 	cartao.scale = Vector2(k, k)
-	cartao.position = (tela - cartao.size * k) * 0.5
+	cartao.position = (tela - cartao.size) * 0.5
 	var st := StyleBoxFlat.new()
 	st.bg_color = Color(0.035, 0.065, 0.11, 0.98)
 	st.border_color = Color(cor.r, cor.g, cor.b, 0.9)
@@ -263,9 +277,8 @@ func _depois_do_aviso(pede: bool, ms: int) -> void:
 	aviso_aberto = true
 	_aviso_pede = pede
 	_aviso_ate = Time.get_ticks_msec() + ms
-	if pede:
-		# o menu espera: o START não começa uma partida por trás do aviso
-		get_tree().paused = true
+	# (o jogo NÃO para: o menu continua vivo atrás do aviso; o que fica
+	# barrado é só o START / SELECT - ver _process e ControleTv)
 
 
 ## Aviso simples (PRONTO!, APK incompleto): título, texto e some sozinho.
@@ -417,7 +430,6 @@ func _fechar_aviso() -> void:
 	_aviso = null
 	aviso_aberto = false
 	_aviso_ate = 0
-	get_tree().paused = false
 
 
 ## OK no controle (ControleTv) ou o tempo do aviso: abre a tela do Android.
@@ -450,7 +462,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 15"
+const VERSAO := "TV 16"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -465,8 +477,8 @@ func _carimbo() -> void:
 	_carimbo_label = Label.new()
 	_carimbo_label.text = VERSAO
 	_carimbo_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_carimbo_label.position = Vector2(8, -24)
-	_carimbo_label.add_theme_font_size_override("font_size", 13)
+	_carimbo_label.position = Vector2(12, -32)
+	_carimbo_label.add_theme_font_size_override("font_size", 18)
 	_carimbo_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
 	_carimbo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	camada.add_child(_carimbo_label)

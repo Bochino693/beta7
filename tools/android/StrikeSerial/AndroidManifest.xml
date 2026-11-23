@@ -18,6 +18,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- MODO FEIRA: os cadastros vão para o pendrive (raiz dele, onde o Android deixar) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
     <!-- Android 11+: enxergar a tela inicial da TV, para sair do jogo (InicioDaTv) -->
     <queries>
         <intent>
