@@ -25,7 +25,7 @@ extends Node2D
 
 const CENA_SEGUINTE: String = "res://scenes/torment_lobby.tscn"
 
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 const SFX_SELECT: String = "res://songs/player_select.mp3"
 const SFX_CONFIRM: String = "res://songs/game_start.mp3"
 const MUSICA_FUNDO: String = "res://songs/song_fut.mp3"

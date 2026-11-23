@@ -41,7 +41,7 @@ const IMAGEM_FUNDO_FOOTER_PATRO: String = "res://fundos/fundo_logos.png"
 
 const CENA_CUP_LOBBY: String = "res://scenes/cup_lobby.tscn"
 
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 
 const MUSICA_PLAY: String = "res://songs/song_fut_play.mp3"
 const SFX_PONTO: String = "res://songs/goal.mp3"

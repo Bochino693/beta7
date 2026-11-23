@@ -39,8 +39,8 @@ const CENA_CONFIG: String = "res://scenes/config.tscn"
 const SFX_SELECT_PLAYER: String = "res://songs/player_select.mp3"
 const SFX_GAME_START: String = "res://songs/game_start.mp3"
 
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
-const FONTE_BUNGREE: String = "res://fonts/bungree.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
+const FONTE_BUNGREE: String = "res://fonts/BarlowCondensed-ExtraBoldItalic.ttf"
 
 const LOADING_OPENING_PASTA_PATROCINADORES: String = "res://patro/"
 const LOADING_OPENING_EXTENSOES_PATRO: Array[String] = ["png", "jpg", "jpeg", "webp"]

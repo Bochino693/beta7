@@ -23,7 +23,7 @@ var _torneio_salvo_mural: bool = false
 
 const CENA_PLAY: String = "res://scenes/torment_play.tscn"
 const CENA_OPENING: String = "res://scenes/opening.tscn"
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 
 const SFX_START_TORMENT: String = "res://songs/start_game.mp3"
 const SFX_START_TORMENT_FALLBACK: String = "res://songs/game_start.mp3"

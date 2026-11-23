@@ -29,12 +29,17 @@ CupGlobal="*res://scripts/CupGlobal.gd"
 ChampionsDb="*res://scripts/champions_db.gd"
 ArcadeData="*res://scripts/arcade_data.gd"
 ArduinoBridge="*res://scripts/arduino_bridge.gd"
+Visual="*res://scripts/visual.gd"
 Efeitos="*res://scripts/efeitos.gd"
 ControleTv="*res://scripts/controle_tv.gd"
 
 [display]
 
 window/size/mode=3
+
+[gui]
+
+theme/custom_font="res://fonts/Barlow-SemiBold.ttf"
 
 [input]
 
