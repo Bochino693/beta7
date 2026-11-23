@@ -62,6 +62,9 @@ func _trocou_de_tela(cena: Node) -> void:
 	_cena = cena
 	_cena_desde = Time.get_ticks_msec()
 	_partida = cena != null and cena.scene_file_path.get_file().get_basename() in TELAS_DE_PARTIDA
+	if _trocar_pendente:
+		_trocar_pendente = false
+		_aplicar_resolucao()
 
 
 # ------------------------------------------------- desempenho automático
@@ -95,6 +98,21 @@ var _ruins := 0
 var _altura := 0
 
 
+## Placas de vídeo fracas (as das TV Box baratas): já começam pintando 720
+## linhas - o desenho continua o de 1080p, só a nitidez é menor - para o jogo
+## rodar liso desde o primeiro segundo, sem precisar "descobrir" devagar.
+const PLACAS_FRACAS := ["mali-g31", "mali-g51", "mali-t7", "mali-t8", "mali-4", "ge8", "sgx", "adreno (tm) 3", "adreno (tm) 4", "adreno (tm) 50", "videocore", "vivante"]
+var _trocar_pendente := false
+
+
+func _nivel_inicial() -> int:
+	var p := placa.to_lower()
+	for fraca in PLACAS_FRACAS:
+		if p.contains(fraca):
+			return 3
+	return 1
+
+
 func _carregar_nivel() -> void:
 	placa = RenderingServer.get_video_adapter_name()
 	if OS.get_name() != "Android":
@@ -102,35 +120,61 @@ func _carregar_nivel() -> void:
 		return
 	var cfg := ConfigFile.new()
 	cfg.load(ARQUIVO)
-	# ("nivel_1080": a medição das versões antigas, que encolhiam a tela, não vale mais)
-	nivel = clampi(int(cfg.get_value("visual", "nivel_1080", 1)), 0, NIVEL_MAX)
+	# ("nivel_1080b": as medições das versões antigas não valem mais)
+	nivel = clampi(int(cfg.get_value("visual", "nivel_1080b", _nivel_inicial())), 0, NIVEL_MAX)
+	# Trava de segurança: se da última vez o jogo fechou / travou logo depois
+	# de mudar os pontos da tela, esta caixa não aceita: nunca mais muda.
+	# (3 vezes seguidas: uma queda de luz logo depois de abrir não conta)
+	_sem_pontos = bool(cfg.get_value("visual", "sem_pontos", false))
+	_tentativas = int(cfg.get_value("visual", "tentativas", 0))
+	if _tentativas >= 3:
+		_sem_pontos = true
+		_tentativas = 0
+		_guardar_nivel()
 
 
 func _guardar_nivel() -> void:
 	var cfg := ConfigFile.new()
-	cfg.set_value("visual", "nivel_1080", nivel)
+	cfg.set_value("visual", "nivel_1080b", nivel)
 	cfg.set_value("visual", "placa", placa)
+	cfg.set_value("visual", "sem_pontos", _sem_pontos)
+	cfg.set_value("visual", "tentativas", _tentativas)
 	cfg.save(ARQUIVO)
 
 
+var _sem_pontos := false
+var _tentativas := 0
+var _trocou_em := 0
+
+
 ## Quantos pontos a TV Box pinta (o desenho do jogo NÃO muda: é só a
-## nitidez). Quem estica até o tamanho da TV é o próprio Android.
+## nitidez). Quem estica até o tamanho da TV é o próprio Android. Só é
+## chamado ao abrir o jogo e nas trocas de tela - nunca no meio de uma tela.
 func _aplicar_resolucao() -> void:
 	if OS.get_name() != "Android":
 		return
 	Engine.max_fps = 30 if nivel >= NIVEL_MAX else 0
-	var alt: int = ALTURAS[nivel]
+	var alt: int = 1080 if _sem_pontos else ALTURAS[nivel]
 	if alt == _altura:
 		return
 	_altura = alt
 	if Engine.has_singleton("StrikeSerial"):
 		var p := Engine.get_singleton("StrikeSerial")
 		if p.has_method("pontos_da_tela"):
+			if alt < 1080:
+				_tentativas += 1       # (se travar agora, a próxima abertura sabe)
+				_guardar_nivel()
+				_trocou_em = Time.get_ticks_msec()
 			tv = str(p.call("pontos_da_tela", alt))
 
 
 func _medir() -> void:
 	var agora := Time.get_ticks_msec()
+	# os pontos da tela mudaram e o jogo continuou vivo por 8 s: a caixa aceita
+	if _trocou_em > 0 and agora - _trocou_em > 8000:
+		_trocou_em = 0
+		_tentativas = 0
+		_guardar_nivel()
 	# não mede montando a tela, em transição nem com o jogo parado num aviso
 	if agora - _cena_desde < 4000 or get_tree().paused:
 		_med_quadros = 0
@@ -154,12 +198,13 @@ func _medir() -> void:
 	nivel += 1
 	_guardar_nivel()
 	print("VISUAL: ", snappedf(qps, 0.1), " quadros/s: descendo para o nível ", nivel)
-	_aplicar_resolucao()
+	# (os pontos da tela só mudam na próxima troca de tela, atrás da transição)
+	_trocar_pendente = true
 
 
 ## Para o canto da tela e a Central da Máquina.
 func texto() -> String:
-	return "%s  •  %d q/s  •  nível %d  •  %dp%s" % [placa if placa != "" else "?", int(round(qps)), nivel, ALTURAS[nivel], ("  •  TV " + tv) if tv != "" else ""]
+	return "%s  •  %d q/s  •  nível %d  •  %dp%s" % [placa if placa != "" else "?", int(round(qps)), nivel, 1080 if _sem_pontos else ALTURAS[nivel], ("  •  TV " + tv) if tv != "" else ""]
 
 
 # ----------------------------------------------------------- painéis limpos
