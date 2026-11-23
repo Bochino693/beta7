@@ -49,8 +49,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 11  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 11" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 12  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 12" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -61,6 +61,13 @@ DESFAZER (a caixa volta a ser TV): PREPARAR_TV.bat -DevolverTv.
 IMPORTANTE: com a tela da ROM desligada, NÃO desinstale o jogo antes de
 desfazer (a caixa ficaria sem tela inicial). Para atualizar, instale o APK
 novo POR CIMA.
+
+POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 12)
+Ao ligar, o Android procura a tela inicial antes de destravar o
+armazenamento. A tela inicial do jogo não estava marcada para existir nessa
+hora (directBootAware), a lista de telas ficava diferente da do dia da
+escolha e o Android jogava a escolha fora - e perguntava de novo. Agora ela
+existe desde o começo da inicialização e a escolha "Sempre" fica guardada.
 
 SEM DEPURAÇÃO (caixa que não tem Opções do desenvolvedor): uns 10 segundos
 depois de o menu aparecer o jogo mostra "PARA O JOGO ABRIR SOZINHO AO

@@ -163,11 +163,39 @@ func _montar_fila() -> void:
 			if not (ext in ["png", "jpg", "jpeg", "mp3", "ogg", "wav", "ttf", "otf", "tscn"]):
 				continue
 			var caminho: String = str(pasta).path_join(limpo)
+			if ext == "tscn":
+				# as telas trazem o script junto: script só pode ser carregado
+				# na linha principal (em segundo plano dá erro de leitura)
+				if not _telas.has(caminho) and ResourceLoader.exists(caminho):
+					_telas.append(caminho)
+				continue
 			if not _fila.has(caminho) and ResourceLoader.exists(caminho):
 				_fila.append(caminho)
 
 
+## As telas (e os scripts delas): uma a cada TELA_A_CADA_MS, na linha
+## principal, logo no começo - enquanto a abertura mostra "carregando".
+const TELA_A_CADA_MS := 220
+var _telas: Array[String] = []
+var _ultima_tela := 0
+
+
+func _carregar_tela() -> void:
+	if _telas.is_empty():
+		return
+	var agora := Time.get_ticks_msec()
+	if agora - _ultima_tela < TELA_A_CADA_MS:
+		return
+	_ultima_tela = agora
+	var caminho: String = _telas.pop_front()
+	var atual := get_tree().current_scene
+	if atual != null and atual.scene_file_path == caminho:
+		return
+	_cache[caminho] = load(caminho)
+
+
 func _carregar_um() -> void:
+	_carregar_tela()
 	if _carregando != "":
 		var estado := ResourceLoader.load_threaded_get_status(_carregando)
 		if estado == ResourceLoader.THREAD_LOAD_IN_PROGRESS:

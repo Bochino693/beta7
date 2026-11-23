@@ -213,11 +213,87 @@ func _entrou_tela() -> void:
 	_luzes.color = Color(_cor_ambiente.r, _cor_ambiente.g, _cor_ambiente.b, 0.16)
 	_lista_ondas.clear()
 	_borda_alfa = 0.0
-	# a tela nova abre do escuro, com um clarão curto na cor dela
-	_cortina.color = Color(0, 0, 0, 1)
-	var tw := create_tween()
-	tw.tween_property(_cortina, "color:a", 0.0, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_piscar(_cor_ambiente, 0.16, 0.6)
+	_transicao()
+
+
+## TRANSIÇÃO DE TELA, como vinheta de transmissão esportiva: a tela nova
+## nasce coberta por faixas inclinadas (escuras, com fio na cor da tela) e o
+## nome do jogo no meio; as faixas saem correndo para o lado, uma depois da
+## outra, e um clarão curto fecha. Meio segundo. De quebra, cobre o instante
+## em que a tela nova ainda está se montando.
+const FAIXAS := 6
+var _faixas: Node2D
+var _camada_transicao: CanvasLayer
+var _marca: Label
+
+
+func _transicao() -> void:
+	var t := _tela()
+	if _faixas != null and is_instance_valid(_faixas):
+		_faixas.queue_free()
+	# numa camada por cima de TUDO (as telas de carregamento do jogo usam a 900)
+	if _camada_transicao == null:
+		_camada_transicao = CanvasLayer.new()
+		_camada_transicao.layer = 1000
+		add_child(_camada_transicao)
+	_faixas = Node2D.new()
+	_camada_transicao.add_child(_faixas)
+	var larg := t.x / FAIXAS
+	var tomba := t.y * 0.32            # inclinação das faixas
+	for i in range(FAIXAS):
+		var f := Polygon2D.new()
+		var x0 := i * larg - tomba
+		f.polygon = PackedVector2Array([Vector2(x0 + tomba, -4), Vector2(x0 + tomba + larg + 3, -4), Vector2(x0 + larg + 3, t.y + 4), Vector2(x0, t.y + 4)])
+		f.color = Color(0.016, 0.035, 0.065) if i % 2 == 0 else Color(0.024, 0.05, 0.09)
+		_faixas.add_child(f)
+		var fio := Polygon2D.new()
+		fio.polygon = PackedVector2Array([Vector2(x0 + tomba + larg - 3, -4), Vector2(x0 + tomba + larg + 3, -4), Vector2(x0 + larg + 3, t.y + 4), Vector2(x0 + larg - 3, t.y + 4)])
+		fio.color = Color(_cor_ambiente.r, _cor_ambiente.g, _cor_ambiente.b, 0.9)
+		f.add_child(fio)
+		var tw := f.create_tween()
+		tw.tween_interval(0.16 + 0.035 * (FAIXAS - 1 - i))
+		tw.tween_property(f, "position:x", t.x + tomba + larg, 0.40).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	# a primeira faixa cobre também a sobra da esquerda
+	var canto := Polygon2D.new()
+	canto.polygon = PackedVector2Array([Vector2(-4, -4), Vector2(tomba, -4), Vector2(-tomba, t.y + 4), Vector2(-4 - tomba, t.y + 4)])
+	canto.color = Color(0.016, 0.035, 0.065)
+	_faixas.get_child(0).add_child(canto)
+	# o nome do jogo, no meio, some junto
+	if _marca == null:
+		_marca = Label.new()
+		_marca.text = "OLHO NO LANCE"
+		_marca.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_marca.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_marca.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if ResourceLoader.exists("res://fonts/Bungee-Regular.ttf"):
+			_marca.add_theme_font_override("font", load("res://fonts/Bungee-Regular.ttf"))
+		_marca.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.09))
+		_camada_transicao.add_child(_marca)
+	_camada_transicao.move_child(_marca, -1)
+	_marca.add_theme_font_size_override("font_size", int(t.y * 0.085))
+	_marca.add_theme_constant_override("outline_size", int(t.y * 0.014))
+	_marca.size = Vector2(t.x, t.y * 0.2)
+	_marca.position = Vector2(0, t.y * 0.40)
+	_marca.pivot_offset = _marca.size * 0.5
+	_marca.rotation = deg_to_rad(-4.0)
+	_marca.modulate = Color(1, 1, 1, 1)
+	_marca.scale = Vector2(0.94, 0.94)
+	_marca.visible = true
+	var tm := _marca.create_tween()
+	tm.set_parallel(true)
+	tm.tween_property(_marca, "scale", Vector2(1.04, 1.04), 0.40)
+	tm.tween_property(_marca, "modulate:a", 0.0, 0.20).set_delay(0.20)
+	var fim := create_tween()
+	fim.tween_interval(0.85)
+	fim.tween_callback(func() -> void:
+		if _faixas != null and is_instance_valid(_faixas):
+			_faixas.queue_free()
+		_faixas = null
+		if _marca != null:
+			_marca.visible = false)
+	_cortina.color = Color(0, 0, 0, 0)
+	# o clarão na cor da tela, quando as faixas estão saindo
+	get_tree().create_timer(0.30, true, false, true).timeout.connect(_piscar.bind(_cor_ambiente, 0.20, 0.55))
 
 
 func _piscar(cor: Color, forca: float, tempo: float) -> void:

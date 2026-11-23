@@ -43,6 +43,10 @@ confere("org.godotengine.plugin.v2.StrikeSerial" in manifesto, "plugin StrikeSer
 for classe in ("StrikeSerial", "InicioDaTv", "StrikeInicioAtivo", "StrikeLigou", "StrikeSempre", "AdbDaTv", "StrikeArduinoAtivo"):
     confere(("Lcom/lazersport/strikeserial/%s;" % classe).encode() in dex, "classe %s dentro do APK" % classe)
 confere("StrikeInicioAtivo" in manifesto and "android.intent.category.HOME" in manifesto.split("E: application")[-1], "tela inicial do jogo (HOME): o Android abre o jogo ao ligar")
+# a tela inicial do jogo tem que ser directBootAware (senao o Android esquece o "Sempre" a cada boot)
+_i = manifesto.find("StrikeInicioAtivo")
+_bloco = manifesto[manifesto.rfind("E: activity", 0, _i):manifesto.find("E: intent-filter", _i)] if _i > 0 else ""
+confere("directBootAware" in _bloco and "=true" in _bloco.split("directBootAware")[-1][:60].replace("0xffffffff", "=true"), "tela inicial directBootAware (a escolha \"Sempre\" não se perde ao religar)")
 confere("android.permission.SYSTEM_ALERT_WINDOW" in manifesto, "permissão para abrir de fundo no Android 10+")
 confere("StrikeSempre" in manifesto and "FOREGROUND_SERVICE" in manifesto, "o guarda (serviço em primeiro plano)")
 confere("LOCKED_BOOT_COMPLETED" in manifesto and "MY_PACKAGE_REPLACED" in manifesto and "directBootAware" in manifesto, "aviso de \"ligou\" reforçado (boot direto, atualização)")
