@@ -30,7 +30,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("input_credit"):
 		ArcadeData.adicionar_credito()
 		_atualizar_dados()
-		_mensagem("CRÉDITO ADICIONADO PELO L3")
+		_mensagem("●  CRÉDITO ADICIONADO")
 	for i in range(LEDS.size()):
 		var acao := "input_led_" + LEDS[i].to_lower()
 		if Input.is_action_just_pressed(acao):
@@ -117,7 +117,7 @@ func _criar_interface() -> void:
 
 	var box_acoes := _painel("AÇÕES RÁPIDAS", "Créditos e dados da máquina", resumo, Color(0.08, 0.86, 0.78))
 	box_acoes.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var credito_btn := _botao("+  ADICIONAR CRÉDITO (L3)", Color(0.12, 0.78, 1.0), true)
+	var credito_btn := _botao("+  ADICIONAR CRÉDITO", Color(0.12, 0.78, 1.0), true)
 	credito_btn.pressed.connect(_adicionar_credito_manual)
 	box_acoes.add_child(credito_btn)
 	var mural := _botao("LIMPAR MURAL DE CAMPEÕES", Color(1.0, 0.18, 0.25))
@@ -269,7 +269,7 @@ func _atualizar_dados() -> void:
 	modo_option.select(1 if ArcadeData.modo_operacao == "credito" else 0)
 	if ArcadeData.modo_operacao == "credito":
 		if ArcadeData.creditos <= 0:
-			creditos_label.text = "SEM CRÉDITOS\nPressione L3 para liberar uma partida"
+			creditos_label.text = "SEM CRÉDITOS\nInsira a ficha para liberar uma partida"
 			creditos_label.add_theme_color_override("font_color", Color(1.0, 0.32, 0.25))
 		else:
 			creditos_label.text = "%d CRÉDITO(S) DISPONÍVEL(IS)" % ArcadeData.creditos

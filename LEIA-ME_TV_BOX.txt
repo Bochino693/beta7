@@ -49,8 +49,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 13  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 13" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 14  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 14" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -62,7 +62,7 @@ IMPORTANTE: com a tela da ROM desligada, NÃO desinstale o jogo antes de
 desfazer (a caixa ficaria sem tela inicial). Para atualizar, instale o APK
 novo POR CIMA.
 
-POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 13)
+POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 14)
 Ao ligar, o Android procura a tela inicial antes de destravar o
 armazenamento. A tela inicial do jogo não estava marcada para existir nessa
 hora (directBootAware), a lista de telas ficava diferente da do dia da
@@ -141,7 +141,7 @@ MENU -> Central da Máquina:
   - modo LIVRE ou CRÉDITO, contador de partidas, limpar o mural.
 
 NO CANTO DE BAIXO DA TELA (pequeno):
-  TV 13 • Mali-G31 • 58 q/s • nível 1 • 720p • Android 10 • tela inicial...
+  TV 14 • Mali-G31 • 58 q/s • nível 1 • 720p • Android 10 • tela inicial...
   = versão do jogo, placa de vídeo da caixa, quadros por segundo, nível de
   desempenho e resolução. O jogo mede sozinho e, se a caixa não dá conta,
   desce de nível (sem neon -> 540 linhas -> 480 linhas -> 30 q/s fixos).

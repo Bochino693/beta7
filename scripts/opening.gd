@@ -4134,7 +4134,7 @@ func _confirmar_modo_focado() -> void:
 	var acao: String = str(modo.get("acao", ""))
 
 	if not ArcadeData.consumir_credito():
-		_atualizar_status_arcade("SEM CRÉDITO • PRESSIONE L3")
+		_atualizar_status_arcade("SEM CRÉDITO")
 		_set_leds_todos_rgb([255, 0, 0])
 		_reiniciar_led_atrativo(0.8)
 		return
@@ -4152,37 +4152,182 @@ func _confirmar_modo_focado() -> void:
 			push_warning("Modo sem ação definida: " + str(modo.get("id", "")))
 
 
+# =========================================================
+# PAINEL DE STATUS DA MÁQUINA (canto de cima, à esquerda)
+# Um selo de fliperama no lugar da linha de texto solta:
+#   JOGO LIVRE ........ selo verde + partidas jogadas
+#   COM CRÉDITO ....... moeda dourada com o número + "aperte START"
+#   SEM CRÉDITO ....... "INSIRA A FICHA" pulsando (chama o jogador)
+# Os avisos de um instante (crédito adicionado, partida liberada)
+# aparecem como uma faixa que pula ao lado e some sozinha.
+# =========================================================
+var status_painel: Panel = null
+var status_icone: Panel = null
+var status_icone_txt: Label = null
+var status_sub: Label = null
+var status_aviso: Label = null
+var status_pulso: Tween = null
+var status_aviso_tw: Tween = null
+var status_estado: String = ""
+
+
 func _criar_status_arcade() -> void:
+	var fonte_titulo: Font = null
+	if ResourceLoader.exists("res://fonts/BarlowCondensed-ExtraBoldItalic.ttf"):
+		fonte_titulo = load("res://fonts/BarlowCondensed-ExtraBoldItalic.ttf")
+
+	status_painel = Panel.new()
+	status_painel.position = Vector2(20, 16)
+	status_painel.size = Vector2(304, 74)
+	status_painel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(status_painel)
+
+	# a "moeda" / selo redondo com o número ou o símbolo
+	status_icone = Panel.new()
+	status_icone.position = Vector2(10, 10)
+	status_icone.size = Vector2(54, 54)
+	status_icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_painel.add_child(status_icone)
+	status_icone_txt = Label.new()
+	status_icone_txt.set_anchors_preset(Control.PRESET_FULL_RECT)
+	status_icone_txt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_icone_txt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	status_icone_txt.add_theme_font_size_override("font_size", 30)
+	if fonte_titulo:
+		status_icone_txt.add_theme_font_override("font", fonte_titulo)
+	status_icone.add_child(status_icone_txt)
+
 	arcade_status_label = Label.new()
-	arcade_status_label.position = Vector2(24, 18)
-	arcade_status_label.size = Vector2(650, 42)
-	arcade_status_label.add_theme_font_size_override("font_size", 20)
-	arcade_status_label.add_theme_color_override("font_color", Color.WHITE)
-	arcade_status_label.add_theme_color_override("font_shadow_color", Color(0.1, 0.75, 1.0))
-	arcade_status_label.add_theme_constant_override("shadow_offset_x", 2)
-	arcade_status_label.add_theme_constant_override("shadow_offset_y", 2)
+	arcade_status_label.position = Vector2(76, 6)
+	arcade_status_label.size = Vector2(222, 38)
+	arcade_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	arcade_status_label.add_theme_font_size_override("font_size", 31)
+	if fonte_titulo:
+		arcade_status_label.add_theme_font_override("font", fonte_titulo)
 	arcade_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(arcade_status_label)
+	status_painel.add_child(arcade_status_label)
+
+	status_sub = Label.new()
+	status_sub.position = Vector2(77, 42)
+	status_sub.size = Vector2(222, 24)
+	status_sub.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	status_sub.add_theme_font_size_override("font_size", 16)
+	status_sub.add_theme_color_override("font_color", Color(0.84, 0.90, 0.96))
+	status_sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_painel.add_child(status_sub)
+
+	# a faixa dos avisos de um instante
+	status_aviso = Label.new()
+	status_aviso.position = Vector2(340, 96)
+	status_aviso.size = Vector2(420, 46)
+	status_aviso.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	status_aviso.add_theme_font_size_override("font_size", 30)
+	status_aviso.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.09))
+	status_aviso.add_theme_constant_override("outline_size", 8)
+	if fonte_titulo:
+		status_aviso.add_theme_font_override("font", fonte_titulo)
+	status_aviso.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_aviso.modulate.a = 0.0
+	root.add_child(status_aviso)
+
 	_atualizar_status_arcade()
+
+
+func _estilo_status(cor: Color) -> void:
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.03 + cor.r * 0.07, 0.05 + cor.g * 0.07, 0.09 + cor.b * 0.07, 0.90)
+	st.border_color = cor
+	st.set_border_width_all(0)
+	st.border_width_left = 6
+	st.set_corner_radius_all(16)
+	st.shadow_color = Color(0, 0, 0, 0.45)
+	st.shadow_size = 8
+	st.shadow_offset = Vector2(0, 3)
+	status_painel.add_theme_stylebox_override("panel", st)
+	var si := StyleBoxFlat.new()
+	si.bg_color = cor
+	si.set_corner_radius_all(27)
+	si.border_color = Color(1, 1, 1, 0.55)
+	si.set_border_width_all(2)
+	status_icone.add_theme_stylebox_override("panel", si)
+	arcade_status_label.add_theme_color_override("font_color", Color.WHITE if cor.get_luminance() < 0.6 else cor.lightened(0.25))
 
 
 func _atualizar_status_arcade(aviso: String = "") -> void:
 	if arcade_status_label == null or not is_instance_valid(arcade_status_label):
 		return
-	var texto := ""
+	var estado := "livre"
+	var cor := Color(0.16, 0.86, 0.42)
 	if ArcadeData.modo_operacao == "credito":
 		if ArcadeData.creditos <= 0:
-			texto = "MODO CRÉDITO  •  SEM CRÉDITOS  •  PRESSIONE L3"
-			arcade_status_label.add_theme_color_override("font_color", Color(1.0, 0.30, 0.24))
+			estado = "sem"
+			cor = Color(1.0, 0.30, 0.22)
 		else:
-			texto = "MODO CRÉDITO  •  CRÉDITOS DISPONÍVEIS: %d" % ArcadeData.creditos
-			arcade_status_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.14))
-	else:
-		texto = "MODO LIVRE  •  PARTIDAS JOGADAS: %d" % ArcadeData.partidas_total
-		arcade_status_label.add_theme_color_override("font_color", Color(0.22, 1.0, 0.48))
+			estado = "credito"
+			cor = Color(1.0, 0.78, 0.10)
+	_estilo_status(cor)
+	match estado:
+		"livre":
+			status_icone_txt.text = "▶"
+			status_icone_txt.add_theme_color_override("font_color", Color(0.02, 0.16, 0.06))
+			arcade_status_label.text = "JOGO LIVRE"
+			var n: int = ArcadeData.partidas_total
+			status_sub.text = "%d partida%s jogada%s" % [n, "" if n == 1 else "s", "" if n == 1 else "s"]
+		"credito":
+			status_icone_txt.text = str(mini(ArcadeData.creditos, 99))
+			status_icone_txt.add_theme_color_override("font_color", Color(0.30, 0.18, 0.0))
+			arcade_status_label.text = "%d CRÉDITO%s" % [ArcadeData.creditos, "" if ArcadeData.creditos == 1 else "S"]
+			status_sub.text = "aperte START para jogar"
+		_:
+			status_icone_txt.text = "0"
+			status_icone_txt.add_theme_color_override("font_color", Color.WHITE)
+			arcade_status_label.text = "INSIRA A FICHA"
+			status_sub.text = "para liberar a partida"
+
+	# sem crédito o painel pulsa para chamar o jogador; nos outros fica firme
+	if estado != status_estado:
+		status_estado = estado
+		if status_pulso != null and status_pulso.is_valid():
+			status_pulso.kill()
+		status_painel.pivot_offset = Vector2(0, status_painel.size.y * 0.5)
+		status_painel.scale = Vector2.ONE
+		status_painel.modulate = Color.WHITE
+		if estado == "sem":
+			status_pulso = status_painel.create_tween()
+			status_pulso.set_loops()
+			status_pulso.tween_property(status_painel, "scale", Vector2(1.07, 1.07), 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			status_pulso.parallel().tween_property(status_painel, "modulate", Color(1.25, 1.25, 1.25), 0.45)
+			status_pulso.tween_property(status_painel, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			status_pulso.parallel().tween_property(status_painel, "modulate", Color.WHITE, 0.45)
+		else:
+			# troca de estado: um pulo curto
+			var pulo := status_painel.create_tween()
+			pulo.tween_property(status_painel, "scale", Vector2(1.12, 1.12), 0.10)
+			pulo.tween_property(status_painel, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
 	if aviso != "":
-		texto += "  •  " + aviso
-	arcade_status_label.text = texto
+		_mostrar_aviso_status(aviso, cor)
+
+
+## O aviso de um instante: entra pulando ao lado do painel e some em 2 s.
+func _mostrar_aviso_status(aviso: String, cor: Color) -> void:
+	if status_aviso == null or not is_instance_valid(status_aviso):
+		return
+	var texto := aviso
+	if aviso.begins_with("SEM CRÉDITO"):
+		texto = "INSIRA A FICHA PARA JOGAR"
+	status_aviso.text = texto
+	status_aviso.add_theme_color_override("font_color", cor.lightened(0.35))
+	if status_aviso_tw != null and status_aviso_tw.is_valid():
+		status_aviso_tw.kill()
+	status_aviso.pivot_offset = Vector2(0, status_aviso.size.y * 0.5)
+	status_aviso.scale = Vector2(0.6, 0.6)
+	status_aviso.modulate.a = 0.0
+	status_aviso_tw = status_aviso.create_tween()
+	status_aviso_tw.tween_property(status_aviso, "modulate:a", 1.0, 0.10)
+	status_aviso_tw.parallel().tween_property(status_aviso, "scale", Vector2.ONE, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	status_aviso_tw.tween_interval(1.8)
+	status_aviso_tw.tween_property(status_aviso, "modulate:a", 0.0, 0.35)
 
 
 

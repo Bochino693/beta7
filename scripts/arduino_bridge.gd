@@ -450,7 +450,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 13"
+const VERSAO := "TV 14"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
