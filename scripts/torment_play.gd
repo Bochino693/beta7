@@ -22,7 +22,7 @@ extends Node2D
 
 const CENA_TORMENT_LOBBY: String = "res://scenes/torment_lobby.tscn"
 
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 
 const MUSICA_PLAY: String = "res://songs/song_fut_play.mp3"
 const SFX_PONTO: String = "res://songs/goal.mp3"

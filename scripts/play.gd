@@ -65,7 +65,7 @@ var _final_token: int = 0
 
 const TEMPO_POR_PLAYER: float = 60.0
 const TEMPO_CONTAGEM_INICIAL: int = 3
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 const MUSICA_PLAY: String = "res://songs/song_fut_play.mp3"
 const SFX_PONTO: String = "res://songs/goal.mp3"
 const SFX_FIM_TURNO: String = "res://songs/turn_end.mp3"

@@ -13,7 +13,7 @@ extends Node2D
 
 # ----- CONFIG -----
 const CENA_SEGUINTE: String   = "res://scenes/cup_lobby.tscn"
-const FONTE_ORBITRON: String  = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String  = "res://fonts/Barlow-Bold.ttf"
 const SFX_SELECT: String      = "res://songs/player_select.mp3"
 const SFX_CONFIRM: String     = "res://songs/game_start.mp3"
 const SFX_ERRO: String        = "res://songs/player_select.mp3"   # fallback

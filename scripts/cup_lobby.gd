@@ -52,7 +52,7 @@ const IMAGEM_FUNDO_FOOTER_PATRO: String = "res://fundos/fundo_logos.png"
 const CENA_CUP_PLAY: String = "res://scenes/cup_play.tscn"
 const CENA_MENU_COPA: String = "res://scenes/cup_setup.tscn"
 const CENA_OPENING: String = "res://scenes/opening.tscn"
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 
 const COR_OK: Color = Color(0.22, 0.95, 0.58)
 const COR_ALERTA: Color = Color(1.00, 0.78, 0.18)

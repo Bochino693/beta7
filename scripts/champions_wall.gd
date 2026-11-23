@@ -16,7 +16,7 @@ extends Node2D
 # ============================================================
 
 const CENA_OPENING: String = "res://scenes/opening.tscn"
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 const IMAGEM_FUNDO: String = "res://fundos/back.png"
 
 const COR_OURO: Color = Color(1.00, 0.78, 0.16)

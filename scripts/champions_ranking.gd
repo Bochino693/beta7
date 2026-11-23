@@ -22,7 +22,7 @@ extends Node2D
 const CENA_OPENING: String = "res://scenes/opening.tscn"
 const CENA_MURAL: String = "res://scenes/champions_wall.tscn"
 
-const FONTE_ORBITRON: String = "res://fonts/orbitron-bold.ttf"
+const FONTE_ORBITRON: String = "res://fonts/Barlow-Bold.ttf"
 const IMAGEM_FUNDO: String = "res://fundos/back.png"
 
 const COR_FUNDO: Color = Color(0.004, 0.007, 0.014, 1.0)

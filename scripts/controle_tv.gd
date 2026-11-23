@@ -34,6 +34,7 @@ var _select_pela_seta := false
 var _voltar_vezes := 0
 var _voltar_desde := 0
 var _cena_vista: Node
+var _tinha_alvo := false
 
 
 func _ready() -> void:
@@ -60,7 +61,10 @@ func _process(_delta: float) -> void:
 		_soltar_tudo()
 	if _alvo != null and not _vale(_alvo):
 		_alvo = null
-	_moldura.queue_redraw()
+	# (só redesenha com algo marcado: parado, não gasta nada)
+	if _alvo != null or _tinha_alvo:
+		_tinha_alvo = _alvo != null
+		_moldura.queue_redraw()
 
 
 # ------------------------------------------------------------------ teclas

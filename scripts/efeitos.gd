@@ -95,6 +95,22 @@ func _ready() -> void:
 	add_child(_cortina)
 	get_viewport().size_changed.connect(_ajustar)
 	_ajustar()
+	# AQUECE os efeitos do gol fora da tela: a placa de vídeo prepara os
+	# desenhos agora, e o primeiro gol da partida não dá engasgo
+	_aquecer.call_deferred()
+
+
+func _aquecer() -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.amount = 4
+	p.lifetime = 0.3
+	p.position = Vector2(-400, -400)
+	add_child(p)
+	p.emitting = true
+	get_tree().create_timer(1.0, true, false, true).timeout.connect(p.queue_free)
+	_lista_ondas.append([Time.get_ticks_msec() - 640, Color(0, 0, 0, 0)])
+	_ondas.queue_redraw()
 
 
 func _cheio(c: Control) -> Control:

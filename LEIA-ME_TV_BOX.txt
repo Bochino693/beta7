@@ -49,8 +49,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 9  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 9" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 11  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 11" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
