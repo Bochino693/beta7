@@ -12,7 +12,8 @@ extends CanvasLayer
 ##   OK num campo     = abre o TECLADO NA TELA para escrever o nome
 ##   VOLTAR           = fecha o teclado / volta (o ESC do teclado)
 ##   MENU             = Central da Máquina (o F9); sem tecla MENU no
-##                      controle: VOLTAR 5 vezes seguidas no menu principal
+##                      controle: VOLTAR 5 vezes seguidas no menu principal.
+##                      No teclado: F9 ou F1 (sempre com o menu principal na tela)
 ##
 ## Não depende de mouse, teclado USB nem do teclado do Android: os botões
 ## são achados na própria tela (qualquer Button visível e os campos de
@@ -102,7 +103,7 @@ func _input(event: InputEvent) -> void:
 			KEY_RIGHT: tecla = "dir"
 			KEY_ENTER, KEY_KP_ENTER: tecla = "ok"
 			KEY_BACK: tecla = "voltar"
-			KEY_MENU: tecla = "menu"
+			KEY_MENU, KEY_F1: tecla = "menu"   # (F1 = o mesmo que o F9, para tecladinhos)
 		if _teclado != null and apertou and event.keycode == KEY_TAB:
 			# teclado USB: TAB = pronto, próximo campo
 			_consumir()
@@ -187,18 +188,37 @@ func _input(event: InputEvent) -> void:
 				_consumir()
 				return
 			_consumir()
-			if _teclado != null:
-				_fechar_teclado()
-				return
-			if _alvo != null:
-				_alvo = null
-			_contar_voltar()
-			_tecla_falsa(KEY_ESCAPE)
+			_voltar_tecla_ms = Time.get_ticks_msec()
+			_voltar()
 		"menu":
 			_consumir()
 			if apertou and not eco:
 				_fechar_teclado()
 				_tecla_falsa(KEY_F9)
+
+
+var _voltar_tecla_ms := -100000
+
+
+func _voltar() -> void:
+	if _teclado != null:
+		_fechar_teclado()
+		return
+	if Leads.ficha_aberta():
+		Leads.voltar()
+		return
+	if _alvo != null:
+		_alvo = null
+	_contar_voltar()
+	_tecla_falsa(KEY_ESCAPE)
+
+
+## Alguns controles / versões do Android entregam o VOLTAR só como "pedido de
+## voltar" (sem a tecla): vale igual (sem contar duas vezes).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and Time.get_ticks_msec() - _voltar_tecla_ms > 250:
+		_voltar_tecla_ms = Time.get_ticks_msec()
+		_voltar()
 
 
 func _consumir() -> void:

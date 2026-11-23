@@ -422,10 +422,8 @@ func _process(delta: float) -> void:
 
 	# Menu travado: durante loading/boot, patrocinadores, iniciando modo, ou indo pro Mural.
 	var menu_bloqueado: bool = patro_replay_ativo or (opening_loading_layer != null) or iniciando_jogo or combo_indo_mural or ranking_indo
-	# (um aviso do jogo na frente - permissão de abrir ao ligar - ou a ficha
-	# do Modo Feira: o menu continua vivo, mas não lê START / SELECT)
-	if ArduinoBridge.aviso_aberto or Leads.ficha_aberta():
-		return
+	# (nenhum aviso segura o menu: se alguém apertar START com um aviso na
+	# tela, o aviso some e o jogo segue - ArduinoBridge._olhar_inicio)
 
 	# Leitura de input deste frame.
 	var cup_acao: bool = InputMap.has_action("input_cup")

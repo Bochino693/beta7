@@ -113,44 +113,78 @@ func _inicio_pronto(d: Dictionary) -> bool:
 	return int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "sim"
 
 
-## O QUE AINDA FALTA PEDIR (no máximo um pedido por abertura do jogo):
-##  - Android 10+: 1o "Sobrepor a outros apps" (até 3 vezes). É o que faz o
-##    jogo vir para a frente ao ligar DE QUALQUER JEITO, mesmo que o Android
-##    mostre a escolha da tela inicial; depois, a tela inicial (até 2 vezes).
-##  - Android 9 ou mais antigo: a tela inicial (até 4 vezes).
-## Com as duas coisas feitas (ou as tentativas gastas) nunca mais pede nada,
-## nem se o Android desfizer alguma coisa depois: aí é pela Central da Máquina.
+## O QUE AINDA FALTA PEDIR (no máximo um pedido por abertura do jogo).
+## JOGO JÁ É A TELA INICIAL (ou já pode abrir de fundo): NADA é pedido,
+## nunca mais - a tela fica limpa. Senão: a tela inicial (até 2 vezes no
+## Android 10+, 4 nos antigos) e, só se ela não pegar nesta caixa, "Sobrepor
+## a outros apps" no Android 10+ (até 3 vezes).
 func _o_que_falta(d: Dictionary, cfg: ConfigFile) -> String:
+	if _inicio_pronto(d):
+		return ""
 	var novo: bool = int(d.get("sdk", "0")) >= 29
+	if int(cfg.get_value("inicio", "ped_tela", 0)) < (2 if novo else 4):
+		return "tela"
 	if novo and str(d.get("sobrepor", "")) == "nao" and int(cfg.get_value("inicio", "ped_sobrepor", 0)) < 3:
 		return "sobrepor"
-	if str(d.get("tela_inicial", "")) != "jogo" and int(cfg.get_value("inicio", "ped_tela", 0)) < (2 if novo else 4):
-		return "tela"
 	return ""
 
 
+## O menu está parado, sem nada na frente (carregamento, escolha de jogadores,
+## modal da Copa, patrocinadores, partida começando)? Só aí um aviso aparece.
+func _menu_livre(cena: Node) -> bool:
+	if cena == null or cena.scene_file_path.get_file() != "opening.tscn":
+		return false
+	for nome in ["escolhendo_players", "iniciando_jogo", "copa_modal_aberto", "patro_replay_ativo", "combo_indo_mural", "ranking_indo"]:
+		if bool(cena.get(nome)):
+			return false
+	if cena.get("opening_loading_layer") != null:
+		return false
+	return not Leads.ficha_aberta()
+
+
+var _livre_desde := 0
+
+
+func _devolver_pedido() -> void:
+	# (ninguém respondeu: este pedido não conta como uma das tentativas)
+	var cfg0 := ConfigFile.new()
+	cfg0.load(PERMISSOES)
+	var chave0 := "ped_sobrepor" if _inicio_modo == "sobrepor" else "ped_tela"
+	cfg0.set_value("inicio", chave0, maxi(int(cfg0.get_value("inicio", chave0, 1)) - 1, 0))
+	cfg0.save(PERMISSOES)
+	_pedidos = null
+
+
+## O AVISO NUNCA SEGURA O JOGO. Alguém apertou START / SELECT na máquina, o
+## menu saiu do lugar ou passou o tempo: ele some e o jogo segue. Nunca abre
+## uma tela do Android sozinho. Pede de novo na próxima vez que o jogo abrir.
+func _cuidar_do_aviso(agora: int) -> void:
+	if not aviso_aberto:
+		return
+	var cena := get_tree().current_scene
+	var jogando: bool = (_aviso_pede and not _menu_livre(cena)) or Input.is_action_pressed("input_start") \
+		or (InputMap.has_action("input_cup") and Input.is_action_pressed("input_cup"))
+	if jogando or (_aviso_ate > 0 and agora >= _aviso_ate):
+		if _aviso_pede:
+			_inicio_resolvido = true
+			_devolver_pedido()
+		_fechar_aviso()
+
+
 func _olhar_inicio(agora: int) -> void:
+	var cena := get_tree().current_scene
 	if aviso_aberto:
-		# Sem resposta no tempo do aviso: ele some e o jogo segue. Nunca abre
-		# uma tela do Android sozinho (a máquina não fica presa numa tela de
-		# ajustes sem ninguém por perto). Pede de novo na próxima abertura.
-		if _aviso_ate > 0 and agora >= _aviso_ate:
-			if _aviso_pede:
-				_inicio_resolvido = true
-				# (ninguém viu: este pedido não conta como uma das tentativas)
-				var cfg0 := ConfigFile.new()
-				cfg0.load(PERMISSOES)
-				var chave0 := "ped_sobrepor" if _inicio_modo == "sobrepor" else "ped_tela"
-				cfg0.set_value("inicio", chave0, maxi(int(cfg0.get_value("inicio", chave0, 1)) - 1, 0))
-				cfg0.save(PERMISSOES)
-				_pedidos = null
-			_fechar_aviso()
 		return
 	if _inicio_resolvido or agora - _inicio_olhou < 2000 or agora - _abriu_em < ESPERA_INICIO_MS:
 		return
 	_inicio_olhou = agora
-	var cena := get_tree().current_scene
-	if cena == null or cena.scene_file_path.get_file() != "opening.tscn":
+	# (só com o menu parado há uns segundos: nunca por cima de quem está jogando)
+	if not _menu_livre(cena):
+		_livre_desde = 0
+		return
+	if _livre_desde == 0:
+		_livre_desde = agora
+	if agora - _livre_desde < 6000:
 		return
 	if bool(_plugin.call("permissao_pendente")):
 		return   # uma janela do Android por vez: primeiro a do USB
@@ -165,7 +199,7 @@ func _olhar_inicio(agora: int) -> void:
 	if _inicio_pediu:
 		# voltou da tela do Android: um pedido por abertura, sem insistir
 		_inicio_resolvido = true
-		if _o_que_falta(d, cfg) == "" and not bool(cfg.get_value("inicio", "avisou_pronto2", false)):
+		if _inicio_pronto(d) and not bool(cfg.get_value("inicio", "avisou_pronto2", false)):
 			cfg.set_value("inicio", "avisou_pronto2", true)
 			cfg.save(PERMISSOES)
 			_pedidos = null
@@ -462,7 +496,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 16"
+const VERSAO := "TV 17"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -482,6 +516,39 @@ func _carimbo() -> void:
 	_carimbo_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
 	_carimbo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	camada.add_child(_carimbo_label)
+
+
+## SEM ARDUINO, A MÁQUINA NÃO FUNCIONA (LEDs, sensores, START): no menu, uma
+## faixa em cima diz o que está faltando, com as palavras do estado
+## ("confira o cabo USB", "aceite a janela do Android"...). Some sozinha
+## quando o Arduino conecta e responde.
+var _faixa_arduino: Label
+var _conectou_em := 0
+
+
+func _avisar_sem_arduino(agora: int) -> void:
+	if _plugin == null or _carimbo_label == null:
+		return
+	var cena := get_tree().current_scene
+	var no_menu: bool = cena != null and cena.scene_file_path.get_file() == "opening.tscn" and cena.get("opening_loading_layer") == null
+	var falta: bool = no_menu and agora - _abriu_em > 12000 and not (conectado and (firmware != "" or agora - _conectou_em < 7000))
+	if not falta:
+		if _faixa_arduino != null:
+			_faixa_arduino.visible = false
+		return
+	if _faixa_arduino == null:
+		_faixa_arduino = Label.new()
+		_faixa_arduino.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		_faixa_arduino.position.y = 8
+		_faixa_arduino.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_faixa_arduino.add_theme_font_size_override("font_size", 26)
+		_faixa_arduino.add_theme_color_override("font_color", Color(1.0, 0.84, 0.10))
+		_faixa_arduino.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.0))
+		_faixa_arduino.add_theme_constant_override("outline_size", 8)
+		_faixa_arduino.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_carimbo_label.get_parent().add_child(_faixa_arduino)
+	_faixa_arduino.visible = true
+	_faixa_arduino.text = "⚠  " + (status.to_upper() if not conectado else "ARDUINO LIGADO MAS SEM RESPOSTA: GRAVE O olho_no_lance.ino NELE")
 
 
 ## true = os comandos de LED passam por aqui (tudo que não é Windows).
@@ -528,7 +595,10 @@ func _process(_delta: float) -> void:
 	# o carimbo do canto: versão, placa de vídeo, quadros por segundo e nível
 	if _carimbo_label != null and agora - _carimbo_em >= 2000:
 		_carimbo_em = agora
-		_carimbo_label.text = "%s  •  %s%s" % [VERSAO, Visual.texto(), ("  •  " + _carimbo_inicio) if _carimbo_inicio != "" else ""]
+		var ard := "Arduino OK" if (conectado and firmware != "") else ("Arduino sem resposta" if conectado else "SEM ARDUINO")
+		_carimbo_label.text = "%s  •  %s  •  %s%s" % [VERSAO, Visual.texto(), ard, ("  •  " + _carimbo_inicio) if _carimbo_inicio != "" else ""]
+		_avisar_sem_arduino(agora)
+	_cuidar_do_aviso(agora)
 	if _plugin == null:
 		return
 	_olhar_inicio(agora)
@@ -644,6 +714,7 @@ func _marcar_pedido(chave: String) -> void:
 func _conectou() -> void:
 	_fase = "conectado"
 	conectado = true
+	_conectou_em = Time.get_ticks_msec()
 	_falhou.clear()
 	_ultimo_rx = Time.get_ticks_msec()
 	_ultimo_ping = 0
