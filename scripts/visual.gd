@@ -34,7 +34,6 @@ var _cena_desde := 0
 var _animando := {}               # nó -> true (só neste quadro: o pai anima, o filho não)
 var _cache := {}                  # caminho -> recurso (fica na memória)
 var _fila: Array[String] = []
-var _carregando := ""
 
 
 func _ready() -> void:
@@ -63,27 +62,33 @@ func _trocou_de_tela(cena: Node) -> void:
 	_cena = cena
 	_cena_desde = Time.get_ticks_msec()
 	_partida = cena != null and cena.scene_file_path.get_file().get_basename() in TELAS_DE_PARTIDA
-	if OS.get_name() == "Android" and cena != null and ALTURAS[nivel] != _altura and cena.scene_file_path.get_file() == "opening.tscn":
-		_trocar_resolucao()
 
 
 # ------------------------------------------------- desempenho automático
-## O JOGO SE AJUSTA À PLACA DE VÍDEO DA TV BOX. Ele mede os quadros por
-## segundo de verdade e, se a caixa não dá conta, desce um degrau (e guarda,
-## para já abrir certo da próxima vez):
-##   nível 0  tudo: neon nos painéis, luzes de fundo, 720 linhas   (PC)
-##   nível 1  sem o neon (sombra) dos painéis e sem luzes de fundo (a TV Box começa aqui)
-##   nível 2  + imagem em 540 linhas (a TV Box estica)
-##   nível 3  + imagem em 480 linhas
-##   nível 4  + travado em 30 quadros por segundo (constante é melhor que oscilando)
+## O JOGO É SEMPRE DESENHADO COMO UMA TELA DE 1920 x 1080 (project.godot:
+## window/stretch). As posições, os tamanhos e as letras são os mesmos em
+## qualquer TV, TV Box ou monitor - nada se desmonta.
+##
+## O que se ajusta sozinho à placa de vídeo da TV Box é só a QUANTIDADE DE
+## PONTOS que ela pinta por quadro (a própria TV estica a imagem, de graça).
+## O jogo mede os quadros por segundo de verdade e, se a caixa não dá conta,
+## desce um degrau (e guarda, para já abrir certo da próxima vez):
+##   nível 0  tudo: neon nos painéis e luzes de fundo               (PC)
+##   nível 1  sem o neon (sombra) dos painéis; 1080 linhas          (a TV Box começa aqui)
+##   nível 2  900 linhas
+##   nível 3  720 linhas
+##   nível 4  540 linhas
+##   nível 5  540 linhas, travado em 30 quadros por segundo (constante é melhor que oscilando)
 ## Para recomeçar a medição: apague user://visual.cfg (ou reinstale o jogo).
 const ARQUIVO := "user://visual.cfg"
-const ALTURAS := [720, 720, 540, 480, 480]
+const ALTURAS := [1080, 1080, 900, 720, 540, 540]
+const NIVEL_MAX := 5
 const JANELA_MS := 5000
 const QPS_MINIMO := 41.0
 var nivel := 0
 var qps := 0.0
 var placa := ""
+var tv := ""                      # os pontos da TV ("1920x1080"), dito pelo Android
 var _med_quadros := 0
 var _med_desde := 0
 var _ruins := 0
@@ -97,30 +102,31 @@ func _carregar_nivel() -> void:
 		return
 	var cfg := ConfigFile.new()
 	cfg.load(ARQUIVO)
-	nivel = clampi(int(cfg.get_value("visual", "nivel", 1)), 0, 4)
+	# ("nivel_1080": a medição das versões antigas, que encolhiam a tela, não vale mais)
+	nivel = clampi(int(cfg.get_value("visual", "nivel_1080", 1)), 0, NIVEL_MAX)
 
 
 func _guardar_nivel() -> void:
 	var cfg := ConfigFile.new()
-	cfg.set_value("visual", "nivel", nivel)
+	cfg.set_value("visual", "nivel_1080", nivel)
 	cfg.set_value("visual", "placa", placa)
 	cfg.save(ARQUIVO)
 
 
-## A imagem do jogo em poucas linhas, esticada pela TV (uma caixa ligada em
-## 1080p ou 4K desenharia muito mais pontos por quadro).
+## Quantos pontos a TV Box pinta (o desenho do jogo NÃO muda: é só a
+## nitidez). Quem estica até o tamanho da TV é o próprio Android.
 func _aplicar_resolucao() -> void:
 	if OS.get_name() != "Android":
 		return
+	Engine.max_fps = 30 if nivel >= NIVEL_MAX else 0
 	var alt: int = ALTURAS[nivel]
 	if alt == _altura:
 		return
 	_altura = alt
-	var janela := get_tree().root
-	janela.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
-	janela.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
-	janela.content_scale_size = Vector2i(int(round(alt * 16.0 / 9.0)), alt)
-	Engine.max_fps = 30 if nivel >= 4 else 0
+	if Engine.has_singleton("StrikeSerial"):
+		var p := Engine.get_singleton("StrikeSerial")
+		if p.has_method("pontos_da_tela"):
+			tv = str(p.call("pontos_da_tela", alt))
 
 
 func _medir() -> void:
@@ -136,7 +142,7 @@ func _medir() -> void:
 	qps = _med_quadros * 1000.0 / float(agora - _med_desde)
 	_med_quadros = 0
 	_med_desde = agora
-	if OS.get_name() != "Android" or nivel >= 4:
+	if OS.get_name() != "Android" or nivel >= NIVEL_MAX:
 		return
 	if qps >= QPS_MINIMO:
 		_ruins = 0
@@ -148,22 +154,12 @@ func _medir() -> void:
 	nivel += 1
 	_guardar_nivel()
 	print("VISUAL: ", snappedf(qps, 0.1), " quadros/s: descendo para o nível ", nivel)
-	if ALTURAS[nivel] != _altura or nivel >= 4:
-		_trocar_resolucao()
-
-
-## A resolução só troca com a tela do menu (ela é remontada no tamanho novo).
-func _trocar_resolucao() -> void:
-	var cena := get_tree().current_scene
-	if cena == null or cena.scene_file_path.get_file() != "opening.tscn":
-		return   # fica para a próxima vez que o menu abrir (_process)
 	_aplicar_resolucao()
-	get_tree().reload_current_scene.call_deferred()
 
 
 ## Para o canto da tela e a Central da Máquina.
 func texto() -> String:
-	return "%s  •  %d q/s  •  nível %d  •  %dp" % [placa if placa != "" else "?", int(round(qps)), nivel, ALTURAS[nivel]]
+	return "%s  •  %d q/s  •  nível %d  •  %dp%s" % [placa if placa != "" else "?", int(round(qps)), nivel, ALTURAS[nivel], ("  •  TV " + tv) if tv != "" else ""]
 
 
 # ----------------------------------------------------------- painéis limpos
@@ -192,7 +188,7 @@ func _e_do_sistema(c: Node) -> bool:
 	# os avisos e o teclado do próprio sistema (ControleTv, Efeitos, ArduinoBridge)
 	var p := c
 	while p != null:
-		if p == self or p.name in ["ControleTv", "Efeitos", "ArduinoBridge", "Harness"] and p.get_parent() == get_tree().root:
+		if p == self or p.name in ["ControleTv", "Efeitos", "ArduinoBridge", "Leads", "Harness"] and p.get_parent() == get_tree().root:
 			return true
 		p = p.get_parent()
 	return false
@@ -291,18 +287,50 @@ func _montar_fila() -> void:
 				_fila.append(caminho)
 
 
-## As telas (e os scripts delas): uma a cada TELA_A_CADA_MS, na linha
-## principal, logo no começo - enquanto a abertura mostra "carregando".
+## As telas (e os scripts delas): na linha principal. Na abertura, uma por
+## quadro enquanto a barra de carregamento anda (carregar_tudo); fora dela,
+## uma a cada TELA_A_CADA_MS.
 const TELA_A_CADA_MS := 220
+const JUNTOS := 3                 # arquivos lidos ao mesmo tempo em segundo plano
 var _telas: Array[String] = []
 var _ultima_tela := 0
+var _em_curso: Array[String] = []
+var _depressa := false
+
+
+## A ABERTURA CHAMA E ESPERA (com a tela de carregamento na frente): tudo
+## que o jogo usa vai para a memória de uma vez e a barra anda de verdade
+## (avisar recebe de 0 a 1). Depois disso nenhuma tela para o jogo para ler
+## arquivo: trocar de tela, abrir um modal ou tocar um som é imediato.
+func carregar_tudo(avisar: Callable) -> void:
+	if not LIGADO:
+		return
+	var total := maxi(_fila.size() + _telas.size() + _em_curso.size(), 1)
+	var comecou := Time.get_ticks_msec()
+	_depressa = true
+	while not (_fila.is_empty() and _telas.is_empty() and _em_curso.is_empty()):
+		if Time.get_ticks_msec() - comecou > 45000:
+			break   # (nunca prende a abertura: o resto entra aos poucos)
+		await get_tree().process_frame
+		var falta := _fila.size() + _telas.size() + _em_curso.size()
+		if avisar.is_valid():
+			avisar.call(1.0 - float(falta) / float(total))
+	_depressa = false
+
+
+func falta_carregar() -> int:
+	return _fila.size() + _telas.size() + _em_curso.size()
 
 
 func _carregar_tela() -> void:
 	if _telas.is_empty():
 		return
 	var agora := Time.get_ticks_msec()
-	if agora - _ultima_tela < TELA_A_CADA_MS:
+	if _depressa:
+		# (as imagens e sons delas primeiro: aí a tela só junta o que já está pronto)
+		if not _fila.is_empty() or not _em_curso.is_empty():
+			return
+	elif agora - _ultima_tela < TELA_A_CADA_MS:
 		return
 	_ultima_tela = agora
 	var caminho: String = _telas.pop_front()
@@ -314,21 +342,24 @@ func _carregar_tela() -> void:
 
 func _carregar_um() -> void:
 	_carregar_tela()
-	if _carregando != "":
-		var estado := ResourceLoader.load_threaded_get_status(_carregando)
+	for i in range(_em_curso.size() - 1, -1, -1):
+		var caminho: String = _em_curso[i]
+		var estado := ResourceLoader.load_threaded_get_status(caminho)
 		if estado == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			return
+			continue
 		if estado == ResourceLoader.THREAD_LOAD_LOADED:
-			_cache[_carregando] = ResourceLoader.load_threaded_get(_carregando)
-		_carregando = ""
+			_cache[caminho] = ResourceLoader.load_threaded_get(caminho)
+		_em_curso.remove_at(i)
 	if _fila.is_empty():
-		if _cache.size() > 0 and not has_meta("avisou"):
+		if _em_curso.is_empty() and _telas.is_empty() and _cache.size() > 0 and not has_meta("avisou"):
 			set_meta("avisou", true)
 			print("VISUAL: ", _cache.size(), " arquivos na memória (sem engasgo ao trocar de tela)")
 		return
-	var proximo: String = _fila.pop_front()
-	if ResourceLoader.has_cached(proximo):
-		_cache[proximo] = load(proximo)
-		return
-	if ResourceLoader.load_threaded_request(proximo) == OK:
-		_carregando = proximo
+	var juntos: int = JUNTOS if _depressa else 1
+	while _em_curso.size() < juntos and not _fila.is_empty():
+		var proximo: String = _fila.pop_front()
+		if ResourceLoader.has_cached(proximo):
+			_cache[proximo] = load(proximo)
+			continue
+		if ResourceLoader.load_threaded_request(proximo) == OK:
+			_em_curso.append(proximo)

@@ -1,5 +1,6 @@
 // ============================================================================
-//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:2
+//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)
+//  arquivo unico: arduino/olho_no_lance/olho_no_lance.ino   firmware OLHO_NO_LANCE:2
 //  Lazer & Sport Games
 // ============================================================================
 //  O QUE ELE FAZ
@@ -8,7 +9,7 @@
 //      avisa o jogo pelo mesmo cabo USB. Na TV Box / TV Android isso dispensa
 //      a placa Zero Delay: so o cabo USB do Arduino vai na TV.
 //
-//  LIGACAO (desenho completo: arduino/ligacao_gol_flash_arena.pdf)
+//  LIGACAO (desenho completo: arduino/ligacao_olho_no_lance.pdf)
 //    ALVO    fita de LED (DIN)    sensor (contato para o GND)
 //     A            D2                    D9
 //     B            D3                    D10
@@ -21,18 +22,19 @@
 //    (botoes, sensores e moedeiro: um fio no pino, o outro no GND)
 //
 //  CONVERSA COM O JOGO (texto, 9600, uma linha por comando)
-//    jogo -> Arduino   PING                    responde PONG:GOL_FLASH:2
+//    jogo -> Arduino   PING                    responde PONG:OLHO_NO_LANCE:2
 //                      OFF                     apaga tudo
 //                      SET:A=255,0,0;C=0,0,255 acende A e C (r,g,b de 0 a
 //                                              255) e APAGA os outros alvos
-//    Arduino -> jogo   OLA:GOL_FLASH:2         ao ligar
+//    Arduino -> jogo   OLA:OLHO_NO_LANCE:2     ao ligar
 //                      S:A ... S:G             a bola bateu no alvo
 //                      B:START:1 / B:START:0   START apertado / solto
 //                      B:SELECT:1 / B:SELECT:0 SELECT apertado / solto
 //                      FICHA                   entrou 1 credito
 //                      ORDEM:0..5              ordem das cores da fita (guarda)
 //                      CFG?                    responde CFG:ORDEM=n;LEDS=m
-//  AO LIGAR FICA TUDO APAGADO: so o jogo acende.
+//  AO LIGAR FICA TUDO APAGADO. A fita so acende e apaga quando o jogo manda:
+//  o Arduino nao faz sequencia nem efeito nenhum por conta propria.
 //  E o mesmo "SET / OFF" que o jogo sempre usou: funciona igual no PC (COM5)
 //  e na TV Box (USB).
 //
@@ -43,7 +45,7 @@
 #include <EEPROM.h>
 
 // ------------------------------------------------------------------ AJUSTES
-#define FIRMWARE "GOL_FLASH:2"
+#define FIRMWARE "OLHO_NO_LANCE:2"
 
 // Quantos LEDs o Arduino acende em CADA alvo. Ele sempre manda a cor para
 // todos esses: com um anel/fita MENOR (8, 16, 24, 60 LEDs) acende inteiro do
@@ -106,10 +108,7 @@ Adafruit_NeoPixel fita(LEDS_POR_ALVO, PINO_LED[0], NEO_RGB + NEO_KHZ800);
 uint8_t corAtual[ALVOS][3];   // o que esta aceso
 uint8_t corNova[ALVOS][3];    // o que o jogo pediu
 uint8_t ordem = ORDEM_PADRAO; // 0 GRB, 1 RGB, 2 BRG, 3 RBG, 4 GBR, 5 BGR
-uint8_t proximoReforco = 0;
-unsigned long ultimoReforco = 0;
 #define EEPROM_MARCA 0x4C     // "L": a ordem foi guardada
-#define REFORCO_MS 400        // de tempo em tempo um alvo e reenviado (ver loop)
 
 // r, g, b do jogo -> a ordem de fios desta fita
 uint32_t corDaFita(uint8_t r, uint8_t g, uint8_t b) {
@@ -154,16 +153,24 @@ void reenviarTudo() {
   for (uint8_t i = 0; i < ALVOS; i++) mostrarAlvo(i);
 }
 
-// SO O JOGO ACENDE: a fita de LED liga sozinha com cores soltas quando recebe
-// energia (e a fonte dela pode ligar depois do Arduino). Por isso, alem de
-// apagar tudo ao ligar, o Arduino reenvia um alvo a cada REFORCO_MS com a
-// cor que o jogo pediu por ultimo (apagado, se o jogo nao pediu nada).
-void reforcar() {
-  unsigned long agora = millis();
-  if (agora - ultimoReforco < REFORCO_MS) return;
-  ultimoReforco = agora;
-  mostrarAlvo(proximoReforco);
-  proximoReforco = (proximoReforco + 1) % ALVOS;
+// A FITA SO ACENDE E APAGA QUANDO O JOGO MANDA. Nada de rodizio, sequencia
+// ou efeito feito pelo Arduino: cada comando do jogo muda os alvos de uma
+// vez e eles ficam assim ate o proximo comando.
+// Unica excecao, so nos primeiros segundos depois de ligar: a fita de LED
+// acorda com cores soltas quando recebe energia (e a fonte dela pode ligar
+// um pouco depois do Arduino), entao o Arduino manda "apagado" para todos
+// os alvos algumas vezes (LIMPEZA_AO_LIGAR_MS) - enquanto o jogo ainda nao
+// pediu nada. Depois disso, nunca mais mexe por conta propria.
+#define LIMPEZAS_AO_LIGAR 4
+const unsigned int LIMPEZA_AO_LIGAR_MS[LIMPEZAS_AO_LIGAR] = {300, 900, 1800, 3000};
+uint8_t limpezasFeitas = 0;
+bool jogoJaMandou = false;
+
+void limparAoLigar() {
+  if (jogoJaMandou || limpezasFeitas >= LIMPEZAS_AO_LIGAR) return;
+  if (millis() < LIMPEZA_AO_LIGAR_MS[limpezasFeitas]) return;
+  limpezasFeitas++;
+  reenviarTudo();   // (tudo apagado: o jogo ainda nao pediu nada)
 }
 
 // ---------------------------------------------------------------- COMANDOS
@@ -218,8 +225,11 @@ void executar() {
   if (igual(linha, "PING")) {
     Serial.println(F("PONG:" FIRMWARE));
   } else if (igual(linha, "OFF")) {
+    // OFF apaga TODOS os alvos, sempre (mesmo os que o Arduino acha que ja
+    // estao apagados: a fita pode ter acordado acesa)
+    jogoJaMandou = true;
     apagarTudo();
-    aplicarLeds();
+    reenviarTudo();
   } else if (igual(linha, "CFG?")) {
     responderCfg();
   } else if ((linha[0] == 'O' || linha[0] == 'o') && linha[5] == ':' && linha[6] >= '0' && linha[6] <= '5' && linha[7] == 0) {
@@ -230,6 +240,7 @@ void executar() {
     reenviarTudo();
     responderCfg();
   } else if ((linha[0] == 'S' || linha[0] == 's') && (linha[1] == 'E' || linha[1] == 'e') && (linha[2] == 'T' || linha[2] == 't') && linha[3] == ':') {
+    jogoJaMandou = true;
     comandoSet(linha + 4);
     aplicarLeds();
   }
@@ -354,6 +365,6 @@ void setup() {
 void loop() {
   lerUsb();
   lerEntradas();
-  // (so reforca com o USB quieto: nunca no meio de um comando chegando)
-  if (tamLinha == 0 && Serial.available() == 0) reforcar();
+  // (so com o USB quieto: nunca no meio de um comando chegando)
+  if (tamLinha == 0 && Serial.available() == 0) limparAoLigar();
 }

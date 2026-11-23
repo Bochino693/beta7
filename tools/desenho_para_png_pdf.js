@@ -1,5 +1,5 @@
 // SVG do desenho -> PNG e PDF (Chromium do Playwright):
-//   node tools/desenho_para_png_pdf.js arduino/ligacao_gol_flash_arena.svg
+//   node tools/desenho_para_png_pdf.js arduino/ligacao_olho_no_lance.svg
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');

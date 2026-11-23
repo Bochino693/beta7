@@ -1,12 +1,12 @@
 #!/bin/bash
 # TESTE DO FIRMWARE DO ARDUINO NO PC (sem placa): compila o
-# arduino/gol_flash_arena com um Arduino de mentira (mock/) e simula os
+# arduino/olho_no_lance com um Arduino de mentira (mock/) e simula os
 # comandos de LED do jogo, os 7 sensores, START, SELECT e o moedeiro.
 #     bash tools/testes/arduino/testar_firmware.sh
 # Precisa so do g++.
 set -e
 AQUI="$(cd "$(dirname "$0")" && pwd)"
-INO="$AQUI/../../../arduino/gol_flash_arena/gol_flash_arena.ino"
+INO="$AQUI/../../../arduino/olho_no_lance/olho_no_lance.ino"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 falhou=0

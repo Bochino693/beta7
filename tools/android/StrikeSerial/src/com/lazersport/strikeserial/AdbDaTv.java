@@ -253,6 +253,10 @@ final class AdbDaTv implements Closeable {
 				+ "if [ \"$(getprop ro.build.version.sdk)\" -ge 29 ]; then cmd role add-role-holder android.app.role.HOME $P >/dev/null 2>&1; fi; "
 				+ "appops set $P SYSTEM_ALERT_WINDOW allow >/dev/null 2>&1; appops set $P TURN_SCREEN_ON allow >/dev/null 2>&1; "
 				+ "dumpsys deviceidle whitelist +$P >/dev/null 2>&1; "
+				// MODO FEIRA: escrever na raiz do pendrive (Android 11+: "todos os arquivos")
+				+ "appops set $P MANAGE_EXTERNAL_STORAGE allow >/dev/null 2>&1; "
+				+ "pm grant $P android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1; "
+				+ "pm grant $P android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1; "
 				+ "settings put secure screensaver_enabled 0; settings put secure screensaver_activate_on_sleep 0; "
 				+ "settings put secure screensaver_activate_on_dock 0; settings put secure sleep_timeout -1; "
 				+ "settings put secure attentive_timeout -1; settings put system screen_off_timeout 2147483647; "

@@ -32,10 +32,15 @@ ArduinoBridge="*res://scripts/arduino_bridge.gd"
 Visual="*res://scripts/visual.gd"
 Efeitos="*res://scripts/efeitos.gd"
 ControleTv="*res://scripts/controle_tv.gd"
+Leads="*res://scripts/leads.gd"
 
 [display]
 
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 window/size/mode=3
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
 
 [gui]
 

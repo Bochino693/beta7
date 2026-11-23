@@ -76,6 +76,20 @@ func registrar_partida(tipo: String) -> void:
 	dados_atualizados.emit()
 
 
+## A partida foi liberada mas não começou (o cadastro do Modo Feira foi
+## abandonado): o crédito volta e a partida sai da conta.
+func devolver_partida(tipo: String) -> void:
+	if modo_operacao == "credito":
+		creditos += 1
+	partidas_total = maxi(partidas_total - 1, 0)
+	if tipo.to_lower() == "copa":
+		partidas_copa = maxi(partidas_copa - 1, 0)
+	else:
+		partidas_arcade = maxi(partidas_arcade - 1, 0)
+	salvar()
+	dados_atualizados.emit()
+
+
 func zerar_estatisticas() -> void:
 	partidas_total = 0
 	partidas_arcade = 0
