@@ -106,11 +106,25 @@ var _abriu_em := 0
 
 
 func _inicio_pronto(d: Dictionary) -> bool:
-	# O JOGO É O PADRÃO (a tela inicial da TV Box): pronto, bola pra frente.
 	if str(d.get("tela_inicial", "")) == "jogo":
 		return true
-	# sem ser a tela inicial: no Android 10+ vale "Sobrepor" permitido
 	return int(d.get("sdk", "0")) >= 29 and str(d.get("sobrepor", "")) == "sim"
+
+
+## O QUE AINDA FALTA PEDIR (no máximo um pedido por abertura do jogo):
+##  - Android 10+: 1o "Sobrepor a outros apps" (até 3 vezes). É o que faz o
+##    jogo vir para a frente ao ligar DE QUALQUER JEITO, mesmo que o Android
+##    mostre a escolha da tela inicial; depois, a tela inicial (até 2 vezes).
+##  - Android 9 ou mais antigo: a tela inicial (até 4 vezes).
+## Com as duas coisas feitas (ou as tentativas gastas) nunca mais pede nada,
+## nem se o Android desfizer alguma coisa depois: aí é pela Central da Máquina.
+func _o_que_falta(d: Dictionary, cfg: ConfigFile) -> String:
+	var novo: bool = int(d.get("sdk", "0")) >= 29
+	if novo and str(d.get("sobrepor", "")) == "nao" and int(cfg.get_value("inicio", "ped_sobrepor", 0)) < 3:
+		return "sobrepor"
+	if str(d.get("tela_inicial", "")) != "jogo" and int(cfg.get_value("inicio", "ped_tela", 0)) < (2 if novo else 4):
+		return "tela"
+	return ""
 
 
 func _olhar_inicio(agora: int) -> void:
@@ -127,52 +141,41 @@ func _olhar_inicio(agora: int) -> void:
 	if bool(_plugin.call("permissao_pendente")):
 		return   # uma janela do Android por vez: primeiro a do USB
 	var d := inicio_estado()
+	if d.is_empty():
+		return
 	var cfg := ConfigFile.new()
 	cfg.load(PERMISSOES)
-	# JÁ FICOU PRONTO UMA VEZ: nunca mais aparece aviso nenhum
-	var feito: bool = bool(cfg.get_value("inicio", "feito", false))
-	var pronto: bool = _inicio_pronto(d)
 	if _carimbo_label != null:
-		_carimbo_label.text = "%s  •  Android %s  •  abrir ao ligar: %s" % [VERSAO, d.get("android", "?"), "PRONTO" if pronto else "PENDENTE"]
-	if feito:
-		_inicio_resolvido = true
-		return
-	if pronto:
-		_inicio_resolvido = true
-		cfg.set_value("inicio", "feito", true)
-		cfg.save(PERMISSOES)
-		_pedidos = null
-		if bool(cfg.get_value("inicio", "avisou_pronto", false)):
-			return   # (já tinha confirmado numa versão anterior)
-		# a confirmação, UMA vez na vida (some sozinha em 5 s)
-		_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
-		return
+		_carimbo_label.text = "%s  •  Android %s  •  tela inicial: %s  •  sobrepor: %s" % [VERSAO, d.get("android", "?"),
+			"JOGO" if str(d.get("tela_inicial", "")) == "jogo" else "NÃO", str(d.get("sobrepor", "?")).to_upper()]
 	if _inicio_pediu:
-		# voltou da tela do Android sem escolher: sem aviso; pede de novo na próxima abertura
+		# voltou da tela do Android: um pedido por abertura, sem insistir
+		_inicio_resolvido = true
+		if _o_que_falta(d, cfg) == "" and not bool(cfg.get_value("inicio", "avisou_pronto2", false)):
+			cfg.set_value("inicio", "avisou_pronto2", true)
+			cfg.save(PERMISSOES)
+			_pedidos = null
+			_mostrar_aviso("PRONTO!", "O jogo vai abrir sozinho sempre que a TV Box ligar.", "", 5000, false)
+		return
+	_inicio_modo = _o_que_falta(d, cfg)
+	if _inicio_modo == "":
 		_inicio_resolvido = true
 		return
-	var pedidos := int(cfg.get_value("inicio", "pedidos", 0))
-	if pedidos >= MAX_PEDIDOS:
-		_inicio_resolvido = true
-		return
-	cfg.set_value("inicio", "pedidos", pedidos + 1)
+	var chave := "ped_sobrepor" if _inicio_modo == "sobrepor" else "ped_tela"
+	cfg.set_value("inicio", chave, int(cfg.get_value("inicio", chave, 0)) + 1)
 	cfg.save(PERMISSOES)
 	_pedidos = null
-	# Android 10+: 1o "Sobrepor a outros apps"; nas vezes pares, a tela inicial.
-	# Android 9 ou mais antigo: sempre a tela inicial.
-	var novo: bool = int(d.get("sdk", "0")) >= 29
-	_inicio_modo = "sobrepor" if (novo and str(d.get("sobrepor", "")) == "nao" and pedidos % 2 == 0) else "tela"
-	if _inicio_modo == "sobrepor":
-		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-			"Na próxima tela, deixe  OLHO NO LANCE  PERMITIDO (ligado)\ne aperte VOLTAR no controle.\n\nÉ só desta vez.",
-			"APERTE OK PARA CONTINUAR", 15000, true)
-	else:
-		_mostrar_aviso("PARA O JOGO ABRIR SOZINHO AO LIGAR",
-			"Na próxima tela, escolha  OLHO NO LANCE  como tela inicial\n(app de início) e, se aparecer, marque  SEMPRE.\n\nÉ só desta vez.",
-			"APERTE OK PARA CONTINUAR", 15000, true)
+	_mostrar_passos(_inicio_modo, 20000)
 
 
-func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede: bool) -> void:
+const COR_AVISO := Color(0.30, 1.0, 0.50)
+const COR_DESTAQUE := Color(1.0, 0.84, 0.10)
+const FONTE_TITULO := "res://fonts/BarlowCondensed-ExtraBoldItalic.ttf"
+
+
+## Base de todo aviso: fundo escuro + cartão que entra com um pulo. Devolve o
+## cartão (um Control do tamanho pedido, em pontos de uma tela 1280 x 720).
+func _cartao_do_aviso(largura: float, altura: float, cor: Color) -> Control:
 	_fechar_aviso()
 	_aviso = CanvasLayer.new()
 	_aviso.layer = 120
@@ -180,38 +183,227 @@ func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede
 	add_child(_aviso)
 	var fundo := ColorRect.new()
 	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fundo.color = Color(0, 0, 0, 0.93)
+	fundo.color = Color(0.0, 0.01, 0.03, 0.88)
 	_aviso.add_child(fundo)
 	var tela := get_viewport().get_visible_rect().size
-	var k := clampf(tela.x / 1280.0, 0.8, 3.0)
-	var caixa := VBoxContainer.new()
-	caixa.set_anchors_preset(Control.PRESET_FULL_RECT)
-	caixa.alignment = BoxContainer.ALIGNMENT_CENTER
-	caixa.add_theme_constant_override("separation", int(26 * k))
-	_aviso.add_child(caixa)
-	for item in [[titulo, 44, Color(1.0, 0.86, 0.10)], [texto, 28, Color.WHITE], [rodape, 26, Color(0.30, 1.0, 0.50)]]:
-		if str(item[0]) == "":
-			continue
-		var l := Label.new()
-		l.text = str(item[0])
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		l.add_theme_font_size_override("font_size", int(int(item[1]) * k))
-		l.add_theme_color_override("font_color", item[2])
-		caixa.add_child(l)
+	var k: float = minf(tela.x / 1280.0, tela.y / 720.0)
+	var cartao := Panel.new()
+	cartao.size = Vector2(largura, altura)
+	cartao.scale = Vector2(k, k)
+	cartao.position = (tela - cartao.size * k) * 0.5
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.035, 0.065, 0.11, 0.98)
+	st.border_color = Color(cor.r, cor.g, cor.b, 0.9)
+	st.set_border_width_all(2)
+	st.set_corner_radius_all(30)
+	st.shadow_color = Color(cor.r, cor.g, cor.b, 0.28)
+	st.shadow_size = 22
+	st.anti_aliasing = true
+	cartao.add_theme_stylebox_override("panel", st)
+	_aviso.add_child(cartao)
+	# entrada: o fundo surge e o cartão dá um pulo curto
+	fundo.modulate.a = 0.0
+	cartao.pivot_offset = cartao.size * 0.5
+	cartao.modulate.a = 0.0
+	var alvo := cartao.scale
+	cartao.scale = alvo * 0.88
+	var tw := _aviso.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.set_parallel(true)
+	tw.tween_property(fundo, "modulate:a", 1.0, 0.22)
+	tw.tween_property(cartao, "modulate:a", 1.0, 0.22)
+	tw.tween_property(cartao, "scale", alvo, 0.34).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	return cartao
+
+
+func _texto(pai: Control, txt: String, tam: int, cor: Color, pos: Vector2, tamanho: Vector2, titulo := false) -> Label:
+	var l := Label.new()
+	l.text = txt
+	l.position = pos
+	l.size = tamanho
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", tam)
+	l.add_theme_color_override("font_color", cor)
+	if titulo and ResourceLoader.exists(FONTE_TITULO):
+		l.add_theme_font_override("font", load(FONTE_TITULO))
+	pai.add_child(l)
+	return l
+
+
+func _pilula(pai: Control, pos: Vector2, tamanho: Vector2, fundo: Color, borda: Color, raio := -1) -> Panel:
+	var p := Panel.new()
+	p.position = pos
+	p.size = tamanho
+	var st := StyleBoxFlat.new()
+	st.bg_color = fundo
+	st.border_color = borda
+	st.set_border_width_all(2 if borda.a > 0.0 else 0)
+	st.set_corner_radius_all(int(tamanho.y * 0.5) if raio < 0 else raio)
+	st.anti_aliasing = true
+	p.add_theme_stylebox_override("panel", st)
+	pai.add_child(p)
+	return p
+
+
+func _depois_do_aviso(pede: bool, ms: int) -> void:
 	var diag := texto_inicio()
-	if diag != "":
+	if diag != "" and _aviso != null:
 		var ld := Label.new()
 		ld.text = diag
+		ld.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		ld.position.y -= 26
 		ld.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ld.add_theme_font_size_override("font_size", int(15 * k))
-		ld.add_theme_color_override("font_color", Color(0.55, 0.65, 0.78))
-		caixa.add_child(ld)
+		ld.add_theme_font_size_override("font_size", 12)
+		ld.add_theme_color_override("font_color", Color(0.45, 0.55, 0.68, 0.7))
+		_aviso.add_child(ld)
 	aviso_aberto = true
 	_aviso_pede = pede
 	_aviso_ate = Time.get_ticks_msec() + ms
 	if pede:
 		# o menu espera: o START não começa uma partida por trás do aviso
 		get_tree().paused = true
+
+
+## Aviso simples (PRONTO!, APK incompleto): título, texto e some sozinho.
+func _mostrar_aviso(titulo: String, texto: String, rodape: String, ms: int, pede: bool) -> void:
+	var certo: bool = titulo.begins_with("PRONTO")
+	var cor: Color = COR_AVISO if certo else COR_DESTAQUE
+	var cartao := _cartao_do_aviso(820.0, 330.0, cor)
+	if certo:
+		# o "visto" verde
+		var bola := _pilula(cartao, Vector2(370, 28), Vector2(80, 80), Color(cor.r, cor.g, cor.b, 0.18), cor)
+		_texto(bola, "✓", 50, cor, Vector2.ZERO, bola.size)
+	_texto(cartao, titulo, 54, cor, Vector2(30, 112 if certo else 30), Vector2(760, 66), true)
+	_texto(cartao, texto, 25, Color.WHITE, Vector2(40, 184 if certo else 108), Vector2(740, 120 if certo else 190))
+	if rodape != "":
+		_texto(cartao, rodape, 22, COR_AVISO, Vector2(40, 282), Vector2(740, 34))
+	_depois_do_aviso(pede, ms)
+
+
+## O PEDIDO, PASSO A PASSO E COM DESENHO, para qualquer pessoa entender:
+## 1 aperte OK, 2 o que fazer na tela do Android, 3 como voltar.
+func _mostrar_passos(modo: String, ms: int) -> void:
+	var cartao := _cartao_do_aviso(1060.0, 560.0, COR_AVISO)
+	var etiqueta := _pilula(cartao, Vector2(330, 26), Vector2(400, 34), Color(COR_DESTAQUE.r, COR_DESTAQUE.g, COR_DESTAQUE.b, 0.14), Color(COR_DESTAQUE.r, COR_DESTAQUE.g, COR_DESTAQUE.b, 0.7))
+	_texto(etiqueta, "AJUSTE INICIAL  •  SÓ DESTA VEZ", 17, COR_DESTAQUE, Vector2.ZERO, etiqueta.size)
+	_texto(cartao, "FAÇA O JOGO ABRIR SOZINHO", 58, Color.WHITE, Vector2(30, 66), Vector2(1000, 70), true)
+	_texto(cartao, "Depois disso, é só ligar a TV Box: o jogo abre direto.", 22, Color(0.72, 0.80, 0.90), Vector2(30, 134), Vector2(1000, 32))
+
+	var legendas: Array
+	if modo == "sobrepor":
+		legendas = ["Aperte OK\nno controle", "Na tela que abrir,\nLIGUE a chave do\nOLHO NO LANCE", "Aperte VOLTAR\nno controle"]
+	else:
+		legendas = ["Aperte OK\nno controle", "Na tela que abrir,\nescolha\nOLHO NO LANCE", "Se aparecer,\nmarque SEMPRE"]
+	var lw := 300.0
+	for i in range(3):
+		var x := 50.0 + i * (lw + 30.0)
+		var col := _pilula(cartao, Vector2(x, 186), Vector2(lw, 262), Color(0.06, 0.10, 0.17, 1.0), Color(0.30, 0.45, 0.65, 0.35), 22)
+		var num := _pilula(col, Vector2(16, 14), Vector2(46, 46), COR_AVISO, Color(0, 0, 0, 0))
+		_texto(num, str(i + 1), 30, Color(0.02, 0.08, 0.04), Vector2.ZERO, num.size, true)
+		var desenho := Control.new()
+		desenho.position = Vector2(0, 34)
+		desenho.size = Vector2(lw, 120)
+		col.add_child(desenho)
+		if i == 0:
+			_desenhar_botao(desenho, "OK")
+		elif i == 1:
+			_desenhar_tela_android(desenho, modo)
+		elif modo == "sobrepor":
+			_desenhar_botao(desenho, "VOLTAR")
+		else:
+			_desenhar_sempre(desenho)
+		_texto(col, str(legendas[i]), 23, Color.WHITE, Vector2(10, 160), Vector2(lw - 20, 94))
+		# as colunas entram uma depois da outra
+		col.modulate.a = 0.0
+		var tw := _aviso.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_interval(0.18 + 0.12 * i)
+		tw.tween_property(col, "modulate:a", 1.0, 0.25)
+
+	# o botão de continuar pulsa; a barra mostra o tempo até continuar sozinho
+	var botao := _pilula(cartao, Vector2(330, 470), Vector2(400, 58), COR_AVISO, Color(0, 0, 0, 0))
+	_texto(botao, "APERTE  OK  PARA CONTINUAR", 26, Color(0.02, 0.10, 0.04), Vector2.ZERO, botao.size, true)
+	botao.pivot_offset = botao.size * 0.5
+	var pulso := _aviso.create_tween()
+	pulso.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	pulso.set_loops()
+	pulso.tween_property(botao, "scale", Vector2(1.05, 1.05), 0.55).set_trans(Tween.TRANS_SINE)
+	pulso.tween_property(botao, "scale", Vector2.ONE, 0.55).set_trans(Tween.TRANS_SINE)
+	var trilho := _pilula(cartao, Vector2(330, 538), Vector2(400, 6), Color(1, 1, 1, 0.10), Color(0, 0, 0, 0))
+	var tempo := _pilula(trilho, Vector2.ZERO, Vector2(400, 6), Color(COR_AVISO.r, COR_AVISO.g, COR_AVISO.b, 0.8), Color(0, 0, 0, 0))
+	var tt := _aviso.create_tween()
+	tt.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tt.tween_property(tempo, "size:x", 0.0, ms / 1000.0)
+	_depois_do_aviso(true, ms)
+
+
+## Um botão do controle remoto (redondo, com o nome dentro), "apertando".
+func _desenhar_botao(pai: Control, nome: String) -> void:
+	var lado := 96.0 if nome == "OK" else 92.0
+	var larg := lado if nome == "OK" else 170.0
+	var anel := _pilula(pai, Vector2((pai.size.x - larg - 16) * 0.5, (pai.size.y - lado - 16) * 0.5 + 6), Vector2(larg + 16, lado + 16), Color(1, 1, 1, 0.06), Color(1, 1, 1, 0.20))
+	var b := _pilula(anel, Vector2(8, 8), Vector2(larg, lado), Color(0.92, 0.95, 1.0), Color(0, 0, 0, 0))
+	_texto(b, nome, 34 if nome == "OK" else 30, Color(0.05, 0.08, 0.14), Vector2.ZERO, b.size, true)
+	b.pivot_offset = b.size * 0.5
+	var tw := _aviso.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.set_loops()
+	tw.tween_interval(0.5)
+	tw.tween_property(b, "scale", Vector2(0.86, 0.86), 0.12)
+	tw.tween_property(b, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.7)
+
+
+## A tela do Android em miniatura: a linha do jogo com a chave ligando
+## (sobrepor) ou a lista de telas iniciais com o jogo escolhido (tela).
+func _desenhar_tela_android(pai: Control, modo: String) -> void:
+	var w := pai.size.x - 40.0
+	var tela := _pilula(pai, Vector2(20, 14), Vector2(w, 104), Color(0.10, 0.12, 0.16), Color(1, 1, 1, 0.18), 12)
+	if modo == "sobrepor":
+		var outra := _pilula(tela, Vector2(8, 8), Vector2(w - 16, 38), Color(1, 1, 1, 0.04), Color(0, 0, 0, 0), 8)
+		_texto(outra, "Outro app", 16, Color(1, 1, 1, 0.35), Vector2(10, 0), Vector2(140, 38)).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_pilula(outra, Vector2(w - 16 - 54, 10), Vector2(42, 18), Color(1, 1, 1, 0.14), Color(0, 0, 0, 0))
+		var linha := _pilula(tela, Vector2(8, 54), Vector2(w - 16, 42), Color(COR_AVISO.r, COR_AVISO.g, COR_AVISO.b, 0.12), Color(COR_AVISO.r, COR_AVISO.g, COR_AVISO.b, 0.8), 8)
+		_texto(linha, "Olho no Lance", 18, Color.WHITE, Vector2(10, 0), Vector2(160, 42)).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var chave := _pilula(linha, Vector2(w - 16 - 62, 9), Vector2(50, 24), Color(1, 1, 1, 0.20), Color(0, 0, 0, 0))
+		var pino := _pilula(chave, Vector2(3, 3), Vector2(18, 18), Color.WHITE, Color(0, 0, 0, 0))
+		var st: StyleBoxFlat = chave.get_theme_stylebox("panel")
+		var tw := _aviso.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.set_loops()
+		tw.tween_interval(0.7)
+		tw.tween_property(pino, "position:x", 29.0, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(st, "bg_color", COR_AVISO, 0.22)
+		tw.tween_interval(1.1)
+		tw.tween_property(pino, "position:x", 3.0, 0.01)
+		tw.parallel().tween_property(st, "bg_color", Color(1, 1, 1, 0.20), 0.01)
+	else:
+		var outra := _pilula(tela, Vector2(8, 8), Vector2(w - 16, 38), Color(1, 1, 1, 0.04), Color(0, 0, 0, 0), 8)
+		_texto(outra, "Tela da TV", 16, Color(1, 1, 1, 0.35), Vector2(10, 0), Vector2(160, 38)).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var linha := _pilula(tela, Vector2(8, 54), Vector2(w - 16, 42), Color(COR_AVISO.r, COR_AVISO.g, COR_AVISO.b, 0.12), Color(COR_AVISO.r, COR_AVISO.g, COR_AVISO.b, 0.9), 8)
+		_texto(linha, "Olho no Lance", 18, Color.WHITE, Vector2(10, 0), Vector2(170, 42)).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_texto(linha, "✓", 24, COR_AVISO, Vector2(w - 16 - 44, 0), Vector2(36, 42))
+		var tw := _aviso.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.set_loops()
+		tw.tween_property(linha, "modulate:a", 0.55, 0.5)
+		tw.tween_property(linha, "modulate:a", 1.0, 0.5)
+
+
+## Os dois botões da janela do Android: "Só uma vez" apagado, "SEMPRE" aceso.
+func _desenhar_sempre(pai: Control) -> void:
+	var a := _pilula(pai, Vector2(24, 44), Vector2(118, 44), Color(1, 1, 1, 0.05), Color(1, 1, 1, 0.18), 10)
+	_texto(a, "Só uma vez", 16, Color(1, 1, 1, 0.38), Vector2.ZERO, a.size)
+	var b := _pilula(pai, Vector2(156, 40), Vector2(122, 52), COR_AVISO, Color(0, 0, 0, 0), 10)
+	_texto(b, "SEMPRE", 24, Color(0.02, 0.10, 0.04), Vector2.ZERO, b.size, true)
+	b.pivot_offset = b.size * 0.5
+	var tw := _aviso.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.set_loops()
+	tw.tween_property(b, "scale", Vector2(1.10, 1.10), 0.45).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(b, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_SINE)
 
 
 var _aviso_pede := false
@@ -256,7 +448,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 11"
+const VERSAO := "TV 12"
 var _carimbo_label: Label
 
 

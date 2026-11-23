@@ -2997,7 +2997,7 @@ func _criar_loading_opening(titulo_txt: String, sub_txt: String) -> void:
 
 	var brilho_amarelo := ColorRect.new()
 	brilho_amarelo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	brilho_amarelo.color = Color(1.0, 0.78, 0.05, 0.10)
+	brilho_amarelo.color = Color(1.0, 0.78, 0.05, 0.04)
 	brilho_amarelo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	opening_loading_root.add_child(brilho_amarelo)
 
@@ -3015,23 +3015,49 @@ func _criar_loading_opening(titulo_txt: String, sub_txt: String) -> void:
 	loading_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	opening_loading_root.add_child(loading_panel)
 
+	# cartão escuro de vidro, cantos redondos e fio verde (antes: caixa verde quadrada)
 	var st := StyleBoxFlat.new()
-	st.bg_color = Color(0.02, 0.26, 0.10, 1.0)
-	st.border_color = Color(1.0, 0.86, 0.05, 0.95)
-	st.set_border_width_all(4)
-	st.set_corner_radius_all(0)          # quadrado
-	st.shadow_color = Color(1.0, 0.82, 0.05, 0.55)
-	st.shadow_size = 36
+	st.bg_color = Color(0.03, 0.06, 0.10, 0.94)
+	st.border_color = Color(0.30, 1.0, 0.50, 0.9)
+	st.set_border_width_all(2)
+	st.set_corner_radius_all(28)
+	st.shadow_color = Color(0.30, 1.0, 0.50, 0.30)
+	st.shadow_size = 14
 	st.shadow_offset = Vector2.ZERO
+	st.anti_aliasing = true
 	loading_panel.add_theme_stylebox_override("panel", st)
 
-	opening_loading_label = _label_loading_opening(titulo_txt, 42, Color.WHITE, Color(0.1, 0.75, 1.0))
-	opening_loading_label.position = Vector2(20, 42)
+	# barra correndo embaixo do texto: mostra que o jogo está carregando
+	var trilho := Panel.new()
+	trilho.size = Vector2(loading_panel.size.x * 0.56, 8.0)
+	trilho.position = Vector2((loading_panel.size.x - trilho.size.x) * 0.5, 184.0)
+	trilho.clip_contents = true
+	trilho.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var st_trilho := StyleBoxFlat.new()
+	st_trilho.bg_color = Color(1, 1, 1, 0.10)
+	st_trilho.set_corner_radius_all(4)
+	trilho.add_theme_stylebox_override("panel", st_trilho)
+	loading_panel.add_child(trilho)
+	var corre := Panel.new()
+	corre.size = Vector2(trilho.size.x * 0.32, 8.0)
+	corre.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var st_corre := StyleBoxFlat.new()
+	st_corre.bg_color = Color(0.30, 1.0, 0.50, 1.0)
+	st_corre.set_corner_radius_all(4)
+	corre.add_theme_stylebox_override("panel", st_corre)
+	trilho.add_child(corre)
+	corre.position.x = -corre.size.x
+	var tw_corre := corre.create_tween()
+	tw_corre.set_loops()
+	tw_corre.tween_property(corre, "position:x", trilho.size.x, 1.1).from(-corre.size.x).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	opening_loading_label = _label_loading_opening(titulo_txt, 46, Color.WHITE, Color(0.1, 0.75, 1.0))
+	opening_loading_label.position = Vector2(20, 34)
 	opening_loading_label.size = Vector2(loading_panel.size.x - 40, 62)
 	loading_panel.add_child(opening_loading_label)
 
 	opening_loading_sub = _label_loading_opening(sub_txt, 20, Color(0.82, 0.92, 1.0))
-	opening_loading_sub.position = Vector2(20, 126)
+	opening_loading_sub.position = Vector2(20, 112)
 	opening_loading_sub.size = Vector2(loading_panel.size.x - 40, 38)
 	loading_panel.add_child(opening_loading_sub)
 

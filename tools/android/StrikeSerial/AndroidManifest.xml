@@ -46,12 +46,14 @@
              "ligou" e o guarda que mantem o jogo na tela -->
         <activity
             android:name="com.lazersport.strikeserial.StrikeInicioAtivo"
+            android:directBootAware="true"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:stateNotNeeded="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter android:priority="1000">
+            <!-- directBootAware: sem isto o Android esquece a escolha "Sempre"
+                 a cada vez que a TV liga (ver StrikeInicioAtivo.java) -->
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
