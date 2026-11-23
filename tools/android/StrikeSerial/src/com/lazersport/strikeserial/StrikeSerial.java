@@ -65,7 +65,7 @@ public class StrikeSerial extends GodotPlugin {
 
 	private static final String TAG = "StrikeSerial";
 	private static final String ACAO_USB = "com.lazersport.strikeserial.PERMISSAO_USB";
-	private static final int FLAG_MUTABLE = 0x02000000; // PendingIntent.FLAG_MUTABLE (Android 12+)
+	private static final int FLAG_IMMUTABLE = 0x04000000; // PendingIntent.FLAG_IMMUTABLE (Android 6+)
 	private static final int TEMPO_LEITURA_MS = 200;
 	private static final Charset ASCII = Charset.forName("US-ASCII");
 
@@ -235,7 +235,10 @@ public class StrikeSerial extends GodotPlugin {
 				try {
 					Intent it = new Intent(ACAO_USB);
 					it.setPackage(a.getPackageName());
-					int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? FLAG_MUTABLE : 0);
+					// (o jogo não lê a resposta deste aviso - ele olha hasPermission -,
+					// então o aviso pode ser "imutável": o Android 14+ recusa criar um
+					// aviso mutável sem destino explícito e a janela nem abria)
+					int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? FLAG_IMMUTABLE : 0);
 					PendingIntent pi = PendingIntent.getBroadcast(a, 7400 + d.getDeviceId(), it, flags);
 					usb().requestPermission(d, pi);
 				} catch (Throwable t) {

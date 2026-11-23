@@ -57,6 +57,7 @@ var _ultima_procura := -100000
 var _pendente := ""              # comando de LED esperando a vez (o último vale)
 var _falhou := {}
 var _pedir_agora := false
+var _pedidos_usb := 0
 var _pedidos: ConfigFile
 
 
@@ -496,7 +497,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 17"
+const VERSAO := "TV 18"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -673,14 +674,20 @@ func _procurar(agora: int) -> void:
 			sem_permissao = linha
 	if sem_permissao != "":
 		var p := sem_permissao.split("|")
-		_set_status("Arduino no USB: aceite a janela do Android (marque \"Usar por padrão\" e OK)")
+		# SEM A PERMISSÃO USB A MÁQUINA NÃO FUNCIONA: o jogo abre a janela do
+		# Android TODA VEZ que precisar (ao ligar, ao encaixar o cabo). A
+		# permissão dada sem marcar "Usar por padrão" vale só até desligar a
+		# TV Box - por isso a janela volta. Com a caixinha marcada o Android
+		# guarda para sempre e nunca mais pergunta.
+		if _pedidos_usb >= 3:
+			_set_status("Arduino no USB sem permissão: na janela do Android marque \"Usar por padrão\" e OK  (não apareceu? tire e ponha o cabo USB do Arduino)")
+		else:
+			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
 		if bool(_plugin.call("permissao_pendente")):
 			return
-		# sozinho, só uma vez por Arduino; depois, só pela Central da Máquina
-		if _pedir_agora or not _ja_pediu(p[1]):
-			_pedir_agora = false
-			_marcar_pedido(p[1])
-			_plugin.call("pedir_permissao", p[0])
+		_pedir_agora = false
+		_pedidos_usb += 1
+		_plugin.call("pedir_permissao", p[0])
 		return
 	if lista.strip_edges() == "":
 		_set_status("Arduino não encontrado: confira o cabo USB")
@@ -714,6 +721,7 @@ func _marcar_pedido(chave: String) -> void:
 func _conectou() -> void:
 	_fase = "conectado"
 	conectado = true
+	_pedidos_usb = 0
 	_conectou_em = Time.get_ticks_msec()
 	_falhou.clear()
 	_ultimo_rx = Time.get_ticks_msec()

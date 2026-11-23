@@ -49,8 +49,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 17  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 17" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 18  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 18" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -145,7 +145,7 @@ MENU -> Central da Máquina:
   - modo LIVRE ou CRÉDITO, contador de partidas, limpar o mural.
 
 NO CANTO DE BAIXO DA TELA (pequeno):
-  TV 17 • Mali-G31 • 58 q/s • nível 3 • 720p • TV 1920x1080 • Arduino OK • Android 10...
+  TV 18 • Mali-G31 • 58 q/s • nível 3 • 720p • TV 1920x1080 • Arduino OK • Android 10...
   = versão do jogo, placa de vídeo da caixa, quadros por segundo, nível de
   desempenho, linhas pintadas, os pontos da TV e o estado do Arduino
   ("Arduino OK", "Arduino sem resposta" = grave o olho_no_lance.ino nele,
@@ -221,8 +221,14 @@ SE ALGO NÃO FUNCIONAR
 ---------------------
 - "Arduino não encontrado": cabo USB (tem cabo que só carrega) ou a TV
   Box não tem USB OTG naquela porta: troque de porta.
-- "Arduino no USB: aceite a janela do Android": Central da Máquina abre
-  a janela de novo.
+- Faixa amarela "Arduino no USB: na janela do Android marque Usar por
+  padrão e aperte OK": o Android ainda não deu a permissão USB ao jogo (não
+  é o código do Arduino). O jogo abre a janela sozinho toda vez que
+  precisar. MARQUE A CAIXINHA "Usar por padrão para este dispositivo USB"
+  (ou "Sempre abrir Olho no Lance...") e OK: o Android guarda e nunca mais
+  pergunta. Sem marcar, a permissão vale só até desligar a TV Box e a
+  janela volta ao ligar. Se a janela não aparecer: tire e ponha o cabo USB
+  do Arduino (com o jogo aberto).
 - LEDs não acendem mas o Arduino conecta: fonte 5 V dos LEDs, GND da fonte
   junto com o GND do Arduino, LEDS_POR_ALVO e TIPO_FITA no .ino.
 - Sensor não marca: Central da Máquina mostra cada batida; confira o fio
