@@ -1,5 +1,6 @@
 // ============================================================================
-//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)        firmware GOL_FLASH:2
+//  OLHO NO LANCE - ARDUINO DA MAQUINA (Uno ou Nano)
+//  arquivo unico: arduino/olho_no_lance/olho_no_lance.ino   firmware OLHO_NO_LANCE:2
 //  Lazer & Sport Games
 // ============================================================================
 //  O QUE ELE FAZ
@@ -8,7 +9,7 @@
 //      avisa o jogo pelo mesmo cabo USB. Na TV Box / TV Android isso dispensa
 //      a placa Zero Delay: so o cabo USB do Arduino vai na TV.
 //
-//  LIGACAO (desenho completo: arduino/ligacao_gol_flash_arena.pdf)
+//  LIGACAO (desenho completo: arduino/ligacao_olho_no_lance.pdf)
 //    ALVO    fita de LED (DIN)    sensor (contato para o GND)
 //     A            D2                    D9
 //     B            D3                    D10
@@ -21,11 +22,11 @@
 //    (botoes, sensores e moedeiro: um fio no pino, o outro no GND)
 //
 //  CONVERSA COM O JOGO (texto, 9600, uma linha por comando)
-//    jogo -> Arduino   PING                    responde PONG:GOL_FLASH:2
+//    jogo -> Arduino   PING                    responde PONG:OLHO_NO_LANCE:2
 //                      OFF                     apaga tudo
 //                      SET:A=255,0,0;C=0,0,255 acende A e C (r,g,b de 0 a
 //                                              255) e APAGA os outros alvos
-//    Arduino -> jogo   OLA:GOL_FLASH:2         ao ligar
+//    Arduino -> jogo   OLA:OLHO_NO_LANCE:2     ao ligar
 //                      S:A ... S:G             a bola bateu no alvo
 //                      B:START:1 / B:START:0   START apertado / solto
 //                      B:SELECT:1 / B:SELECT:0 SELECT apertado / solto
@@ -43,7 +44,7 @@
 #include <EEPROM.h>
 
 // ------------------------------------------------------------------ AJUSTES
-#define FIRMWARE "GOL_FLASH:2"
+#define FIRMWARE "OLHO_NO_LANCE:2"
 
 // Quantos LEDs o Arduino acende em CADA alvo. Ele sempre manda a cor para
 // todos esses: com um anel/fita MENOR (8, 16, 24, 60 LEDs) acende inteiro do

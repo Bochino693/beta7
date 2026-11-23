@@ -49,8 +49,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 14  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 14" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 15  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 15" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -62,7 +62,7 @@ IMPORTANTE: com a tela da ROM desligada, NÃO desinstale o jogo antes de
 desfazer (a caixa ficaria sem tela inicial). Para atualizar, instale o APK
 novo POR CIMA.
 
-POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 14)
+POR QUE O ANDROID ESQUECIA O "PADRÃO" AO RELIGAR (corrigido no TV 15)
 Ao ligar, o Android procura a tela inicial antes de destravar o
 armazenamento. A tela inicial do jogo não estava marcada para existir nessa
 hora (directBootAware), a lista de telas ficava diferente da do dia da
@@ -110,8 +110,8 @@ funcionam, se quiser.
 
 4. ARDUINO (tudo por ele, sem relé e sem placa Zero Delay na TV)
 ----------------------------------------------------------------
-Desenho completo: arduino\ligacao_gol_flash_arena.pdf (ou .png)
-Código: arduino\gol_flash_arena\gol_flash_arena.ino
+Desenho completo: arduino\ligacao_olho_no_lance.pdf (ou .png)
+Código: arduino\olho_no_lance\olho_no_lance.ino
 Passo a passo: arduino\LEIA-ME.txt
 
   ALVO   LED (DIN)   SENSOR          START .... A3
@@ -141,7 +141,7 @@ MENU -> Central da Máquina:
   - modo LIVRE ou CRÉDITO, contador de partidas, limpar o mural.
 
 NO CANTO DE BAIXO DA TELA (pequeno):
-  TV 14 • Mali-G31 • 58 q/s • nível 1 • 720p • Android 10 • tela inicial...
+  TV 15 • Mali-G31 • 58 q/s • nível 1 • 720p • Android 10 • tela inicial...
   = versão do jogo, placa de vídeo da caixa, quadros por segundo, nível de
   desempenho e resolução. O jogo mede sozinho e, se a caixa não dá conta,
   desce de nível (sem neon -> 540 linhas -> 480 linhas -> 30 q/s fixos).

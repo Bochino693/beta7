@@ -1,9 +1,9 @@
 ARDUINO DO OLHO NO LANCE
 ==========================
 
-  gol_flash_arena\gol_flash_arena.ino   o código (grave este)
-  ligacao_gol_flash_arena.pdf / .png    o desenho da montagem
-  ligacao_gol_flash_arena.svg           o mesmo desenho, editável
+  olho_no_lance\olho_no_lance.ino   o código (grave este)
+  ligacao_olho_no_lance.pdf / .png    o desenho da montagem
+  ligacao_olho_no_lance.svg           o mesmo desenho, editável
 
 Placa: Arduino Nano ou Uno (ATmega328P). Sem relé, sem ponte H, sem placa
 Zero Delay: os LEDs, os sensores, o START e o SELECT vão direto no Arduino,
@@ -29,10 +29,10 @@ MATERIAL
   1 capacitor eletrolítico 1000 uF 16 V (no + e - da fonte)
   7 sensores de contato (microchave / sensor de impacto) + 2 botões
 
-GRAVAR (firmware GOL_FLASH:2)
+GRAVAR (firmware OLHO_NO_LANCE:2)
   1. IDE do Arduino > Ferramentas > Gerenciar bibliotecas >
      "Adafruit NeoPixel" > Instalar.
-  2. Abra gol_flash_arena.ino e carregue (placa: Arduino Nano - processador
+  2. Abra olho_no_lance.ino e carregue (placa: Arduino Nano - processador
      "ATmega328P (Old Bootloader)" se der erro ao gravar - ou Arduino Uno).
   Não precisa mexer em nada no arquivo para começar:
    - AO LIGAR FICA TUDO APAGADO. Só o jogo acende os alvos. (A fita de LED
@@ -60,8 +60,8 @@ SENSORES E BOTÕES: DOIS JEITOS
   chegando: é fio, pino ou GND.
 
 TESTAR NO PC (Monitor Serial, 9600, "Nova linha")
-  aparece   OLA:GOL_FLASH:2
-  digite    PING                 -> PONG:GOL_FLASH:2
+  aparece   OLA:OLHO_NO_LANCE:2
+  digite    PING                 -> PONG:OLHO_NO_LANCE:2
             SET:A=255,0,0        -> alvo A vermelho (os outros apagam)
             SET:A=0,0,255;G=0,255,0
             OFF                  -> apaga tudo
@@ -89,4 +89,4 @@ Teste do código sem placa (PC com g++):
   bash tools/testes/arduino/testar_firmware.sh
 Refazer o desenho:
   python3 -I tools/desenhar_ligacao.py
-  node tools/desenho_para_png_pdf.js arduino/ligacao_gol_flash_arena.svg
+  node tools/desenho_para_png_pdf.js arduino/ligacao_olho_no_lance.svg

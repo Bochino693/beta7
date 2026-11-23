@@ -1,10 +1,10 @@
 """Desenha a MONTAGEM DO ARDUINO do Olho no Lance (fundo branco), com os
-mesmos pinos do firmware arduino/gol_flash_arena/gol_flash_arena.ino:
+mesmos pinos do firmware arduino/olho_no_lance/olho_no_lance.ino:
   7 fitas/aneis de LED dos alvos (D2..D8), 7 sensores (D9..D12, A0..A2),
   START (A3), SELECT (A4), moedeiro (A5), fonte 5 V dos LEDs e a TV Box.
 
     python3 -I tools/desenhar_ligacao.py [destino.svg]
-    (padrao: arduino/ligacao_gol_flash_arena.svg)
+    (padrao: arduino/ligacao_olho_no_lance.svg)
 
 O PNG e o PDF saem do SVG: tools/desenho_para_png_pdf.js (Chromium).
 """
@@ -163,7 +163,7 @@ def nano():
 def cabecalho():
     rect(0, 0, W, H, "white")
     texto(60, 100, "OLHO NO LANCE · MONTAGEM DO ARDUINO", 78, "#16407a", "bold")
-    texto(62, 150, "Arduino **Nano** ou **Uno** visto de cima · firmware **arduino/gol_flash_arena** (GOL_FLASH:2) · o mesmo cabo USB serve no **PC** e na **TV Box / TV Android**", 27, CINZA)
+    texto(62, 150, "Arduino **Nano** ou **Uno** visto de cima · firmware **arduino/olho_no_lance** (OLHO_NO_LANCE:2) · o mesmo cabo USB serve no **PC** e na **TV Box / TV Android**", 27, CINZA)
     # legenda
     rect(2720, 34, 1040, 124, "white", "#b0bec5", 3, rx=16)
     fio([(2750, 74), (2860, 74)], "#455a64", 9)
@@ -440,9 +440,9 @@ def textos():
     caixa(cx[1], y, ws[1], h, "PRIMEIRA VEZ (passo a passo)", "#1565c0")
     bloco(cx[1] + 30, y + 92, [
         "**1.** IDE do Arduino: instale a biblioteca **Adafruit**",
-        "**NeoPixel** e grave **gol_flash_arena.ino** (placa Nano:",
+        "**NeoPixel** e grave **olho_no_lance.ino** (placa Nano:",
         "processador “ATmega328P (Old Bootloader)” se falhar).",
-        "**2.** Monitor Serial a **9600**: aparece OLA:GOL_FLASH:2.",
+        "**2.** Monitor Serial a **9600**: aparece OLA:OLHO_NO_LANCE:2.",
         "Digite SET:A=255,0,0 (alvo A vermelho) e OFF.",
         "**3.** Bata em cada alvo: aparece S:A ... S:G.",
         "START mostra B:START:1 e a ficha mostra FICHA.",
@@ -493,7 +493,7 @@ def observacoes():
 
 
 def main():
-    destino = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "arduino", "ligacao_gol_flash_arena.svg")
+    destino = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "arduino", "ligacao_olho_no_lance.svg")
     add('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d">' % (W, H, W, H))
     cabecalho()
     alvos()

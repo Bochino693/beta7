@@ -7,10 +7,10 @@ extends Node
 ## comandos das telas ("SET:A=255,0,0;B=..." e "OFF") passam por aqui e vão
 ## para o Arduino pelo plugin Android StrikeSerial (addons/StrikeSerial).
 ##
-## Com o firmware novo (arduino/gol_flash_arena) o Arduino também LÊ a
+## Com o firmware novo (arduino/olho_no_lance) o Arduino também LÊ a
 ## máquina e manda para o jogo, então a placa Zero Delay não é necessária
 ## na TV Box:
-##   Arduino -> jogo:  OLA:GOL_FLASH:1 / PONG:GOL_FLASH:1
+##   Arduino -> jogo:  OLA:OLHO_NO_LANCE:1 / PONG:OLHO_NO_LANCE:1
 ##                     S:A ... S:G        (bola no alvo A..G)
 ##                     B:START:1 / B:START:0   (botão START apertou/soltou)
 ##                     B:SELECT:1 / B:SELECT:0 (botão SELECT/COPA)
@@ -39,7 +39,7 @@ const PERMISSOES := "user://permissoes_usb.cfg"
 
 var status := "Arduino: iniciando..."
 var conectado := false
-var firmware := ""               # "GOL_FLASH:1" (novo) ou "" (antigo, só LEDs)
+var firmware := ""               # "OLHO_NO_LANCE:1" (novo) ou "" (antigo, só LEDs)
 var chip := ""
 var contagem := {}               # letra -> quantas vezes o sensor bateu (tela de teste)
 var ultimo_comando := ""         # último comando de LED pedido pelo jogo
@@ -450,7 +450,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 14"
+const VERSAO := "TV 15"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -481,9 +481,15 @@ func tem_plugin() -> bool:
 	return _plugin != null
 
 
+## O firmware deste jogo: OLHO_NO_LANCE (o nome de hoje) ou GOL_FLASH (o
+## mesmo código, com o nome antigo - um Arduino já gravado continua valendo).
+func _firmware_do_jogo(fw: String) -> bool:
+	return fw.begins_with("OLHO_NO_LANCE") or fw.begins_with("GOL_FLASH")
+
+
 ## Firmware novo (sensores, botões e ficha pelo Arduino)?
 func completo() -> bool:
-	return conectado and firmware.begins_with("GOL_FLASH")
+	return conectado and _firmware_do_jogo(firmware)
 
 
 ## As telas chamam ao abrir (no lugar de iniciar a ponte PowerShell).
@@ -669,7 +675,7 @@ func _receber(linha: String, agora: int) -> void:
 		var fw := linha.substr(linha.find(":") + 1)
 		if fw != firmware:
 			firmware = fw
-			if fw.begins_with("GOL_FLASH"):
+			if _firmware_do_jogo(fw):
 				_set_status("Arduino conectado (%s): LEDs, sensores, botões e ficha OK" % chip)
 			mudou.emit()
 		return

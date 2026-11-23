@@ -28,7 +28,7 @@ int main() {
   pinLevel[PINO_FICHA] = FICHA_NF ? LOW : HIGH;
   pinLevel[PINO_SENSOR[2]] = SENSOR_NF ? HIGH : LOW;   // liga com o sensor C acionado
   setup(); rodar(50);
-  CONFERE(conta("OLA:GOL_FLASH:2") == 1, "OLA ao ligar");
+  CONFERE(conta("OLA:OLHO_NO_LANCE:2") == 1, "OLA ao ligar");
   CONFERE(conta("S:") == 0, "sensor acionado ao ligar nao marca gol");
   pinLevel[PINO_SENSOR[2]] = SENSOR_NF ? LOW : HIGH; rodar(50);
   for (int i = 0; i < ALVOS; i++) CONFERE(pinModeV[PINO_SENSOR[i]] == INPUT_PULLUP, "sensor com pull-up");
@@ -45,7 +45,7 @@ int main() {
   manda("OFF"); rodar(5);
 
   manda("PING"); rodar(5);
-  CONFERE(conta("PONG:GOL_FLASH:2") == 1, "PONG");
+  CONFERE(conta("PONG:OLHO_NO_LANCE:2") == 1, "PONG");
 
   manda("SET:A=0,0,255"); rodar(5);
   CONFERE(cor('A') == 0x0000FF, "A azul");
