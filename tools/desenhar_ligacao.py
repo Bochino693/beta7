@@ -163,7 +163,7 @@ def nano():
 def cabecalho():
     rect(0, 0, W, H, "white")
     texto(60, 100, "OLHO NO LANCE · MONTAGEM DO ARDUINO", 78, "#16407a", "bold")
-    texto(62, 150, "Arduino **Nano** ou **Uno** visto de cima · firmware **arduino/gol_flash_arena** (GOL_FLASH:1) · o mesmo cabo USB serve no **PC** e na **TV Box / TV Android**", 27, CINZA)
+    texto(62, 150, "Arduino **Nano** ou **Uno** visto de cima · firmware **arduino/gol_flash_arena** (GOL_FLASH:2) · o mesmo cabo USB serve no **PC** e na **TV Box / TV Android**", 27, CINZA)
     # legenda
     rect(2720, 34, 1040, 124, "white", "#b0bec5", 3, rx=16)
     fio([(2750, 74), (2860, 74)], "#455a64", 9)
@@ -429,10 +429,11 @@ def textos():
         "7 alvos × 30 LEDs = 210 LEDs → **fonte 5 V 10 A**.",
         "Menos LEDs? 7 alvos × 12 LEDs → 5 V 5 A basta.",
         "",
-        "No .ino: **LEDS_POR_ALVO** = quantos LEDs tem CADA",
-        "alvo (pode sobrar). **BRILHO_MAX** baixa o consumo.",
-        "Cor trocada (pede vermelho, acende verde): troque",
-        "**TIPO_FITA** para NEO_RGB ou NEO_BRG.",
+        "**Ao ligar fica tudo apagado:** só o jogo acende.",
+        "O anel acende inteiro sem contar LEDs (até 64 por alvo;",
+        "mais que isso: aumente **LEDS_POR_ALVO** no .ino).",
+        "**Cor trocada** (pede vermelho, acende verde)? No jogo:",
+        "Central da Máquina > **ORDEM DAS CORES DOS LEDS**.",
         "Fita WS2811 de **12 V**: +12 V na fita (fonte 12 V),",
         "DIN e GND iguais ao desenho.",
     ], 24)
@@ -441,7 +442,7 @@ def textos():
         "**1.** IDE do Arduino: instale a biblioteca **Adafruit**",
         "**NeoPixel** e grave **gol_flash_arena.ino** (placa Nano:",
         "processador “ATmega328P (Old Bootloader)” se falhar).",
-        "**2.** Monitor Serial a **9600**: aparece OLA:GOL_FLASH:1.",
+        "**2.** Monitor Serial a **9600**: aparece OLA:GOL_FLASH:2.",
         "Digite SET:A=255,0,0 (alvo A vermelho) e OFF.",
         "**3.** Bata em cada alvo: aparece S:A ... S:G.",
         "START mostra B:START:1 e a ficha mostra FICHA.",

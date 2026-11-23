@@ -24,15 +24,13 @@ const COR_MENU := Color(0.35, 1.0, 0.45)
 var _cena: Node
 var _ambiente: Control
 var _luzes: CPUParticles2D
-var _feixes: Array[TextureRect] = []
-var _cortina: ColorRect
 var _clarao: ColorRect
+var _tw_clarao: Tween
 var _borda: Control
 var _ondas: Control
 var _lista_ondas: Array = []       # [nascimento_ms, cor]
 var _borda_alfa := 0.0
 var _tex_luz: Texture2D
-var _tex_feixe: Texture2D
 var _cor_ambiente := COR_PADRAO
 var _leve := false
 
@@ -45,23 +43,13 @@ func _ready() -> void:
 		return
 	_leve = OS.get_name() == "Android"
 	_tex_luz = _textura_luz()
-	_tex_feixe = _textura_feixe()
 
 	_ambiente = _cheio(Control.new())
 	add_child(_ambiente)
-	for i in range(2):
-		var f := TextureRect.new()
-		f.texture = _tex_feixe
-		f.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		f.stretch_mode = TextureRect.STRETCH_SCALE
-		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		f.material = _aditivo()
-		_ambiente.add_child(f)
-		_feixes.append(f)
 	_luzes = CPUParticles2D.new()
 	_luzes.texture = _tex_luz
 	_luzes.material = _aditivo()
-	_luzes.amount = 14 if _leve else 34
+	_luzes.amount = 10 if _leve else 22
 	_luzes.lifetime = 9.0
 	_luzes.preprocess = 9.0
 	_luzes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -70,8 +58,8 @@ func _ready() -> void:
 	_luzes.gravity = Vector2.ZERO
 	_luzes.initial_velocity_min = 12.0
 	_luzes.initial_velocity_max = 46.0
-	_luzes.scale_amount_min = 0.25
-	_luzes.scale_amount_max = 1.1
+	_luzes.scale_amount_min = 0.5
+	_luzes.scale_amount_max = 1.8
 	var some := Gradient.new()
 	some.set_color(0, Color(1, 1, 1, 0.0))
 	some.add_point(0.25, Color(1, 1, 1, 1.0))
@@ -89,10 +77,8 @@ func _ready() -> void:
 	_clarao = _cheio(ColorRect.new())
 	_clarao.color = Color(1, 1, 1, 0)
 	_clarao.material = _aditivo()
+	_clarao.visible = false          # um retângulo de tela inteira, mesmo transparente, custa: só existe enquanto pisca
 	add_child(_clarao)
-	_cortina = _cheio(ColorRect.new())
-	_cortina.color = Color(0, 0, 0, 0)
-	add_child(_cortina)
 	get_viewport().size_changed.connect(_ajustar)
 	_ajustar()
 	# AQUECE os efeitos do gol fora da tela: a placa de vídeo prepara os
@@ -132,8 +118,8 @@ func _textura_luz() -> Texture2D:
 	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0.0))
 	var t := GradientTexture2D.new()
 	t.gradient = g
-	t.width = 96
-	t.height = 96
+	t.width = 40
+	t.height = 40
 	t.fill = GradientTexture2D.FILL_RADIAL
 	t.fill_from = Vector2(0.5, 0.5)
 	t.fill_to = Vector2(1.0, 0.5)
@@ -162,10 +148,6 @@ func _ajustar() -> void:
 	var t := _tela()
 	_luzes.position = t * 0.5
 	_luzes.emission_rect_extents = t * 0.55
-	for f in _feixes:
-		f.size = Vector2(t.x * 0.34, t.y * 2.2)
-		f.pivot_offset = f.size * 0.5
-		f.rotation = deg_to_rad(24.0)
 
 
 # ------------------------------------------------------------------ quadro
@@ -174,15 +156,6 @@ func _process(delta: float) -> void:
 	if cena != _cena:
 		_cena = cena
 		_entrou_tela()
-	# feixes de luz de estádio varrendo devagar
-	var t := _tela()
-	var agora := Time.get_ticks_msec() / 1000.0
-	for i in range(_feixes.size()):
-		var f := _feixes[i]
-		var fase := fmod(agora * (0.045 + 0.02 * i) + 0.5 * i, 1.0)
-		f.position = Vector2(lerpf(-t.x * 0.5, t.x * 1.15, fase), -t.y * 0.6)
-		var brilho := sin(fase * PI)
-		f.modulate = Color(_cor_ambiente.r, _cor_ambiente.g, _cor_ambiente.b, 0.085 * brilho)
 	if not _lista_ondas.is_empty():
 		_ondas.queue_redraw()
 	if _borda_alfa > 0.0:
@@ -209,7 +182,10 @@ func _entrou_tela() -> void:
 			visivel = false
 		_:
 			_cor_ambiente = COR_PADRAO
-	_ambiente.visible = visivel
+	# as luzes de fundo só no nível 0 (placa folgada): numa placa fraca cada
+	# camada transparente a mais custa quadros
+	_ambiente.visible = visivel and Visual.nivel == 0
+	_luzes.emitting = _ambiente.visible
 	_luzes.color = Color(_cor_ambiente.r, _cor_ambiente.g, _cor_ambiente.b, 0.16)
 	_lista_ondas.clear()
 	_borda_alfa = 0.0
@@ -222,6 +198,7 @@ func _entrou_tela() -> void:
 ## outra, e um clarão curto fecha. Meio segundo. De quebra, cobre o instante
 ## em que a tela nova ainda está se montando.
 const FAIXAS := 6
+const CORES_FAIXA: Array[Color] = [Color(0.10, 0.66, 0.24), Color(1.0, 0.80, 0.10), Color(0.07, 0.42, 0.90)]
 var _faixas: Node2D
 var _camada_transicao: CanvasLayer
 var _marca: Label
@@ -244,11 +221,12 @@ func _transicao() -> void:
 		var f := Polygon2D.new()
 		var x0 := i * larg - tomba
 		f.polygon = PackedVector2Array([Vector2(x0 + tomba, -4), Vector2(x0 + tomba + larg + 3, -4), Vector2(x0 + larg + 3, t.y + 4), Vector2(x0, t.y + 4)])
-		f.color = Color(0.016, 0.035, 0.065) if i % 2 == 0 else Color(0.024, 0.05, 0.09)
+		# faixas nas cores do jogo (verde, amarelo, azul), não escuras
+		f.color = CORES_FAIXA[i % CORES_FAIXA.size()]
 		_faixas.add_child(f)
 		var fio := Polygon2D.new()
 		fio.polygon = PackedVector2Array([Vector2(x0 + tomba + larg - 3, -4), Vector2(x0 + tomba + larg + 3, -4), Vector2(x0 + larg + 3, t.y + 4), Vector2(x0 + larg - 3, t.y + 4)])
-		fio.color = Color(_cor_ambiente.r, _cor_ambiente.g, _cor_ambiente.b, 0.9)
+		fio.color = Color(1, 1, 1, 0.9)
 		f.add_child(fio)
 		var tw := f.create_tween()
 		tw.tween_interval(0.16 + 0.035 * (FAIXAS - 1 - i))
@@ -256,7 +234,7 @@ func _transicao() -> void:
 	# a primeira faixa cobre também a sobra da esquerda
 	var canto := Polygon2D.new()
 	canto.polygon = PackedVector2Array([Vector2(-4, -4), Vector2(tomba, -4), Vector2(-tomba, t.y + 4), Vector2(-4 - tomba, t.y + 4)])
-	canto.color = Color(0.016, 0.035, 0.065)
+	canto.color = CORES_FAIXA[0]
 	_faixas.get_child(0).add_child(canto)
 	# o nome do jogo, no meio, some junto
 	if _marca == null:
@@ -267,7 +245,7 @@ func _transicao() -> void:
 		_marca.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if ResourceLoader.exists("res://fonts/Bungee-Regular.ttf"):
 			_marca.add_theme_font_override("font", load("res://fonts/Bungee-Regular.ttf"))
-		_marca.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.09))
+		_marca.add_theme_color_override("font_outline_color", Color(0.02, 0.10, 0.05))
 		_camada_transicao.add_child(_marca)
 	_camada_transicao.move_child(_marca, -1)
 	_marca.add_theme_font_size_override("font_size", int(t.y * 0.085))
@@ -291,15 +269,18 @@ func _transicao() -> void:
 		_faixas = null
 		if _marca != null:
 			_marca.visible = false)
-	_cortina.color = Color(0, 0, 0, 0)
 	# o clarão na cor da tela, quando as faixas estão saindo
 	get_tree().create_timer(0.30, true, false, true).timeout.connect(_piscar.bind(_cor_ambiente, 0.20, 0.55))
 
 
 func _piscar(cor: Color, forca: float, tempo: float) -> void:
 	_clarao.color = Color(cor.r, cor.g, cor.b, forca)
-	var tw := create_tween()
-	tw.tween_property(_clarao, "color:a", 0.0, tempo).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_clarao.visible = true
+	if _tw_clarao != null and _tw_clarao.is_valid():
+		_tw_clarao.kill()
+	_tw_clarao = create_tween()
+	_tw_clarao.tween_property(_clarao, "color:a", 0.0, tempo).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_tw_clarao.tween_callback(func() -> void: _clarao.visible = false)
 
 
 # -------------------------------------------------------------------- gol

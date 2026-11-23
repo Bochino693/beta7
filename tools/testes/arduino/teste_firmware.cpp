@@ -5,6 +5,8 @@ int pinLevel[32], pinOut[32], pinModeV[32], pinPwm[32];
 volatile uint8_t TCCR1A, TCCR1B;
 volatile uint16_t ICR1, OCR1A;
 SerialMock Serial;
+#include "EEPROM.h"
+EEPROMMock EEPROM;
 uint32_t fitaCor[32];
 int fitaShows = 0;
 #include ARQUIVO_FW
@@ -15,7 +17,9 @@ std::string saida;
 void rodar(unsigned long ms) { for (unsigned long i = 0; i < ms; i++) { loop(); t_ms++; } saida += Serial.out; Serial.out.clear(); }
 void manda(const char *c) { for (const char *p = c; *p; p++) Serial.in.push_back(*p); Serial.in.push_back('\n'); }
 int conta(const std::string &s) { int n = 0; size_t p = 0; while ((p = saida.find(s, p)) != std::string::npos) { n++; p += s.size(); } return n; }
-uint32_t cor(char alvo) { return fitaCor[PINO_LED[alvo - 'A']]; }
+// o que chegou nos fios da fita, de volta para r,g,b do jogo (ordem 0 = GRB)
+uint32_t fios(char alvo) { return fitaCor[PINO_LED[alvo - 'A']]; }
+uint32_t cor(char alvo) { uint32_t f = fios(alvo); return ((f >> 8 & 255) << 16) | ((f >> 16 & 255) << 8) | (f & 255); }
 
 int main() {
   for (int i = 0; i < 32; i++) pinLevel[i] = HIGH;
@@ -24,13 +28,24 @@ int main() {
   pinLevel[PINO_FICHA] = FICHA_NF ? LOW : HIGH;
   pinLevel[PINO_SENSOR[2]] = SENSOR_NF ? HIGH : LOW;   // liga com o sensor C acionado
   setup(); rodar(50);
-  CONFERE(conta("OLA:GOL_FLASH:1") == 1, "OLA ao ligar");
+  CONFERE(conta("OLA:GOL_FLASH:2") == 1, "OLA ao ligar");
   CONFERE(conta("S:") == 0, "sensor acionado ao ligar nao marca gol");
   pinLevel[PINO_SENSOR[2]] = SENSOR_NF ? LOW : HIGH; rodar(50);
   for (int i = 0; i < ALVOS; i++) CONFERE(pinModeV[PINO_SENSOR[i]] == INPUT_PULLUP, "sensor com pull-up");
 
+  for (char a = 'A'; a <= 'G'; a++) CONFERE(fios(a) == 0, "ao ligar, tudo apagado");
+  CONFERE(fitaShows >= 14, "ao ligar, cada alvo recebe apagado duas vezes");
+  // a fita "acordou" com cores soltas (a fonte ligou depois): o reforco apaga sozinho
+  for (int i = 0; i < ALVOS; i++) fitaCor[PINO_LED[i]] = 0x123456;
+  rodar(REFORCO_MS * ALVOS + 50);
+  for (char a = 'A'; a <= 'G'; a++) CONFERE(fios(a) == 0, "fita que acende sozinha e apagada pelo reforco");
+  manda("SET:A=10,20,30"); rodar(5);
+  fitaCor[PINO_LED[0]] = 0; rodar(REFORCO_MS * ALVOS + 50);
+  CONFERE(cor('A') == 0x0A141E, "o reforco reenvia a cor que o jogo pediu");
+  manda("OFF"); rodar(5);
+
   manda("PING"); rodar(5);
-  CONFERE(conta("PONG:GOL_FLASH:1") == 1, "PONG");
+  CONFERE(conta("PONG:GOL_FLASH:2") == 1, "PONG");
 
   manda("SET:A=0,0,255"); rodar(5);
   CONFERE(cor('A') == 0x0000FF, "A azul");
@@ -38,7 +53,17 @@ int main() {
   CONFERE(cor('B') == 0xFF0000 && cor('A') == 0, "B vermelho e A apagou");
   int antes = fitaShows;
   manda("SET:B=255,0,0"); rodar(5);
-  CONFERE(fitaShows == antes, "mesmo comando nao redesenha");
+  CONFERE(fitaShows - antes <= 1, "mesmo comando nao redesenha (so o reforco)");
+  // ordem das cores: vermelho do jogo tem que sair no fio certo de cada tipo de fita
+  manda("CFG?"); rodar(5);
+  CONFERE(conta("CFG:ORDEM=0;LEDS=64") == 1, "CFG? responde a ordem e os LEDs");
+  manda("ORDEM:1"); rodar(5);
+  CONFERE(fios('B') == 0xFF0000 && conta("CFG:ORDEM=1") == 1, "ORDEM:1 (RGB): vermelho no 1o fio, na hora");
+  manda("ORDEM:5"); rodar(5);
+  CONFERE(fios('B') == 0x0000FF, "ORDEM:5 (BGR): vermelho no 3o fio");
+  CONFERE(EEPROM.read(0) == EEPROM_MARCA && EEPROM.read(1) == 5, "a ordem fica guardada no Arduino");
+  manda("ORDEM:0"); rodar(5);
+  CONFERE(fios('B') == 0x00FF00, "ORDEM:0 (GRB): vermelho no 2o fio");
   manda("SET:A=255,255,255;B=255,255,255;C=255,255,255;D=255,255,255;E=255,255,255;F=255,255,255;G=255,255,255"); rodar(5);
   for (char a = 'A'; a <= 'G'; a++) CONFERE(cor(a) == 0xFFFFFF, "todos brancos (comando mais comprido do jogo)");
   manda("set:c=0,255,0;x=1,2,3;g=300,5,5"); rodar(5);

@@ -1014,9 +1014,8 @@ func _criar_fundo() -> void:
 
 		fundo_video.play()
 	else:
-		# Sem vídeo, a imagem já é o fundo (e já está visível).
-		if VIDEO_CAPA != "":
-			push_warning("Vídeo não encontrado: " + VIDEO_CAPA)
+		# Sem vídeo: a capa animada pelo próprio jogo.
+		_criar_capa_viva()
 
 
 
@@ -5069,9 +5068,103 @@ func _leds_fluxo_ida_volta_ag(passo: int) -> void:
 ## O vídeo da abertura deste aparelho: o leve na TV Box / TV Android (ou
 ## quando o grande não veio no pacote), o original no PC. "" = sem vídeo.
 func _video_da_capa() -> String:
-	var leve: bool = OS.get_name() == "Android" or not ResourceLoader.exists(VIDEO_CAPA)
+	# TV Box / TV Android: SEM vídeo. O Godot decodifica vídeo só pelo
+	# processador, quadro a quadro, na mesma linha do jogo: é o que mais
+	# trava numa caixa fraca. Lá a capa é animada pelo próprio jogo
+	# (_criar_capa_viva), que não custa quase nada.
+	if OS.get_name() == "Android" or OS.get_environment("OLHO_SEM_VIDEO") != "":
+		return ""
+	var leve: bool = not ResourceLoader.exists(VIDEO_CAPA)
 	if leve and ResourceLoader.exists(VIDEO_CAPA_TV):
 		return VIDEO_CAPA_TV
 	if VIDEO_CAPA != "" and ResourceLoader.exists(VIDEO_CAPA):
 		return VIDEO_CAPA
 	return ""
+
+
+## A CAPA VIVA (TV Box, sem vídeo): o estádio com um zoom lento, o logo que
+## entra batendo e depois "respira", o Lazer & Sport flutuando e faíscas
+## subindo do gramado. São poucas peças pequenas movidas pela placa de vídeo:
+## movimento o tempo todo, sem pesar.
+func _criar_capa_viva() -> void:
+	const POS := preload("res://scripts/capa_posicoes.gd")
+	if not (ResourceLoader.exists("res://images/capa_fundo.jpg") and ResourceLoader.exists("res://images/capa_logo.png")):
+		return
+	var tela: Vector2 = get_viewport_rect().size
+	fundo_imagem.texture = load("res://images/capa_fundo.jpg")
+	fundo_imagem.pivot_offset = Vector2(tela.x * 0.5, tela.y * 0.62)
+	var zoom := fundo_imagem.create_tween()
+	zoom.set_loops()
+	zoom.tween_property(fundo_imagem, "scale", Vector2(1.07, 1.07), 8.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	zoom.tween_property(fundo_imagem, "scale", Vector2.ONE, 8.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	# faíscas do gramado (poucas e pequenas)
+	var faiscas := CPUParticles2D.new()
+	faiscas.amount = 14
+	faiscas.lifetime = 3.2
+	faiscas.preprocess = 3.0
+	faiscas.position = Vector2(tela.x * 0.5, tela.y * 0.86)
+	faiscas.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	faiscas.emission_rect_extents = Vector2(tela.x * 0.30, 8.0)
+	faiscas.direction = Vector2(0, -1)
+	faiscas.spread = 16.0
+	faiscas.gravity = Vector2.ZERO
+	faiscas.initial_velocity_min = tela.y * 0.05
+	faiscas.initial_velocity_max = tela.y * 0.14
+	faiscas.scale_amount_min = tela.y / 240.0
+	faiscas.scale_amount_max = tela.y / 110.0
+	var cores := Gradient.new()
+	cores.set_color(0, Color(1.0, 0.82, 0.25, 0.0))
+	cores.add_point(0.2, Color(1.0, 0.82, 0.25, 0.9))
+	cores.add_point(0.7, Color(0.55, 1.0, 0.35, 0.7))
+	cores.set_color(cores.get_point_count() - 1, Color(0.55, 1.0, 0.35, 0.0))
+	faiscas.color_ramp = cores
+	fundo_container.add_child(faiscas)
+
+	# o logo: entra batendo e fica respirando
+	var logo := TextureRect.new()
+	logo.texture = load("res://images/capa_logo.png")
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_SCALE
+	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	logo.position = POS.LOGO.position * tela
+	logo.size = POS.LOGO.size * tela
+	logo.pivot_offset = logo.size * Vector2(0.42, 0.58)
+	fundo_container.add_child(logo)
+	logo.scale = Vector2(1.9, 1.9)
+	logo.modulate.a = 0.0
+	var bate := logo.create_tween()
+	bate.tween_interval(0.35)
+	bate.tween_property(logo, "modulate:a", 1.0, 0.12)
+	bate.parallel().tween_property(logo, "scale", Vector2.ONE, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	bate.tween_callback(func() -> void:
+		var respira := logo.create_tween()
+		respira.set_loops()
+		respira.tween_property(logo, "scale", Vector2(1.035, 1.035), 1.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		respira.parallel().tween_property(logo, "rotation", deg_to_rad(0.7), 1.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		respira.tween_property(logo, "scale", Vector2.ONE, 1.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		respira.parallel().tween_property(logo, "rotation", deg_to_rad(-0.5), 1.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT))
+
+	# o Lazer & Sport: desce e fica flutuando
+	if ResourceLoader.exists("res://images/capa_lazer_sport.png"):
+		var ls := TextureRect.new()
+		ls.texture = load("res://images/capa_lazer_sport.png")
+		ls.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ls.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ls.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ls.position = POS.LAZER_SPORT.position * tela
+		ls.size = POS.LAZER_SPORT.size * tela
+		ls.pivot_offset = ls.size * 0.5
+		fundo_container.add_child(ls)
+		var y0 := ls.position.y
+		ls.modulate.a = 0.0
+		ls.position.y = y0 - tela.y * 0.08
+		var desce := ls.create_tween()
+		desce.tween_interval(0.9)
+		desce.tween_property(ls, "modulate:a", 1.0, 0.25)
+		desce.parallel().tween_property(ls, "position:y", y0, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		desce.tween_callback(func() -> void:
+			var flutua := ls.create_tween()
+			flutua.set_loops()
+			flutua.tween_property(ls, "position:y", y0 - tela.y * 0.012, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			flutua.tween_property(ls, "position:y", y0 + tela.y * 0.008, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT))

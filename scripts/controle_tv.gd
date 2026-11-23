@@ -86,7 +86,7 @@ func _input(event: InputEvent) -> void:
 		if tecla == "" and _teclado != null and apertou:
 			_tecla_fisica(event)
 			return
-	elif event is InputEventJoypadButton and OS.get_name() == "Android":
+	elif event is InputEventJoypadButton and OS.get_name() == "Android" and not ArduinoBridge.tem_mapa and not ArduinoBridge.ensinando:
 		# controle que o Android entrega como "direcional de joystick"
 		apertou = event.pressed
 		match event.button_index:
@@ -94,6 +94,9 @@ func _input(event: InputEvent) -> void:
 			JOY_BUTTON_DPAD_DOWN: tecla = "baixo"
 			JOY_BUTTON_DPAD_LEFT: tecla = "esq"
 			JOY_BUTTON_DPAD_RIGHT: tecla = "dir"
+	# a Central da Máquina está "ensinando" as entradas: ela recebe tudo
+	if ArduinoBridge.ensinando:
+		return
 	# aviso do jogo na tela (permissão de abrir ao ligar): OK segue, o resto espera
 	if ArduinoBridge.aviso_aberto:
 		_consumir()
