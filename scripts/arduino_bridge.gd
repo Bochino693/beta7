@@ -551,9 +551,11 @@ func _process(_delta: float) -> void:
 					_escrever(_pendente, agora)
 					_pendente = ""
 					_ultimo_led = agora
-				elif ultimo_comando != "" and agora - _ultimo_led >= REPETIR_MS:
-					# repete o último comando de LED: se o Arduino perdeu um
-					# (estava ocupado acendendo a fita), ele se acerta sozinho
+				elif ultimo_comando.begins_with("SET:") and agora - _ultimo_led >= REPETIR_MS:
+					# repete o último ACENDER: se o Arduino perdeu o comando
+					# (estava ocupado mandando a cor para a fita), ele se acerta.
+					# Com a cor igual o Arduino não manda nada para a fita de
+					# novo; e o "OFF" não é repetido (ele reenvia para todos).
 					_ultimo_led = agora
 					_escrever(ultimo_comando, agora)
 				elif agora - _ultimo_ping >= PING_MS:

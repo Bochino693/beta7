@@ -35,14 +35,25 @@ int main() {
 
   for (char a = 'A'; a <= 'G'; a++) CONFERE(fios(a) == 0, "ao ligar, tudo apagado");
   CONFERE(fitaShows >= 14, "ao ligar, cada alvo recebe apagado duas vezes");
-  // a fita "acordou" com cores soltas (a fonte ligou depois): o reforco apaga sozinho
+  // a fita "acordou" com cores soltas (a fonte ligou depois do Arduino):
+  // nos primeiros segundos o Arduino apaga de novo, todos de uma vez
   for (int i = 0; i < ALVOS; i++) fitaCor[PINO_LED[i]] = 0x123456;
-  rodar(REFORCO_MS * ALVOS + 50);
-  for (char a = 'A'; a <= 'G'; a++) CONFERE(fios(a) == 0, "fita que acende sozinha e apagada pelo reforco");
+  rodar(1000);
+  for (char a = 'A'; a <= 'G'; a++) CONFERE(fios(a) == 0, "fita que acorda acesa e apagada nos primeiros segundos");
+  rodar(4000);
+  // DEPOIS DISSO O ARDUINO NAO MEXE MAIS SOZINHO: nada de rodizio nem sequencia
+  int parado = fitaShows;
+  rodar(20000);
+  CONFERE(fitaShows == parado, "parado, o Arduino nao manda nada para a fita (sem sequencia)");
   manda("SET:A=10,20,30"); rodar(5);
-  fitaCor[PINO_LED[0]] = 0; rodar(REFORCO_MS * ALVOS + 50);
-  CONFERE(cor('A') == 0x0A141E, "o reforco reenvia a cor que o jogo pediu");
+  CONFERE(cor('A') == 0x0A141E, "SET acende o alvo");
+  parado = fitaShows;
+  rodar(20000);
+  CONFERE(fitaShows == parado && cor('A') == 0x0A141E, "aceso, fica aceso sem o Arduino reenviar nada");
+  // a fita piscou sozinha (ruido): o OFF do jogo apaga TODOS, mesmo os "ja apagados"
+  for (int i = 0; i < ALVOS; i++) fitaCor[PINO_LED[i]] = 0x654321;
   manda("OFF"); rodar(5);
+  for (char a = 'A'; a <= 'G'; a++) CONFERE(fios(a) == 0, "OFF reenvia apagado para todos os alvos");
 
   manda("PING"); rodar(5);
   CONFERE(conta("PONG:OLHO_NO_LANCE:2") == 1, "PONG");
@@ -53,7 +64,7 @@ int main() {
   CONFERE(cor('B') == 0xFF0000 && cor('A') == 0, "B vermelho e A apagou");
   int antes = fitaShows;
   manda("SET:B=255,0,0"); rodar(5);
-  CONFERE(fitaShows - antes <= 1, "mesmo comando nao redesenha (so o reforco)");
+  CONFERE(fitaShows == antes, "mesmo comando nao redesenha");
   // ordem das cores: vermelho do jogo tem que sair no fio certo de cada tipo de fita
   manda("CFG?"); rodar(5);
   CONFERE(conta("CFG:ORDEM=0;LEDS=64") == 1, "CFG? responde a ordem e os LEDs");

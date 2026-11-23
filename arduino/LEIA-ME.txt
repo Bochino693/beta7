@@ -35,9 +35,10 @@ GRAVAR (firmware OLHO_NO_LANCE:2)
   2. Abra olho_no_lance.ino e carregue (placa: Arduino Nano - processador
      "ATmega328P (Old Bootloader)" se der erro ao gravar - ou Arduino Uno).
   Não precisa mexer em nada no arquivo para começar:
-   - AO LIGAR FICA TUDO APAGADO. Só o jogo acende os alvos. (A fita de LED
-     liga sozinha com cores soltas quando recebe energia: o Arduino apaga
-     ao ligar e reforça de tempo em tempo a cor que o jogo pediu.)
+   - A FITA SÓ ACENDE E APAGA QUANDO O JOGO MANDA. O Arduino não faz
+     sequência nem efeito por conta própria. Ao ligar fica tudo apagado
+     (a fita de LED acorda com cores soltas quando recebe energia: só nos
+     3 primeiros segundos o Arduino manda "apagado" para todos os alvos).
    - O ANEL ACENDE INTEIRO sem contar LEDs: o Arduino manda a cor para 64
      LEDs por alvo. Só se um alvo tiver MAIS de 64 e o fim ficar apagado,
      aumente LEDS_POR_ALVO (máximo 150).
