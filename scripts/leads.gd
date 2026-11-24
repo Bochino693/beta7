@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-## MODO FEIRA — CADASTRO DE LEADS (liga na Central da Máquina).
+## MODO EVENTO (antes "Modo Feira") — CADASTRO DE LEADS (liga na Central da Máquina).
 ##
 ## Com o modo ligado, antes de cada partida todo jogador preenche uma ficha:
 ## E-MAIL, NOME e IDADE (a DATA e a hora entram sozinhas). O e-mail é a
@@ -61,7 +61,7 @@ var onde_gravou := ""              # a pasta, para mostrar ao operador
 var ajuste_relogio := 0            # segundos somados ao relógio da TV (Central da Máquina)
 var ajuste_com_relogio_errado := false
 var ultimo_instante := 0
-var painel_aberto := false         # a Central da Máquina está mostrando o Modo Feira
+var painel_aberto := false         # a Central da Máquina está aberta
 
 var _pasta := ""
 var _leads := {}                   # e-mail -> ficha
@@ -123,14 +123,15 @@ func _guardar_cfg() -> void:
 	cfg.save(_pasta.path_join("config.cfg"))
 
 
-## O MODO FEIRA SÓ LIGA COM O PENDRIVE RECONHECIDO (um onde o jogo consegue
-## escrever): false = não ligou, falta o pendrive. Desligar vale sempre.
-## Ligado, se o pendrive sair no meio da feira nada se perde: os cadastros
-## ficam na máquina e vão para ele quando voltar (o menu avisa).
+## O MODO EVENTO LIGA SEMPRE, COM OU SEM PENDRIVE: os cadastros ficam
+## guardados na máquina e vão para o pendrive assim que ele for espetado
+## (o menu e a Central da Máquina avisam enquanto falta o pendrive).
 func ligar(sim: bool) -> bool:
-	if sim and not tem_pendrive():
-		return false
+	if ligado == sim:
+		return true
 	ligado = sim
+	_tinha_pen = false
+	_olhar = OLHAR_PEN_S
 	_guardar_cfg()
 	mudou.emit()
 	return true
@@ -565,7 +566,7 @@ func _refazer_do_diario(linhas: PackedStringArray) -> bool:
 
 func _leia_me() -> String:
 	return "\r\n".join([
-		"OLHO NO LANCE - CADASTROS DOS JOGADORES (MODO FEIRA)",
+		"OLHO NO LANCE - CADASTROS DOS JOGADORES (MODO EVENTO)",
 		"====================================================",
 		"",
 		"Esta pasta é escrita pelo jogo. Pode copiar os arquivos à vontade.",
@@ -600,7 +601,7 @@ func _leia_me() -> String:
 		"O jogo lê o que já está aqui, reconhece esses jogadores e grava tudo",
 		"junto, sem perder nem repetir ninguém.",
 		"",
-		"ANTES DE TIRAR O PENDRIVE: espere a Central da Máquina (Modo Feira)",
+		"ANTES DE TIRAR O PENDRIVE: espere a Central da Máquina (Modo Evento)",
 		"mostrar \"GRAVADO - PODE TIRAR O PENDRIVE\".",
 		"",
 		"Dados pessoais (LGPD): use estes contatos só para o que foi avisado ao",
@@ -1061,7 +1062,7 @@ func _montar_ficha() -> void:
 	selo.size = Vector2(300, 28)
 	selo.add_theme_stylebox_override("panel", _caixa(Color(AMARELO.r, AMARELO.g, AMARELO.b, 0.14), Color(AMARELO.r, AMARELO.g, AMARELO.b, 0.7), 14))
 	_cartao.add_child(selo)
-	_rotulo(selo, "MODO FEIRA  •  CADASTRO", 16, AMARELO, Vector2.ZERO, selo.size, FONTE_FORTE, HORIZONTAL_ALIGNMENT_CENTER)
+	_rotulo(selo, "MODO EVENTO  •  CADASTRO", 16, AMARELO, Vector2.ZERO, selo.size, FONTE_FORTE, HORIZONTAL_ALIGNMENT_CENTER)
 	_titulo = _rotulo(_cartao, "", 46, Color.WHITE, Vector2(30, 40), Vector2(760, 52), FONTE_TITULO)
 	_conta = _rotulo(_cartao, "", 22, Color(0.72, 0.80, 0.92), Vector2(800, 14), Vector2(310, 30), FONTE_FORTE, HORIZONTAL_ALIGNMENT_RIGHT)
 	_rotulo(_cartao, "HOJE:  " + data_na_tela().substr(0, 10), 20, Color(0.60, 0.70, 0.82), Vector2(800, 48), Vector2(310, 30), "", HORIZONTAL_ALIGNMENT_RIGHT)
@@ -1090,7 +1091,7 @@ func _montar_ficha() -> void:
 		_rotulo(p, "", 22, Color(0.70, 0.78, 0.90), Vector2(20, 60), Vector2(308, 76)).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_passos.append(p)
 
-	var ajuda := _rotulo(_cartao, "Use as SETAS e o OK do controle.   Já jogou antes?  Digite o mesmo e-mail: seus dados voltam sozinhos.", 20,
+	var ajuda := _rotulo(_cartao, "Use o MOUSE ou as SETAS + OK do controle.   Já jogou antes?  Digite o mesmo e-mail: seus dados voltam sozinhos.", 20,
 		Color(0.72, 0.80, 0.92), Vector2(30, 440), Vector2(1080, 34), "", HORIZONTAL_ALIGNMENT_CENTER)
 	ajuda.clip_text = false
 	var aviso := _rotulo(_cartao, "Ao confirmar, você autoriza a Lazer & Sport a guardar estes dados e a entrar em contato com você.\nMenor de idade: o cadastro é feito pelo responsável.",

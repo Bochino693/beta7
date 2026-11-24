@@ -1,5 +1,5 @@
 extends SceneTree
-## Teste do MODO FEIRA (scripts/leads.gd), sem tela:
+## Teste do MODO EVENTO (scripts/leads.gd), sem tela:
 ##   OLHO_PENDRIVE=/tmp/pen godot --headless --path . -s tools/testes/leads/teste_leads.gd
 ## (apaga os cadastros de teste da pasta user://leads; não rode na máquina da feira)
 
@@ -33,8 +33,19 @@ func _initialize() -> void:
 	confere("nome em formato de planilha", L.limpar_nome("  MARIA   DA silva ") == "Maria da Silva")
 	confere("nome não começa por sinal", L.limpar_nome("=SOMA(A1) ANA") == "Soma(a1) Ana")
 
-	print("pendrive obrigatório para ligar")
-	confere("liga com pendrive", L.ligar(true))
+	print("liga com ou sem pendrive; ligado, a ficha é livre")
+	confere("liga", L.ligar(true) and L.ligado)
+	var A := root.get_node("ArcadeData")
+	var modo_antes: String = A.modo_operacao
+	var creditos_antes: int = A.creditos
+	A.modo_operacao = "credito"
+	A.creditos = 0
+	confere("evento: joga sem crédito", A.modo_atual() == "evento" and A.pode_jogar() and A.consumir_credito() and A.creditos == 0)
+	L.ligado = false
+	confere("crédito sem ficha: não joga", A.modo_atual() == "credito" and not A.pode_jogar() and not A.consumir_credito())
+	L.ligado = true
+	A.modo_operacao = modo_antes
+	A.creditos = creditos_antes
 
 	print("cadastro, volta do mesmo jogador e arquivos")
 	L.definir_evento("Feira; de \"Teste\", 2026")

@@ -51,12 +51,36 @@ func adicionar_credito(quantidade: int = 1) -> void:
 	dados_atualizados.emit()
 
 
+## MODO EVENTO ligado (Central da Máquina): a ficha é livre, só o ARCADE
+## aparece no menu e cada jogador faz o cadastro antes da partida.
+func evento() -> bool:
+	return Leads.ligado
+
+
+## "livre" | "credito" | "evento" - o modo que vale agora.
+func modo_atual() -> String:
+	if evento():
+		return "evento"
+	return "credito" if modo_operacao == "credito" else "livre"
+
+
+## A partida não pede ficha (modo LIVRE ou modo EVENTO).
+func livre() -> bool:
+	return modo_operacao == "free" or evento()
+
+
+func zerar_creditos() -> void:
+	creditos = 0
+	salvar()
+	dados_atualizados.emit()
+
+
 func pode_jogar() -> bool:
-	return modo_operacao == "free" or creditos > 0
+	return livre() or creditos > 0
 
 
 func consumir_credito() -> bool:
-	if modo_operacao == "free":
+	if livre():
 		return true
 	if creditos <= 0:
 		return false
@@ -79,7 +103,7 @@ func registrar_partida(tipo: String) -> void:
 ## A partida foi liberada mas não começou (o cadastro do Modo Feira foi
 ## abandonado): o crédito volta e a partida sai da conta.
 func devolver_partida(tipo: String) -> void:
-	if modo_operacao == "credito":
+	if not livre():
 		creditos += 1
 	partidas_total = maxi(partidas_total - 1, 0)
 	if tipo.to_lower() == "copa":

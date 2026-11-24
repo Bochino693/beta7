@@ -85,9 +85,11 @@ tirar a tela da ROM do caminho.
 
 Depois de instalar, ABRA O JOGO UMA VEZ ("Abrir" no fim da instalação).
 O Arduino no USB: na 1ª vez marque "Usar por padrão" e OK.
-Central da Máquina (MENU do controle): a linha de baixo mostra o estado
-completo e o botão "ABRIR SOZINHO AO LIGAR A TV" tenta de novo.
-Sair para os ajustes da TV: Central da Máquina > "SAIR PARA A TELA DA TV".
+Central da Máquina (MENU do controle) > "AJUSTES AVANÇADOS": a linha
+embaixo do botão "ABRIR O JOGO AO LIGAR A TV" mostra o estado completo e o
+botão tenta de novo.
+Sair para os ajustes da TV: Central da Máquina > "AJUSTES AVANÇADOS" >
+"SAIR PARA A TV".
 
 
 3. CONTROLE REMOTO
@@ -104,7 +106,13 @@ Sair para os ajustes da TV: Central da Máquina > "SAIR PARA A TELA DA TV".
                         (em 3 segundos); tecladinho USB: F9 ou F1.
                         Sempre com o MENU PRINCIPAL na tela (ARCADE / COPA),
                         sem a escolha de jogadores aberta. Para sair da
-                        Central: VOLTAR, ESC ou "SALVAR E VOLTAR AO JOGO".
+                        Central: VOLTAR, ESC ou "VOLTAR AO JOGO".
+
+MOUSE (se quiser mexer com ele): é só ligar um mouse USB. O jogo tem o seu
+próprio cursor (seta amarela), igual em todas as telas: aparece quando o
+mouse mexe e some sozinho depois de 6 segundos parado. Com o cursor na
+tela, o menu principal mostra o botão "⚙ CENTRAL DA MÁQUINA" no canto de
+cima, à direita. Clicar num campo de cadastro abre o teclado da tela.
 
 NOMES (modo Copa): as setas andam pelos campos, OK abre o TECLADO NA TELA,
 setas + OK escrevem, "PRONTO" fecha. Depois desça até "SORTEAR GRUPOS".
@@ -133,16 +141,27 @@ sensores, o START, o SELECT e a ficha.
 
 5. TESTAR A MÁQUINA
 -------------------
-MENU -> Central da Máquina:
-  - em cima, à direita: o estado do Arduino ("ARDUINO CONECTADO ...");
-  - "DIAGNÓSTICO DOS 7 ALVOS": marque um alvo e OK = o LED acende;
-    bata no alvo = o quadro dele acende na tela;
-  - "TESTAR TODOS OS LEDS";
+MENU -> Central da Máquina. A tela tem só o que se usa no dia a dia:
+  1. COMO A MÁQUINA FUNCIONA - três botões, um ligado (vale na hora):
+       LIVRE ..... joga sem ficha; Arcade e Copa
+       CRÉDITO ... 1 ficha por partida; Arcade e Copa
+                   (mostra os créditos, "+ 1 CRÉDITO" e "ZERAR CRÉDITOS")
+       EVENTO .... sem ficha, só Arcade, com cadastro dos jogadores (item 6)
+  2. TESTE DOS ALVOS - marque a letra e OK (ou clique) = o LED acende;
+     bata no alvo = a letra dele acende na tela. "ACENDER TODOS".
+  3. embaixo: partidas jogadas, "AJUSTES AVANÇADOS" e "VOLTAR AO JOGO".
+  Em cima, à direita: o estado do Arduino e o recado do que acabou de
+  ser feito.
+"AJUSTES AVANÇADOS" (o que se faz uma vez, na instalação):
   - "ORDEM DAS CORES DOS LEDS": se a cor do anel não é a que o jogo pede,
     aperte até os alvos ficarem VERMELHOS (o Arduino guarda);
   - "ENSINAR SENSORES E BOTÕES": para a placa Zero Delay na TV Box (bata
     em cada alvo e aperte START e SELECT na ordem que a tela pede);
-  - modo LIVRE ou CRÉDITO, contador de partidas, limpar o mural.
+  - "ABRIR O JOGO AO LIGAR A TV" e "SAIR PARA A TV" (só na TV Box);
+  - "ZERAR CONTADOR DE PARTIDAS" e "LIMPAR MURAL DE CAMPEÕES" (pedem
+    confirmação antes de apagar).
+JANELAS: a janela aberta é a única que recebe mouse, controle e teclas;
+VOLTAR / ESC fecha só a de cima. Nada do que ficou atrás é apertado.
 
 NO CANTO DE BAIXO DA TELA (pequeno):
   TV 19 • Mali-G31 • 58 q/s • nível 3 • 720p • TV 1920x1080 • Arduino OK • Android 10...
@@ -187,26 +206,37 @@ O AVISO DE "ABRIR SOZINHO AO LIGAR":
     na próxima vez que o jogo abrir.
 
 
-6. MODO FEIRA (CADASTRO DOS JOGADORES NO PENDRIVE)
--------------------------------------------------
-MENU -> Central da Máquina -> "MODO FEIRA".
-  1. Espete o PENDRIVE na TV Box (FAT32 ou exFAT). O Modo Feira SÓ LIGA
-     com o pendrive reconhecido. Se a caixa não achar o pendrive sozinha,
-     aperte "ESCOLHER A PASTA DO PENDRIVE": na tela do Android entre no
-     pendrive e aperte "USAR ESTA PASTA" / "PERMITIR" (uma vez só).
-  2. Aperte "LIGAR O MODO FEIRA" e, se quiser, escreva o NOME DO EVENTO.
-  3. Confira a DATA E HORA DOS CADASTROS (caixa sem internet abre com o
-     relógio errado: acerte com os botões - e +).
+6. MODO EVENTO (FEIRAS: JOGO LIVRE + CADASTRO DOS JOGADORES)
+-----------------------------------------------------------
+MENU -> Central da Máquina -> botão "EVENTO". Liga na hora, com ou sem
+pendrive. Com o Modo Evento ligado:
+  - A FICHA É LIVRE: ninguém precisa de crédito para jogar.
+  - SÓ O ARCADE aparece no menu (a Copa volta ao sair do Modo Evento).
+  - START abre a escolha de jogadores (1 a 4); quando ela fecha, CADA
+    jogador escolhido preenche o cadastro e só então a partida começa.
+  - Terminou a partida: o jogo volta para o menu, para os próximos
+    jogadores se cadastrarem.
+Na Central, com o EVENTO ligado, aparecem:
+  - NOME DO EVENTO (vai para as planilhas): clique / OK para escrever;
+  - quantos já se cadastraram e o estado do PENDRIVE;
+  - "GRAVAR NO PENDRIVE" (ele também grava sozinho);
+  - "OPÇÕES DO EVENTO": acertar a DATA E HORA DOS CADASTROS (caixa sem
+    internet abre com o relógio errado: botões - e +), "ESCOLHER A PASTA
+    DO PENDRIVE" (TV Box que não acha o pendrive sozinha: na tela do
+    Android entre no pendrive e aperte "USAR ESTA PASTA" / "PERMITIR") e
+    "APAGAR TODOS OS CADASTROS".
+PENDRIVE (FAT32 ou exFAT): pode espetar antes ou depois. Sem ele os
+cadastros ficam guardados na máquina e vão para o pendrive quando ele for
+espetado (o menu avisa "SEM PENDRIVE").
 Com o modo ligado, antes de cada partida cada jogador preenche a ficha:
-E-MAIL, NOME e IDADE (a data entra sozinha). Pelo controle remoto: o
+E-MAIL, NOME e IDADE (a data entra sozinha). Pelo controle ou mouse: o
 teclado da tela abre sozinho em cada campo (tem @, os finais @gmail.com,
 @hotmail.com... e números para a idade); PRONTO passa para o próximo. Um
 teclado USB na caixa também escreve (ENTER = pronto).
   - QUEM JÁ JOGOU digita o mesmo e-mail: os dados voltam prontos, a ficha é
     atualizada (não duplica) e a visita é somada.
-  - Na COPA, a ficha pede e-mail e idade de cada nome escrito.
-  - "SAIR SEM JOGAR" (ou VOLTAR 2 vezes): a partida não começa e o crédito
-    volta. Ficha parada 2,5 minutos: volta sozinha para o menu.
+  - "SAIR SEM JOGAR" (ou VOLTAR 2 vezes): a partida não começa.
+    Ficha parada 2,5 minutos: volta sozinha para o menu.
 NO PENDRIVE, pasta OlhoNoLance_Leads:
     leads.csv         para importar em outras plataformas (vírgula, UTF-8)
     leads_excel.csv   para abrir com 2 cliques no Excel (ponto e vírgula)
@@ -226,7 +256,7 @@ NO PENDRIVE, pasta OlhoNoLance_Leads:
   dentro do pendrive (a Central da Máquina mostra onde gravou).
   LGPD: a ficha avisa o jogador do uso dos dados; guarde o pendrive em
   lugar seguro e apague os dados de quem pedir ("APAGAR TODOS OS
-  CADASTROS DA MÁQUINA" limpa a máquina; os arquivos do pendrive, não).
+  CADASTROS" limpa a máquina; os arquivos do pendrive, não).
 
 
 SE ALGO NÃO FUNCIONAR

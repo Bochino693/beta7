@@ -419,6 +419,7 @@ func _travar_modo_arcade() -> void:
 func _process(delta: float) -> void:
 	if fundo_video != null:
 		_enquadrar_video_cover()
+	_atualizar_botao_central()
 
 	# Menu travado: durante loading/boot, patrocinadores, iniciando modo, ou indo pro Mural.
 	var menu_bloqueado: bool = patro_replay_ativo or (opening_loading_layer != null) or iniciando_jogo or combo_indo_mural or ranking_indo
@@ -710,9 +711,48 @@ func _criar_tela() -> void:
 	_criar_botoes()
 	_criar_painel_mural_ranking()
 	_criar_status_arcade()
+	_criar_botao_central()
 	# Botão de mouse do Mural REMOVIDO de propósito.
 	# O Mural agora abre segurando START + CUP juntos (combo).
 
+
+
+## Quem está com um MOUSE na máquina (operador) vê este botão no canto: ele
+## só existe enquanto o cursor está na tela (ControleTv.mouse_na_tela) e
+## abre a Central da Máquina, igual ao F9.
+var botao_central: Button = null
+
+
+func _criar_botao_central() -> void:
+	botao_central = Button.new()
+	botao_central.text = "⚙  CENTRAL DA MÁQUINA"
+	botao_central.size = Vector2(330, 60)
+	botao_central.position = Vector2(get_viewport_rect().size.x - 330 - 28, 24)
+	botao_central.focus_mode = Control.FOCUS_NONE
+	botao_central.z_index = 95
+	botao_central.visible = false
+	botao_central.add_theme_font_size_override("font_size", 22)
+	if fonte_orbitron:
+		botao_central.add_theme_font_override("font", fonte_orbitron)
+	for estado in ["normal", "hover", "pressed"]:
+		var st := StyleBoxFlat.new()
+		st.bg_color = Color(0.03, 0.06, 0.11, 0.94) if estado == "normal" else Color(0.06, 0.20, 0.34, 0.98)
+		st.border_color = COR_NEON
+		st.set_border_width_all(2)
+		st.set_corner_radius_all(30)
+		botao_central.add_theme_stylebox_override(estado, st)
+	botao_central.pressed.connect(_abrir_tela_configuracoes)
+	root.add_child(botao_central)
+
+
+func _atualizar_botao_central() -> void:
+	if botao_central == null or not is_instance_valid(botao_central):
+		return
+	var mostra: bool = ControleTv.mouse_na_tela() and not escolhendo_players and not iniciando_jogo \
+		and not copa_modal_aberto and not patro_replay_ativo and opening_loading_layer == null \
+		and not combo_indo_mural and not ranking_indo
+	if botao_central.visible != mostra:
+		botao_central.visible = mostra
 
 
 func _atualizar_combo_mural(delta: float) -> void:
@@ -2124,7 +2164,7 @@ func _preparar_inicio_partida() -> void:
 
 	await _fechar_modal_players()
 
-	# MODO FEIRA: cada jogador preenche a ficha (e-mail, nome, idade) antes
+	# MODO EVENTO: cada jogador preenche a ficha (e-mail, nome, idade) antes
 	# de a partida começar. Abandonou: o crédito volta e o menu continua.
 	if Leads.ligado:
 		var cores_ficha: Array = []
@@ -3917,6 +3957,10 @@ func _definir_modos() -> void:
 		}
 		# NOVOS MODOS AQUI
 	]
+	# MODO EVENTO: só o ARCADE (ficha livre + cadastro de cada jogador).
+	if ArcadeData.evento():
+		modos_jogo.resize(1)
+		modo_focado = 0
 
 
 func _offsets_carrossel(size: int) -> Array:
@@ -4243,7 +4287,7 @@ func _criar_status_arcade() -> void:
 	status_sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	status_painel.add_child(status_sub)
 
-	# MODO FEIRA ligado: uma etiqueta embaixo do selo (e o aviso de pendrive fora)
+	# MODO EVENTO ligado: uma etiqueta embaixo do selo (e o aviso de pendrive fora)
 	status_feira = Label.new()
 	status_feira.position = Vector2(6, 78)
 	status_feira.size = Vector2(520, 24)
@@ -4280,10 +4324,10 @@ func _atualizar_etiqueta_feira() -> void:
 	if not Leads.ligado:
 		return
 	if Leads.tem_pendrive():
-		status_feira.text = "●  MODO FEIRA  •  %d cadastros" % Leads.total()
+		status_feira.text = "●  %d jogador%s cadastrado%s" % [Leads.total(), "" if Leads.total() == 1 else "es", "" if Leads.total() == 1 else "s"]
 		status_feira.add_theme_color_override("font_color", Color(0.45, 1.0, 0.62))
 	else:
-		status_feira.text = "●  MODO FEIRA  •  SEM PENDRIVE (guardando na máquina)"
+		status_feira.text = "●  SEM PENDRIVE  •  cadastros guardados na máquina"
 		status_feira.add_theme_color_override("font_color", Color(1.0, 0.84, 0.10))
 
 
@@ -4312,7 +4356,10 @@ func _atualizar_status_arcade(aviso: String = "") -> void:
 		return
 	var estado := "livre"
 	var cor := Color(0.16, 0.86, 0.42)
-	if ArcadeData.modo_operacao == "credito":
+	if ArcadeData.evento():
+		estado = "evento"
+		cor = Color(1.0, 0.84, 0.10)
+	elif ArcadeData.modo_operacao == "credito":
 		if ArcadeData.creditos <= 0:
 			estado = "sem"
 			cor = Color(1.0, 0.30, 0.22)
@@ -4327,6 +4374,11 @@ func _atualizar_status_arcade(aviso: String = "") -> void:
 			arcade_status_label.text = "JOGO LIVRE"
 			var n: int = ArcadeData.partidas_total
 			status_sub.text = "%d partida%s jogada%s" % [n, "" if n == 1 else "s", "" if n == 1 else "s"]
+		"evento":
+			status_icone_txt.text = "★"
+			status_icone_txt.add_theme_color_override("font_color", Color(0.30, 0.18, 0.0))
+			arcade_status_label.text = "MODO EVENTO"
+			status_sub.text = "jogo livre  •  com cadastro"
 		"credito":
 			status_icone_txt.text = str(mini(ArcadeData.creditos, 99))
 			status_icone_txt.add_theme_color_override("font_color", Color(0.30, 0.18, 0.0))

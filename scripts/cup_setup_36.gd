@@ -612,7 +612,7 @@ func _tentar_confirmar_cadastro() -> void:
 		_validar_duplicatas_live()
 		return
 
-	# MODO FEIRA: cada jogador de verdade completa a ficha (e-mail e idade)
+	# MODO EVENTO: cada jogador de verdade completa a ficha (e-mail e idade)
 	if Leads.ligado:
 		if _feira_pedindo:
 			return

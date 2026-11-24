@@ -40,3 +40,14 @@ IDENTIDADE DO EXECUTÁVEL
 - Tela de inicialização usa a capa oficial completa do próprio jogo.
 - O ícone padrão do Godot foi totalmente substituído.
 - Metadados do Windows identificam Olho no Lance e Lazer & Sport Games.
+
+ATUALIZAÇÃO — CENTRAL SIMPLES, MODO EVENTO E MOUSE
+- A Central da Máquina (F9) ficou em uma tela só: escolher LIVRE, CRÉDITO ou
+  EVENTO, testar os alvos e voltar. O resto fica em "AJUSTES AVANÇADOS".
+- MODO EVENTO: ficha livre, só o Arcade e cadastro (e-mail, nome, idade) de
+  cada jogador escolhido antes de a partida começar. Liga com ou sem pendrive.
+- Janelas: a que está aberta é a única que recebe clique, controle e teclas
+  (ESC fecha só a de cima); apagar dados pede confirmação.
+- Mouse: cursor próprio do jogo (seta amarela) em todas as telas; no menu,
+  com o mouse em uso, aparece o botão "⚙ CENTRAL DA MÁQUINA".
+- Detalhes: LEIA-ME_TV_BOX.txt, itens 3, 5 e 6.
