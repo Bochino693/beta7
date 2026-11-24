@@ -62,9 +62,38 @@ func _trocou_de_tela(cena: Node) -> void:
 	_cena = cena
 	_cena_desde = Time.get_ticks_msec()
 	_partida = cena != null and cena.scene_file_path.get_file().get_basename() in TELAS_DE_PARTIDA
+	_enquadrar(cena)
 	if _trocar_pendente:
 		_trocar_pendente = false
 		_aplicar_resolucao()
+
+
+# ------------------------------------------------------- enquadramento
+## CADA TELA NO TAMANHO EM QUE FOI DESENHADA. O menu foi desenhado para uma
+## tela de 1080 linhas; os lobbies, as partidas e os resultados foram
+## desenhados (modais, cartões e letras em pontos fixos) para uma tela de
+## 720 linhas - numa de 1080 ficavam pequenos, com a letra miúda e muito
+## fundo escuro sobrando. Aqui cada tela recebe a "régua" certa ANTES de se
+## montar: o conteúdo ocupa a tela inteira, em qualquer TV. É só a régua do
+## desenho; a nitidez continua a da TV (as letras são redesenhadas no
+## tamanho final, não esticadas).
+const LINHAS_DA_TELA := {"opening": 1080, "cup_setup_36": 1080, "champions_wall": 900, "champions_ranking": 900,
+	"cup_lobby": 900, "lobby": 864}
+const LINHAS_PADRAO := 720
+
+
+func _enquadrar(cena: Node) -> void:
+	if cena == null:
+		return
+	var nome := cena.scene_file_path.get_file().get_basename()
+	var linhas: int = int(LINHAS_DA_TELA.get(nome, LINHAS_PADRAO))
+	var teste := OS.get_environment("OLHO_LINHAS")
+	if teste != "" and nome != "opening":
+		linhas = int(teste)
+	var regua := Vector2i(int(round(linhas * 16.0 / 9.0)), linhas)
+	var janela := get_tree().root
+	if janela.content_scale_size != regua:
+		janela.content_scale_size = regua
 
 
 # ------------------------------------------------- desempenho automático
@@ -214,19 +243,33 @@ func _no_novo(n: Node) -> void:
 	var atual := get_tree().current_scene
 	if atual != _cena:
 		_trocou_de_tela(atual)
+	if not (n is Panel or n is PanelContainer or n is BaseButton or n is ColorRect or n is LineEdit):
+		return
 	if _partida:
-		return   # telas de partida: nada é tocado (cores, neon dos LEDs e tempos são os do jogo)
-	if not (n is Panel or n is PanelContainer or n is BaseButton or n is ColorRect):
+		# telas de partida: cores, neon dos LEDs e tempos são os do jogo; aqui
+		# só os cantos e os "hovers" quadrados são acertados (uma vez)
+		if not (n is ColorRect):
+			_afinar.call_deferred(n)
 		return
 	var depois: bool = Time.get_ticks_msec() - _cena_desde >= MONTANDO_MS
 	if n is ColorRect:
 		if depois:
 			_talvez_animar.call_deferred(n)
 		return
-	# o estilo chega logo depois de o nó entrar: afina UMA vez, no fim do quadro
+	# o estilo chega logo depois de o nó entrar: afina no fim do quadro, e de
+	# novo quando a tela troca o estilo do painel (botão marcado, card ativo...)
 	_afinar.call_deferred(n)
-	if depois:
+	if not (n as Control).theme_changed.is_connected(_estilo_mudou):
+		(n as Control).theme_changed.connect(_estilo_mudou.bind(n))
+	if depois and not (n is LineEdit):
 		_talvez_animar.call_deferred(n)
+
+
+func _estilo_mudou(c: Control) -> void:
+	if not is_instance_valid(c) or c.has_meta("v_fila"):
+		return
+	c.set_meta("v_fila", true)
+	_afinar.call_deferred(c)
 
 
 func _e_do_sistema(c: Node) -> bool:
@@ -239,26 +282,101 @@ func _e_do_sistema(c: Node) -> bool:
 	return false
 
 
+## O NEON (sombra colorida) DOS CARDS FICA: só é encurtado conforme o fôlego
+## da placa de vídeo (sombra grande é o desenho mais caro que existe aqui).
+const NEON_POR_NIVEL := [14, 10, 10, 8, 6, 0]
+
+
+func _maior_raio(sb: StyleBoxFlat) -> int:
+	return maxi(maxi(sb.corner_radius_top_left, sb.corner_radius_top_right), maxi(sb.corner_radius_bottom_left, sb.corner_radius_bottom_right))
+
+
 func _afinar(c: Control) -> void:
-	if not is_instance_valid(c) or _e_do_sistema(c):
+	if not is_instance_valid(c):
 		return
+	if c.has_meta("v_fila"):
+		c.remove_meta("v_fila")
+	if _e_do_sistema(c):
+		return
+	var menor := minf(c.size.x, c.size.y)
+	if menor <= 0.0 and not c.has_meta("v_2a"):
+		# (ainda sem tamanho: olha de novo daqui a pouco, uma vez)
+		c.set_meta("v_2a", true)
+		get_tree().create_timer(0.08, true, false, true).timeout.connect(_afinar.bind(c))
+		return
+	var tela := get_viewport().get_visible_rect().size
 	for nome in NOMES_ESTILO:
 		if not c.has_theme_stylebox_override(nome):
 			continue
 		var sb := c.get_theme_stylebox(nome)
 		if sb is StyleBoxFlat and not sb.has_meta("visual"):
-			_afinar_estilo(sb as StyleBoxFlat)
+			_afinar_estilo(sb as StyleBoxFlat, c, menor, tela)
+	if c is BaseButton:
+		_afinar_botao(c as BaseButton)
+	elif c is LineEdit:
+		_afinar_campo(c as LineEdit)
 
 
-func _afinar_estilo(sb: StyleBoxFlat) -> void:
+func _afinar_estilo(sb: StyleBoxFlat, c: Control, menor: float, tela: Vector2) -> void:
 	sb.set_meta("visual", true)
-	# só o que deixa MAIS LEVE: sombra (neon) curta. Sem antisserrilhado e sem
-	# cantos mais detalhados - isso é desenho a mais para a placa de vídeo.
-	var maximo: int = BRILHO_MAX if nivel == 0 else 0
-	if sb.shadow_size > maximo:
-		sb.shadow_size = maximo
-		var cor := sb.shadow_color
-		sb.shadow_color = Color(cor.r, cor.g, cor.b, cor.a * BRILHO_ALFA)
+	# NEON mais curto (fora das partidas: lá o neon é o do jogo)
+	if not _partida:
+		var maximo: int = NEON_POR_NIVEL[clampi(nivel, 0, NEON_POR_NIVEL.size() - 1)]
+		if sb.shadow_size > maximo:
+			sb.shadow_size = maximo
+			var cor := sb.shadow_color
+			sb.shadow_color = Color(cor.r, cor.g, cor.b, cor.a * BRILHO_ALFA)
+	# SEM CANTO PONTUDO: painel / botão quadrado ganha canto redondo. Ficam de
+	# fora as faixas de lado a lado da tela, as barras fininhas e o que a
+	# tela arredondou só de um lado de propósito.
+	if menor >= 26.0 and c.size.x < tela.x * 0.94 and c.size.y < tela.y * 0.94 and _maior_raio(sb) < 6 \
+			and (sb.bg_color.a > 0.03 or sb.border_color.a > 0.03):
+		sb.set_corner_radius_all(clampi(int(menor * 0.22), 6, 14))
+
+
+## BOTÃO REDONDO COM "HOVER" QUADRADO: o botão que só recebeu o estilo normal
+## mostrava o hover / apertado / foco cinza e quadrado do tema padrão. Eles
+## passam a ser o próprio estilo do botão, mais claro, com o mesmo canto.
+func _afinar_botao(b: BaseButton) -> void:
+	if not b.has_theme_stylebox_override("normal"):
+		return
+	var normal := b.get_theme_stylebox("normal") as StyleBoxFlat
+	if normal == null:
+		return
+	var raio := _maior_raio(normal)
+	for nome in ["hover", "pressed", "disabled"]:
+		if b.has_theme_stylebox_override(nome):
+			var sb := b.get_theme_stylebox(nome) as StyleBoxFlat
+			if sb != null and _maior_raio(sb) + 2 < raio:
+				sb.corner_radius_top_left = normal.corner_radius_top_left
+				sb.corner_radius_top_right = normal.corner_radius_top_right
+				sb.corner_radius_bottom_left = normal.corner_radius_bottom_left
+				sb.corner_radius_bottom_right = normal.corner_radius_bottom_right
+			continue
+		var novo := normal.duplicate() as StyleBoxFlat
+		novo.set_meta("visual", true)
+		if nome == "hover":
+			novo.bg_color = normal.bg_color.lightened(0.10)
+			novo.border_color = normal.border_color.lightened(0.25)
+		elif nome == "pressed":
+			novo.bg_color = normal.bg_color.lightened(0.20)
+			novo.border_color = normal.border_color.lightened(0.35)
+		b.add_theme_stylebox_override(nome, novo)
+	if not b.has_theme_stylebox_override("focus"):
+		b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+
+func _afinar_campo(c: LineEdit) -> void:
+	if not c.has_theme_stylebox_override("normal") or c.has_theme_stylebox_override("focus"):
+		return
+	var normal := c.get_theme_stylebox("normal") as StyleBoxFlat
+	if normal == null:
+		return
+	var foco := normal.duplicate() as StyleBoxFlat
+	foco.set_meta("visual", true)
+	foco.border_color = normal.border_color.lightened(0.35)
+	foco.bg_color = Color(0, 0, 0, 0)
+	c.add_theme_stylebox_override("focus", foco)
 
 
 # ----------------------------------------------------------- modais animados

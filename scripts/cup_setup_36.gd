@@ -220,17 +220,16 @@ func _criar_fundo() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(bg)
 
-	var glow := ColorRect.new()
-	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	glow.color = Color(0.10, 0.75, 1.00, 0.035)
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cl.add_child(glow)
-
-	var ouro := ColorRect.new()
-	ouro.set_anchors_preset(Control.PRESET_FULL_RECT)
-	ouro.color = Color(COR_COPA.r, COR_COPA.g, COR_COPA.b, 0.035)
-	ouro.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cl.add_child(ouro)
+	# o estádio da Copa no fundo, no lugar do preto
+	if ResourceLoader.exists("res://fundos/back.png"):
+		var estadio := TextureRect.new()
+		estadio.set_anchors_preset(Control.PRESET_FULL_RECT)
+		estadio.texture = load("res://fundos/back.png")
+		estadio.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		estadio.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		estadio.modulate = Color(0.62, 0.66, 0.74)
+		estadio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cl.add_child(estadio)
 
 
 func _criar_ui_root() -> void:

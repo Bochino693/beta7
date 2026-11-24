@@ -351,7 +351,9 @@ final class InicioDaTv {
 
 	/** Os comandos do PREPARAR_TV.bat para esta TV (AdbDaTv.comandoPreparar). */
 	static String comandoPreparar(Context c) {
-		return AdbDaTv.comandoPreparar(c.getPackageName(), StrikeInicioAtivo.class.getName(), outrasTelasIniciais(c), DESLIGADAS);
+		// (+ o Arduino: o jogo vira o app padrão dele, sem janela de permissão)
+		return AdbDaTv.comandoPreparar(c.getPackageName(), StrikeInicioAtivo.class.getName(), outrasTelasIniciais(c), DESLIGADAS)
+				+ "; " + comandoUsb(c) + " >/dev/null";
 	}
 
 	// ------------------------------------------------------------ Android 10+
@@ -505,6 +507,60 @@ final class InicioDaTv {
 			return r;
 		}
 		return prepararPeloAdb(c);
+	}
+
+	// ------------------------------------------------------------ Arduino sem janela
+	/** O comando que roda o UsbPadrao (ver UsbPadrao.java) com a autoridade do root / do adb. */
+	static String comandoUsb(Context c) {
+		return "CLASSPATH=" + c.getApplicationInfo().sourceDir + " app_process /system/bin "
+				+ UsbPadrao.class.getName() + " " + c.getPackageName() + " " + c.getApplicationInfo().uid + " 2>&1";
+	}
+
+	/**
+	 * A PERMISSÃO USB DO ARDUINO SEM JANELA E PARA SEMPRE: pelo root da caixa
+	 * ou pelo adb da própria TV (Depuração USB ligada), o jogo vira o app
+	 * padrão do Arduino - o Android nunca mais pergunta. "ok" ou "sem_acesso"
+	 * (a caixa não tem root nem depuração: resta a janela do Android).
+	 * Demorado: nunca na linha da tela.
+	 */
+	static String usbSemJanela(Context c) {
+		String comando = comandoUsb(c);
+		String[][] jeitos = {{"su", "-c", comando}, {"su", "0", "sh", "-c", comando},
+				{"/system/xbin/su", "-c", comando}, {"/system/bin/su", "-c", comando}};
+		for (String[] j : jeitos) {
+			String saida = rodar(j, 15000);
+			if (saida != null && saida.contains("USB_PADRAO")) {
+				Log.i(TAG, "usb: pelo root: " + saida.trim().replace('\n', ' '));
+				if (!saida.contains("USB_PADRAO 0")) {
+					return "ok";
+				}
+			}
+		}
+		AdbDaTv adb;
+		try {
+			adb = AdbDaTv.conectar("127.0.0.1", PORTA_ADB, 1500);
+		} catch (IOException e) {
+			return "sem_acesso";
+		}
+		try {
+			SharedPreferences p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+			long ligou = ligouEm(c);
+			boolean podePerguntar = p.getLong("adb_perguntou", Long.MIN_VALUE) != ligou;
+			if (podePerguntar) {
+				p.edit().putLong("adb_perguntou", ligou).commit();
+			}
+			if (!adb.entrar(chaveDoJogo(c), "GolFlash@tv", podePerguntar, 5000, 120000)) {
+				return "sem_acesso";
+			}
+			String saida = adb.shell(comando, 30000);
+			Log.i(TAG, "usb: pelo adb: " + saida.trim().replace('\n', ' '));
+			return saida.contains("USB_PADRAO") && !saida.contains("USB_PADRAO 0") ? "ok" : "sem_acesso";
+		} catch (Throwable t) {
+			Log.i(TAG, "usb: pelo adb: " + t);
+			return "sem_acesso";
+		} finally {
+			adb.close();
+		}
 	}
 
 	// ------------------------------------------------------------ estado

@@ -98,19 +98,19 @@ const FUNDO_PREP_AZUL: String     = "res://fundos/blue.png"
 const FUNDO_PREP_VERDE: String    = "res://fundos/green.png"
 
 const TEMPO_PLAYER_REAL: float = 60.0
-const TEMPO_PLAYER_BOT_FASE1: float = 6.0
-const TEMPO_PLAYER_BOT_MATA: float = 9.0
-const TEMPO_PLAYER_BOT_FINAL: float = 12.0
+const TEMPO_PLAYER_BOT_FASE1: float = 9.0
+const TEMPO_PLAYER_BOT_MATA: float = 11.0
+const TEMPO_PLAYER_BOT_FINAL: float = 13.0
 
 const TEMPO_CONTAGEM_INICIAL: int = 3
 const START_DEBOUNCE_MS: float = 500.0
 
 const AUTO_START_BOT: bool = true
-const AUTO_START_DELAY_BOT: float = 0.55
+const AUTO_START_DELAY_BOT: float = 1.80
 
 const BOT_JOGA_SOZINHO: bool = true
-const BOT_INTERVALO_GOL_MIN: float = 0.45
-const BOT_INTERVALO_GOL_MAX: float = 0.95
+const BOT_INTERVALO_GOL_MIN: float = 0.95
+const BOT_INTERVALO_GOL_MAX: float = 1.75
 
 const LEDS_TOTAL: int = 7
 const LEDS_ATIVOS_MIN: int = 2
@@ -1290,7 +1290,8 @@ func _iniciar_turno_player() -> void:
 	if not _player_eh_bot(player_atual):
 		_tocar_inicio_hype()
 
-	await get_tree().create_timer(0.28).timeout
+	# (o apito toca inteiro; os alvos só acendem depois dele)
+	await get_tree().create_timer(1.05).timeout
 
 	_sortear_novo_grupo_de_fileiras()
 
@@ -1455,7 +1456,7 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
 
 	scores[player_atual] += valor
 
@@ -2539,12 +2540,13 @@ func _cobrar_penalti(p: int, rodada: int, participantes: Array, pen: Dictionary)
 			leds_ativos.append(alvo)
 			cores_leds_ativos[alvo] = _rgb_aleatorio_alvo()
 
-	_atualizar_leds_hud()
-	_enviar_leds_para_arduino()
-
+	# (o apito primeiro; o alvo só acende depois dele)
 	_tocar_audio(sfx_apito_init)
 
-	await get_tree().create_timer(0.35).timeout
+	await get_tree().create_timer(1.05).timeout
+
+	_atualizar_leds_hud()
+	_enviar_leds_para_arduino()
 
 	_pen_resultado = 0
 	_pen_aguardando = true
@@ -3183,6 +3185,8 @@ func _mostrar_modal_resultado(ranking: Array) -> void:
 	entrada.set_parallel(true)
 	entrada.tween_property(panel, "modulate", Color.WHITE, 0.22)
 	entrada.tween_property(panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# a apresentação do resultado: o painel sobe, as linhas entram uma a uma
+	Efeitos.apresentar(panel, Color(1.0, 0.80, 0.15))
 
 	await entrada.finished
 
@@ -4552,7 +4556,7 @@ func _explosao_gol(index: int) -> void:
 		Color(0.2, 0.9, 1.0)
 	]
 
-	for i in range(24):
+	for i in range(10 if Visual.nivel >= 1 else 24):   # (TV Box: menos faíscas por gol = gol sem engasgo)
 		var faisca := ColorRect.new()
 
 		var s: float = clampf(ref * 0.022, 6.0, 16.0)
