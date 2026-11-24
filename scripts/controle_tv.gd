@@ -15,6 +15,11 @@ extends CanvasLayer
 ##                      controle: VOLTAR 5 vezes seguidas no menu principal.
 ##                      No teclado: F9 ou F1 (sempre com o menu principal na tela)
 ##
+## MOUSE (para quem quiser mexer com ele): o jogo tem o SEU cursor, igual em
+## todas as telas, no PC e na TV Box. Ele aparece quando o mouse mexe e some
+## sozinho depois de uns segundos parado (na partida não fica seta na tela).
+## Clicar num campo de cadastro abre o teclado da tela.
+##
 ## Não depende de mouse, teclado USB nem do teclado do Android: os botões
 ## são achados na própria tela (qualquer Button visível e os campos de
 ## nome), então vale para todas as telas, inclusive as novas.
@@ -47,6 +52,14 @@ var _voltar_vezes := 0
 var _voltar_desde := 0
 var _cena_vista: Node
 var _tinha_alvo := false
+var _conferir_alvo := 0.0
+
+# o cursor do jogo
+const MOUSE_SOME_MS := 6000
+var _cursor: Control
+var _mouse_pos := Vector2.ZERO
+var _mouse_visto_ms := -100000
+var _mouse_apertado := false
 
 
 func _ready() -> void:
@@ -57,6 +70,13 @@ func _ready() -> void:
 	_moldura.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_moldura.draw.connect(_desenhar_moldura)
 	add_child(_moldura)
+	_cursor = Control.new()
+	_cursor.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_cursor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cursor.z_index = 100
+	_cursor.visible = false
+	_cursor.draw.connect(_desenhar_cursor)
+	add_child(_cursor)
 	get_tree().node_added.connect(_no_novo)
 
 
@@ -73,6 +93,15 @@ func _process(_delta: float) -> void:
 		_soltar_tudo()
 	if _alvo != null and not _vale(_alvo):
 		_alvo = null
+	# abriu um painel por cima do botão marcado: a marca sai (o OK nunca
+	# aperta um botão que ficou atrás)
+	if _alvo != null:
+		_conferir_alvo -= _delta
+		if _conferir_alvo <= 0.0:
+			_conferir_alvo = 0.2
+			if not _candidatos().has(_alvo):
+				_alvo = null
+	_quadro_do_cursor()
 	# (só redesenha com algo marcado: parado, não gasta nada)
 	if _alvo != null or _tinha_alvo:
 		_tinha_alvo = _alvo != null
@@ -84,6 +113,9 @@ func _input(event: InputEvent) -> void:
 	var tecla := ""
 	var apertou := false
 	var eco := false
+	if event is InputEventMouse:
+		_mouse_mexeu(event)
+		return
 	# a ficha do Modo Feira está na tela: VOLTAR / ESC é dela (com o teclado
 	# fechado) e qualquer tecla conta como "tem gente aqui"
 	if Leads.ficha_aberta() and (event is InputEventKey or event is InputEventJoypadButton):
@@ -152,11 +184,19 @@ func _input(event: InputEvent) -> void:
 				_consumir()
 				_fechar_teclado(true)
 				return
+			var lista := _candidatos()
+			var atras := _alvo != null and not lista.has(_alvo)
+			if atras:
+				# um painel abriu por cima do botão marcado: ele não é apertado
+				_alvo = null
 			if _alvo != null and _vale(_alvo):
 				_consumir()
 				_apertar(_alvo)
 				return
-			var lista := _candidatos()
+			if atras and not lista.is_empty():
+				_consumir()
+				_marcar(lista[0])
+				return
 			if _tem_campo(lista):
 				# tela de cadastro: o primeiro OK marca o primeiro campo
 				_consumir()
@@ -429,12 +469,17 @@ func _desenhar_moldura() -> void:
 
 # -------------------------------------------------------- teclado na tela
 ## Na TV os campos não chamam o teclado do Android: usam o teclado do jogo.
+## No PC vale para os campos de cadastro (os que dizem qual teclado querem):
+## um clique do mouse abre o teclado da tela, e o teclado USB também escreve.
 func _no_novo(n: Node) -> void:
-	if n is LineEdit and OS.get_name() == "Android":
+	if n is LineEdit:
 		var campo := n as LineEdit
-		campo.virtual_keyboard_enabled = false
+		var na_tv := OS.get_name() == "Android"
+		if na_tv:
+			campo.virtual_keyboard_enabled = false
 		campo.gui_input.connect(func(ev: InputEvent) -> void:
-			if ev is InputEventMouseButton and ev.pressed and _teclado == null and _vale(campo):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT and _teclado == null and _vale(campo) \
+					and (na_tv or campo.has_meta("teclado") or campo.has_meta("titulo")):
 				_marcar(campo)
 				_abrir_teclado(campo))
 
@@ -507,7 +552,7 @@ func _abrir_teclado(campo: LineEdit) -> void:
 	painel.position = Vector2((tela.x - larg) * 0.5, y)
 	painel.size = Vector2(larg, alt)
 	var st := StyleBoxFlat.new()
-	st.bg_color = Color(0.03, 0.05, 0.09, 0.98)
+	st.bg_color = Color(0.03, 0.05, 0.09, 1.0)
 	st.border_color = COR_MARCA
 	st.set_border_width_all(2)
 	st.set_corner_radius_all(int(18 * escala))
@@ -668,3 +713,63 @@ func _tecla_fisica(ev: InputEventKey) -> void:
 		_fisico = true
 		var letra := String.chr(ev.unicode)
 		_digitar(letra if _modo_teclado == "email" else letra.to_upper())
+
+
+# ------------------------------------------------------------ cursor do jogo
+## O mouse está em uso (o cursor do jogo está na tela)?
+func mouse_na_tela() -> bool:
+	return Time.get_ticks_msec() - _mouse_visto_ms < MOUSE_SOME_MS
+
+
+func _mouse_mexeu(event: InputEventMouse) -> void:
+	# (toque na tela não é mouse)
+	if event.device == InputEvent.DEVICE_ID_EMULATION:
+		return
+	if event is InputEventMouseMotion:
+		if (event as InputEventMouseMotion).relative.length_squared() < 0.5:
+			return
+	elif event is InputEventMouseButton:
+		var b := event as InputEventMouseButton
+		if b.button_index == MOUSE_BUTTON_LEFT:
+			_mouse_apertado = b.pressed
+			# quem está com o mouse não usa a marca do controle
+			if b.pressed and _teclado == null:
+				_alvo = null
+		if Leads.ficha_aberta():
+			Leads.tocou()
+	_mouse_pos = event.position
+	_mouse_visto_ms = Time.get_ticks_msec()
+
+
+func _quadro_do_cursor() -> void:
+	# a seta do sistema nunca aparece: quem desenha é o jogo
+	if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
+		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
+	var mostra := mouse_na_tela()
+	if not mostra and not _cursor.visible:
+		return
+	_cursor.visible = mostra
+	if get_child(get_child_count() - 1) != _cursor:
+		move_child(_cursor, -1)
+	_cursor.queue_redraw()
+
+
+## Uma seta grande, amarela com contorno escuro: dá para ver de longe em
+## qualquer fundo. Encolhe um pouco no clique.
+func _desenhar_cursor() -> void:
+	var tela := get_viewport().get_visible_rect().size
+	var k := clampf(tela.y / 1080.0, 0.6, 2.0) * (0.86 if _mouse_apertado else 1.0)
+	var falta := MOUSE_SOME_MS - (Time.get_ticks_msec() - _mouse_visto_ms)
+	var a := clampf(falta / 400.0, 0.0, 1.0)
+	var forma := PackedVector2Array([Vector2(0, 0), Vector2(0, 40), Vector2(10, 31), Vector2(17, 47), Vector2(24, 44), Vector2(17, 28), Vector2(30, 28)])
+	var pts := PackedVector2Array()
+	var sombra := PackedVector2Array()
+	for p in forma:
+		pts.append(_mouse_pos + p * k)
+		sombra.append(_mouse_pos + p * k + Vector2(3, 4) * k)
+	_cursor.draw_colored_polygon(sombra, Color(0, 0, 0, 0.35 * a))
+	_cursor.draw_colored_polygon(pts, Color(COR_MARCA, a))
+	var borda := pts.duplicate()
+	borda.append(pts[0])
+	_cursor.draw_polyline(borda, Color(0.02, 0.04, 0.08, a), 3.0 * k, true)
+	_cursor.draw_polyline(borda, Color(1, 1, 1, 0.9 * a), 1.0 * k, true)

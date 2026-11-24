@@ -493,7 +493,7 @@ func _tentar_confirmar_cadastro() -> void:
 				label_erro_global.text = "⚠ Corrija os nomes (mínimo %d letras e sem repetir)." % MIN_LETRAS_NOME
 		return
 
-	# MODO FEIRA: cada jogador de verdade completa a ficha (e-mail e idade)
+	# MODO EVENTO: cada jogador de verdade completa a ficha (e-mail e idade)
 	if Leads.ligado:
 		if _feira_pedindo:
 			return

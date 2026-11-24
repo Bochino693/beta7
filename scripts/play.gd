@@ -2509,7 +2509,8 @@ func _confetes_vencedor(panel: Panel, cor: Color) -> void:
 
 func _reiniciar_partida() -> void:
 	# Em modo crédito, cada nova partida exige outro crédito no menu.
-	if ArcadeData.modo_operacao == "credito":
+	# Em modo evento, os próximos jogadores fazem o cadastro no menu.
+	if ArcadeData.modo_atual() != "livre":
 		_voltar_ao_opening()
 		return
 
