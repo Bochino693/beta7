@@ -354,7 +354,7 @@ func _candidatos() -> Array[Control]:
 		var r := _retangulo(c)
 		if r.size.x < 6.0 or r.size.y < 6.0 or not tela.has_point(r.get_center()):
 			continue
-		if _coberto(c, i, todos):
+		if _coberto(c, i, todos) or _escondido_no_rolo(c):
 			continue
 		saida.append(c)
 	saida.sort_custom(func(a: Control, b: Control) -> bool:
@@ -409,37 +409,101 @@ func _marcar(c: Control) -> void:
 	_moldura.queue_redraw()
 
 
+## ANDAR PELOS BOTÕES, DO JEITO QUE A PESSOA ESPERA:
+##   ▲ ▼  vão para a FILEIRA mais próxima acima / abaixo e, nela, para o
+##        botão mais alinhado com o que está marcado;
+##   ◀ ▶  andam DENTRO da fileira (o vizinho do lado); só se não houver
+##        vizinho na fileira é que valem os botões em diagonal.
+## Nunca pula para um botão que não está do lado de lá da borda do marcado
+## (era o que fazia a marca "fugir" para a linha de cima ou de baixo).
 func _andar(tecla: String, lista: Array[Control]) -> void:
 	if _alvo == null or not lista.has(_alvo):
 		_marcar(lista[0])
 		return
-	var d := Vector2.ZERO
-	match tecla:
-		"cima": d = Vector2.UP
-		"baixo": d = Vector2.DOWN
-		"esq": d = Vector2.LEFT
-		"dir": d = Vector2.RIGHT
+	# dentro de uma lista que rola (os eventos da Central): ▲ ▼ andam pelas
+	# linhas dela, inclusive as que ainda estão escondidas - a lista rola junto
+	var rolo := _rolo_de(_alvo)
+	if rolo != null and tecla in ["cima", "baixo"]:
+		var da_lista: Array[Control] = []
+		_juntar_apertaveis(rolo, da_lista)
+		var na_lista := _escolher(tecla, da_lista)
+		if na_lista != null:
+			rolo.ensure_control_visible(na_lista)
+			_marcar(na_lista)
+			return
+	var melhor := _escolher(tecla, lista)
+	if melhor != null:
+		_marcar(melhor)
+
+
+func _rolo_de(c: Control) -> ScrollContainer:
+	var p := c.get_parent()
+	while p != null:
+		if p is ScrollContainer:
+			return p
+		p = p.get_parent()
+	return null
+
+
+func _juntar_apertaveis(n: Node, lista: Array[Control]) -> void:
+	for f in n.get_children():
+		if f is Control and _vale(f):
+			lista.append(f)
+		_juntar_apertaveis(f, lista)
+
+
+## Está numa lista que rola e ficou para fora da parte que aparece?
+func _escondido_no_rolo(c: Control) -> bool:
+	var rolo := _rolo_de(c)
+	return rolo != null and not _retangulo(rolo).has_point(_retangulo(c).get_center())
+
+
+## O botão para onde a seta leva, saindo do marcado (null = não tem).
+func _escolher(tecla: String, lista: Array[Control]) -> Control:
 	var de := _retangulo(_alvo)
-	var melhor: Control = null
-	var menor := INF
+	var horizontal := tecla in ["esq", "dir"]
+	var achados: Array = []      # [botão, além da borda, ao lado (centros), sobrepõe]
 	for c in lista:
 		if c == _alvo:
 			continue
 		var r := _retangulo(c)
-		var o := r.get_center() - de.get_center()
-		var frente := o.dot(d)
-		if frente < 4.0:
+		var alem := 0.0
+		match tecla:
+			"dir": alem = r.position.x - de.end.x
+			"esq": alem = de.position.x - r.end.x
+			"baixo": alem = r.position.y - de.end.y
+			"cima": alem = de.position.y - r.end.y
+		if alem < -8.0:
 			continue
-		var lado := absf(o.dot(Vector2(-d.y, d.x)))
-		# quem está na mesma linha/coluna ganha de quem está na diagonal
-		var alinhado := (r.position.y < de.end.y and r.end.y > de.position.y) if d.x != 0.0 \
-			else (r.position.x < de.end.x and r.end.x > de.position.x)
-		var nota := frente + lado * (1.0 if alinhado else 3.0)
-		if nota < menor:
-			menor = nota
-			melhor = c
-	if melhor != null:
-		_marcar(melhor)
+		var o := r.get_center() - de.get_center()
+		var lado := absf(o.y) if horizontal else absf(o.x)
+		var sobrepoe: bool = (minf(r.end.y, de.end.y) - maxf(r.position.y, de.position.y) > 4.0) if horizontal \
+			else (minf(r.end.x, de.end.x) - maxf(r.position.x, de.position.x) > 4.0)
+		achados.append([c, maxf(alem, 0.0), lado, sobrepoe])
+	if achados.is_empty():
+		return null
+	var melhor: Control = null
+	var menor := INF
+	if horizontal:
+		# o vizinho da mesma fileira (sem vizinho, a marca fica onde está:
+		# para trocar de fileira use ▲ ▼)
+		for a in achados:
+			if a[3] and float(a[1]) + float(a[2]) * 0.01 < menor:
+				menor = float(a[1]) + float(a[2]) * 0.01
+				melhor = a[0]
+	else:
+		# a fileira mais próxima; nela, quem está embaixo / em cima do marcado
+		var perto := INF
+		for a in achados:
+			perto = minf(perto, float(a[1]))
+		for a in achados:
+			if float(a[1]) > perto + 26.0:
+				continue
+			var nota: float = float(a[2]) - (100000.0 if a[3] else 0.0)
+			if nota < menor:
+				menor = nota
+				melhor = a[0]
+	return melhor
 
 
 func _apertar(c: Control) -> void:

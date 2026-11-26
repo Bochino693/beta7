@@ -176,24 +176,29 @@ sensores, o START, o SELECT e a ficha.
 5. TESTAR A MÁQUINA
 -------------------
 MENU -> Central da Máquina. A tela tem só o que se usa no dia a dia:
-  1. COMO A MÁQUINA FUNCIONA - três botões, um ligado (vale na hora):
-       LIVRE ..... joga sem ficha; Arcade e Copa
-       CRÉDITO ... 1 ficha por partida; Arcade e Copa
-                   (mostra os créditos, "+ 1 CRÉDITO" e "ZERAR CRÉDITOS")
-       EVENTO .... sem ficha, só Arcade, com cadastro dos jogadores (item 6)
-  2. TESTE DOS ALVOS - marque a letra e OK (ou clique) = o LED acende;
+  1. ARCADE E COPA - dois botões, um ligado (vale na hora):
+       LIVRE ..... joga sem ficha
+       CRÉDITO ... 1 ficha por partida (mostra os créditos, "+ 1 CRÉDITO"
+                   e "ZERAR")
+  2. DADOS DA MÁQUINA - quantas partidas de ARCADE, de COPA e de EVENTO
+     e quantos jogadores cadastrados; "EVENTOS E DADOS" (item 6) e
+     "DESCARREGAR NO PENDRIVE".
+  3. TESTE DOS ALVOS - marque a letra e OK (ou clique) = o LED acende;
      bata no alvo = a letra dele acende na tela. "ACENDER TODOS".
-  3. embaixo: partidas jogadas, "AJUSTES AVANÇADOS" e "VOLTAR AO JOGO".
+  embaixo: "AJUSTES AVANÇADOS" e "VOLTAR AO JOGO".
   Em cima, à direita: o estado do Arduino e o recado do que acabou de
   ser feito.
+PELO CONTROLE: ▲ ▼ vão para a fileira de cima / de baixo; ◀ ▶ andam na
+mesma fileira; OK aperta o botão marcado (moldura amarela); VOLTAR fecha.
 "AJUSTES AVANÇADOS" (o que se faz uma vez, na instalação):
   - "ORDEM DAS CORES DOS LEDS": se a cor do anel não é a que o jogo pede,
     aperte até os alvos ficarem VERMELHOS (o Arduino guarda);
   - "ENSINAR SENSORES E BOTÕES": para a placa Zero Delay na TV Box (bata
     em cada alvo e aperte START e SELECT na ordem que a tela pede);
-  - "ABRIR O JOGO AO LIGAR A TV" e "SAIR PARA A TV" (só na TV Box);
-  - "ZERAR CONTADOR DE PARTIDAS" e "LIMPAR MURAL DE CAMPEÕES" (pedem
-    confirmação antes de apagar).
+  - "SAIR PARA A TV" (só na TV Box);
+  - "EVENTO NO MENU: SIM / NÃO": esconde a opção EVENTO do menu do jogo
+    (para máquina que não vai a eventos);
+  - "LIMPAR MURAL DE CAMPEÕES" (pede confirmação antes de apagar).
 JANELAS: a janela aberta é a única que recebe mouse, controle e teclas;
 VOLTAR / ESC fecha só a de cima. Nada do que ficou atrás é apertado.
 
@@ -240,28 +245,37 @@ O AVISO DE "ABRIR SOZINHO AO LIGAR":
     na próxima vez que o jogo abrir.
 
 
-6. MODO EVENTO (FEIRAS: JOGO LIVRE + CADASTRO DOS JOGADORES)
------------------------------------------------------------
-MENU -> Central da Máquina -> botão "EVENTO". Liga na hora, com ou sem
-pendrive. Com o Modo Evento ligado:
-  - A FICHA É LIVRE: ninguém precisa de crédito para jogar.
-  - SÓ O ARCADE aparece no menu (a Copa volta ao sair do Modo Evento).
-  - START abre a escolha de jogadores (1 a 4); quando ela fecha, CADA
-    jogador escolhido preenche o cadastro e só então a partida começa.
-  - Terminou a partida: o jogo volta para o menu, para os próximos
-    jogadores se cadastrarem.
-Na Central, com o EVENTO ligado, aparecem:
-  - NOME DO EVENTO (vai para as planilhas): clique / OK para escrever;
-  - quantos já se cadastraram e o estado do PENDRIVE;
-  - "GRAVAR NO PENDRIVE" (ele também grava sozinho);
-  - "OPÇÕES DO EVENTO": acertar a DATA E HORA DOS CADASTROS (caixa sem
-    internet abre com o relógio errado: botões - e +), "ESCOLHER A PASTA
-    DO PENDRIVE" (TV Box que não acha o pendrive sozinha: na tela do
-    Android entre no pendrive e aperte "USAR ESTA PASTA" / "PERMITIR") e
-    "APAGAR TODOS OS CADASTROS".
-PENDRIVE (FAT32 ou exFAT): pode espetar antes ou depois. Sem ele os
-cadastros ficam guardados na máquina e vão para o pendrive quando ele for
-espetado (o menu avisa "SEM PENDRIVE").
+6. MODO EVENTO (FEIRAS: PARTIDA DE ATÉ 8, SEM FICHA, COM CADASTRO)
+----------------------------------------------------------------
+COMO ENTRAR: no menu do jogo, EVENTO é a 3ª opção, ao lado de ARCADE e
+COPA. Aperte SELECT até "EVENTO" ficar no meio e aperte START.
+  - NÃO PEDE FICHA (mesmo com a máquina no CRÉDITO; ARCADE e COPA
+    continuam pedindo).
+  - START acrescenta jogadores: de 1 a 8.
+  - Fechou a contagem, CADA jogador preenche o cadastro (e-mail, nome,
+    idade) e só então a partida começa: um arcade com todos na tela, cada
+    um com o NOME que escreveu, e o resultado com a classificação de todos.
+  - Com 2 jogadores ou mais, o pódio da partida entra no MURAL DE CAMPEÕES
+    como TORNEIO, com o nome do evento (filtro "TORNEIOS" do Mural; conta
+    no Ranking).
+  - Terminou: o jogo volta para o menu, para os próximos.
+ANTES DO EVENTO, na Central da Máquina > "EVENTOS E DADOS":
+  - "+ NOVO EVENTO": dê o nome (vai para as planilhas). Ele vira o evento
+    ATUAL, o que recebe as próximas partidas.
+  - a lista mostra cada evento criado com PARTIDAS, JOGADORES e CADASTROS;
+    "USAR" troca o evento atual.
+  - em cima, as partidas de ARCADE, COPA e EVENTO, cada uma com "ZERAR".
+  - APAGAR: o botão "APAGAR" da linha (um evento), marcar vários e
+    "APAGAR OS MARCADOS", ou "APAGAR TUDO". Sempre pede confirmação.
+    Apagar tira da máquina e, na próxima descarga, do pendrive (a versão
+    anterior fica em copia_de_seguranca no pendrive).
+  - "DESCARREGAR NO PENDRIVE": grava tudo agora.
+  - "DATA E PENDRIVE": acertar a DATA E HORA DOS CADASTROS (caixa sem
+    internet abre com o relógio errado: botões - e +) e "ESCOLHER A PASTA
+    DO PENDRIVE" (TV Box que não acha o pendrive sozinha).
+OS DADOS FICAM NA MÁQUINA: com ou sem pendrive, tudo é guardado nela.
+Espetou o pendrive (FAT32 ou exFAT), os dados descem sozinhos (ou pelo
+botão "DESCARREGAR NO PENDRIVE").
 Com o modo ligado, antes de cada partida cada jogador preenche a ficha:
 E-MAIL, NOME e IDADE (a data entra sozinha). Pelo controle ou mouse: o
 teclado da tela abre sozinho em cada campo (tem @, os finais @gmail.com,
@@ -276,6 +290,11 @@ NO PENDRIVE, pasta OlhoNoLance_Leads:
     leads_excel.csv   para abrir com 2 cliques no Excel (ponto e vírgula)
     leads.json        completo; é o que o jogo lê para reconhecer jogadores
     visitas.csv       histórico: uma linha por cadastro / partida
+    eventos.csv       um evento criado por linha: partidas, jogadores, cadastros
+    partidas.csv      quantas vezes a máquina foi jogada: arcade, copa, evento
+    resumo.txt        as estatísticas prontas para ler: por evento, quantos
+                      jogadores, cadastros, novos x quem já tinha cadastro,
+                      idades e movimento por dia
     LEIA-ME.txt       o que é cada arquivo e cada coluna
     copia_de_seguranca\   a versão anterior de cada arquivo
   Cada arquivo é escrito inteiro, conferido e só então trocado: tirar o
@@ -289,8 +308,8 @@ NO PENDRIVE, pasta OlhoNoLance_Leads:
   ficam em  Android\data\com.lazersport.golflasharena\files\OlhoNoLance_Leads
   dentro do pendrive (a Central da Máquina mostra onde gravou).
   LGPD: a ficha avisa o jogador do uso dos dados; guarde o pendrive em
-  lugar seguro e apague os dados de quem pedir ("APAGAR TODOS OS
-  CADASTROS" limpa a máquina; os arquivos do pendrive, não).
+  lugar seguro e apague os dados de quem pedir (Central > "EVENTOS
+  E DADOS").
 
 
 SE ALGO NÃO FUNCIONAR

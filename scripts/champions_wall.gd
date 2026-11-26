@@ -73,9 +73,10 @@ func _ready() -> void:
 
 	_travar_modo_arcade()
 
-	# Aqui o mouse é VISÍVEL (tela de navegação), com cursor neon decorado.
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	_aplicar_cursor_neon()
+	# O cursor é o do jogo, igual em todas as telas (ControleTv desenha a seta
+	# amarela quando o mouse mexe). O cursor neon antigo (_aplicar_cursor_neon)
+	# fica no código, sem uso.
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 	RenderingServer.set_default_clear_color(Color(0.004, 0.007, 0.014, 1.0))
 
@@ -306,9 +307,9 @@ func _criar_header() -> void:
 	_label(
 		header,
 		"MURAL DE CAMPEÕES",
-		Vector2(90, 12),
-		Vector2(header.size.x - 460, 46),
-		40,
+		Vector2(90, 8),
+		Vector2(header.size.x - 660, 50),
+		38,
 		Color.WHITE,
 		HORIZONTAL_ALIGNMENT_LEFT,
 		VERTICAL_ALIGNMENT_CENTER,
@@ -319,7 +320,7 @@ func _criar_header() -> void:
 		header,
 		"Histórico das competições finalizadas • TOP 3 com nomes, data, ID e estatísticas",
 		Vector2(94, 56),
-		Vector2(header.size.x - 480, 24),
+		Vector2(header.size.x - 660, 24),
 		14,
 		Color(0.80, 0.86, 0.92),
 		HORIZONTAL_ALIGNMENT_LEFT,
@@ -329,8 +330,8 @@ func _criar_header() -> void:
 	total_label = _label(
 		header,
 		"0 REGISTROS",
-		Vector2(header.size.x - 370, 14),
-		Vector2(170, 44),
+		Vector2(header.size.x - 560, 22),
+		Vector2(190, 46),
 		20,
 		COR_OURO,
 		HORIZONTAL_ALIGNMENT_CENTER,
@@ -512,7 +513,7 @@ func _criar_rodape() -> void:
 
 	_label(
 		rodape,
-		"CLICK: selecionar   •   FILTROS: Copa / Torneio / Campeonato   •   F9: resetar mural   •   CTRL + TAB: fechar jogo   •   VOLTAR: tela inicial",
+		"START: voltar ao menu   •   SELECT: trocar o filtro   •   MOUSE / CONTROLE: escolher a competição   •   F9: limpar o mural",
 		Vector2(0, 0),
 		rodape.size,
 		13,
@@ -1308,6 +1309,38 @@ func _limpar_filhos(n: Node) -> void:
 		child.queue_free()
 
 
+func _janela_aberta() -> bool:
+	return reset_modal_aberto or (reset_modal_layer != null and is_instance_valid(reset_modal_layer))
+
+
+## Fecha a janela de cima (true = tinha uma aberta).
+func _fechar_janela() -> bool:
+	if reset_modal_layer != null and is_instance_valid(reset_modal_layer):
+		_fechar_modal_resetar_mural()
+		return true
+	if reset_modal_aberto:
+		_fechar_modal_reset()
+		return true
+	return false
+
+
+func _sair_da_sala(_sozinha: bool) -> void:
+	if _saindo:
+		return
+	_saindo = true
+	_fechar_janela()
+	_voltar_opening()
+
+
+## SELECT da máquina: TODOS -> COPAS -> TORNEIOS -> CAMPEONATOS -> TODOS.
+func _proximo_filtro() -> void:
+	var atual := 0
+	for i in range(FILTROS.size()):
+		if str(FILTROS[i]["id"]) == filtro_tipo:
+			atual = i
+	_aplicar_filtro(str(FILTROS[(atual + 1) % FILTROS.size()]["id"]))
+
+
 func _voltar_opening() -> void:
 	if ResourceLoader.exists(CENA_OPENING):
 		get_tree().set_meta("pular_patrocinadores_opening_uma_vez", true)
@@ -1320,6 +1353,8 @@ func _voltar_opening() -> void:
 # INPUT / FECHAMENTO
 # ============================================================
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey or event is InputEventMouseButton or event is InputEventJoypadButton:
+		_sem_uso = 0.0
 	if not (event is InputEventKey):
 		return
 
@@ -1344,10 +1379,12 @@ func _input(event: InputEvent) -> void:
 		_fechar_jogo_arcade()
 		return
 
-	# Bloqueia ESC.
+	# ESC / VOLTAR do controle: fecha a janela aberta; sem janela, volta ao menu.
 	if event.keycode == KEY_ESCAPE:
 		if viewport:
 			viewport.set_input_as_handled()
+		if not _fechar_janela():
+			_sair_da_sala(false)
 		return
 
 	# Bloqueia ALT + F4.
@@ -1464,8 +1501,8 @@ func _confirmar_resetar_mural() -> void:
 
 	print("MURAL DE CAMPEÕES RESETADO COM F9.")
 
-func _unhandled_input(event: InputEvent) -> void:
-	_input(event)
+func _unhandled_input(_event: InputEvent) -> void:
+	pass
 
 
 func _notification(what: int) -> void:
@@ -1628,3 +1665,39 @@ func _abrir_ranking() -> void:
 		push_error("Cena de ranking não encontrada: " + CENA_RANKING)
 	
 	
+
+
+# ============================================================
+# MÁQUINA, CONTROLE E TEMPO  (igual nas salas dos campeões)
+#   START  (OK do controle sem nada marcado) ... volta
+#   SELECT (◀ ▶ do controle sem nada marcado) .. próximo filtro / aba
+#   ESC / VOLTAR ............................... fecha a janela ou volta
+#   ninguém mexe por SEM_USO_S ................. volta sozinha para o menu
+# Quem chega aqui está segurando START + SELECT (ou SELECT): os botões só
+# valem depois de soltos.
+# ============================================================
+const SEM_USO_S: float = 90.0
+var _sem_uso: float = 0.0
+var _botoes_soltos: bool = false
+var _saindo: bool = false
+
+
+func _process(delta: float) -> void:
+	if _saindo or fechando_jogo:
+		return
+	var start: bool = Input.is_action_pressed("input_start")
+	var select: bool = InputMap.has_action("input_cup") and Input.is_action_pressed("input_cup")
+	if not _botoes_soltos:
+		_botoes_soltos = not start and not select
+		return
+	_sem_uso += delta
+	if _sem_uso >= SEM_USO_S:
+		_sair_da_sala(true)
+		return
+	if _janela_aberta():
+		return
+	if Input.is_action_just_pressed("input_start"):
+		_sair_da_sala(false)
+	elif InputMap.has_action("input_cup") and Input.is_action_just_pressed("input_cup"):
+		_sem_uso = 0.0
+		_proximo_filtro()

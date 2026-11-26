@@ -74,6 +74,9 @@ func _ready() -> void:
 	_borda = _cheio(Control.new())
 	_borda.draw.connect(_desenhar_borda)
 	add_child(_borda)
+	_rede = _cheio(Control.new())
+	_rede.draw.connect(_desenhar_rede)
+	add_child(_rede)
 	_clarao = _cheio(ColorRect.new())
 	_clarao.color = Color(1, 1, 1, 0)
 	_clarao.material = _aditivo()
@@ -150,12 +153,190 @@ func _process(delta: float) -> void:
 	var cena := get_tree().current_scene
 	if cena != _cena:
 		_cena = cena
+		_fila.clear()   # (enfeites da tela anterior não valem mais)
+		_rede_t = -1.0
+		_rede.queue_redraw()
 		_entrou_tela()
 	if not _lista_ondas.is_empty():
 		_ondas.queue_redraw()
 	if _borda_alfa > 0.0:
 		_borda_alfa = maxf(0.0, _borda_alfa - delta * 2.2)
 		_borda.queue_redraw()
+	_rodar_fila()
+	if _rede_t >= 0.0:
+		_rede_t += delta
+		if _rede_t >= REDE_S:
+			_rede_t = -1.0
+		_rede.queue_redraw()
+
+
+# ------------------------------------------------------------- bola na rede
+## A CADA GOL, A BOLA ENTRA NA REDE: a rede aparece no cartão de quem marcou,
+## a bola vem de baixo, estufa a rede (os fios esticam e balançam) e cai.
+## É UM desenho só, refeito por menos de 1 s (uns 15 fios e a bola): não cria
+## nó nem partícula, então não pesa nem com gols em sequência - um gol novo
+## só recomeça a animação.
+const REDE_S := 0.95               # duração
+const REDE_BATE := 0.30            # fração do tempo em que a bola chega na rede
+var _rede: Control
+var _rede_t := -1.0
+var _rede_onde := Rect2()
+var _rede_cor := Color.WHITE
+var _rede_alvo := Vector2(0.5, 0.45)   # onde a bola bate (0..1 dentro da rede)
+var _rede_lado := 1.0
+
+
+func _bola_na_rede(cor: Color, onde: Rect2) -> void:
+	var t := _tela()
+	if onde.size.x < 40.0 or onde.size.y < 40.0:
+		onde = Rect2(t * Vector2(0.27, 0.22), t * Vector2(0.46, 0.56))
+	_rede_onde = onde
+	_rede_cor = cor
+	_rede_alvo = Vector2(randf_range(0.30, 0.70), randf_range(0.32, 0.58))
+	_rede_lado = -1.0 if randf() < 0.5 else 1.0
+	_rede_t = 0.0
+	_rede.queue_redraw()
+
+
+func _desenhar_rede() -> void:
+	if _rede_t < 0.0:
+		return
+	var f := _rede_t / REDE_S
+	var visivel: float = clampf(f / 0.08, 0.0, 1.0) * clampf((1.0 - f) / 0.22, 0.0, 1.0)
+	if visivel <= 0.0:
+		return
+	var r := _rede_onde
+	var menor := minf(r.size.x, r.size.y)
+	# a rede: do meio para baixo do cartão, com folga dos lados
+	var rede := Rect2(r.position + Vector2(r.size.x * 0.09, r.size.y * 0.20), Vector2(r.size.x * 0.82, r.size.y * 0.62))
+	var centro := rede.position + rede.size * _rede_alvo
+	# depois da batida a rede estufa e balança (e vai parando)
+	var estufa := 0.0
+	if f > REDE_BATE:
+		var dt := (f - REDE_BATE) * REDE_S
+		estufa = exp(-dt * 4.2) * cos(dt * 17.0)
+	var alcance := menor * 0.34
+	var fio := Color(1, 1, 1, 0.50 * visivel)
+	var grosso: float = maxf(menor * 0.006, 1.5)
+	var colunas := 9
+	var linhas := 6
+	var passos := 6 if _leve else 10
+	for c in range(colunas + 1):
+		var pts := PackedVector2Array()
+		for k in range(passos + 1):
+			pts.append(_ponto_da_rede(rede, Vector2(float(c) / colunas, float(k) / passos), centro, estufa, alcance))
+		_rede.draw_polyline(pts, fio, grosso, true)
+	for l in range(linhas + 1):
+		var pts := PackedVector2Array()
+		for k in range(passos + 1):
+			pts.append(_ponto_da_rede(rede, Vector2(float(k) / passos, float(l) / linhas), centro, estufa, alcance))
+		_rede.draw_polyline(pts, fio, grosso, true)
+	# a trave (na cor do jogador por fora, branca por dentro)
+	var trave := PackedVector2Array([rede.position + Vector2(0, rede.size.y), rede.position, rede.position + Vector2(rede.size.x, 0), rede.end])
+	_rede.draw_polyline(trave, Color(_rede_cor, 0.55 * visivel), grosso * 5.0, true)
+	_rede.draw_polyline(trave, Color(1, 1, 1, 0.95 * visivel), grosso * 2.2, true)
+
+	# a bola: vem de baixo, grande, e diminui até bater; depois cai
+	var raio_perto := menor * 0.17
+	var raio_longe := menor * 0.085
+	var saida := Vector2(r.get_center().x + r.size.x * 0.42 * _rede_lado, r.end.y + menor * 0.20)
+	var pos := centro
+	var raio := raio_longe
+	if f < REDE_BATE:
+		var a := f / REDE_BATE
+		var suave := 1.0 - (1.0 - a) * (1.0 - a)
+		pos = saida.lerp(centro, suave)
+		pos.y -= sin(a * PI) * menor * 0.10
+		raio = lerpf(raio_perto, raio_longe, suave)
+	else:
+		var dt2 := (f - REDE_BATE) / (1.0 - REDE_BATE)
+		pos = centro + Vector2(0.0, estufa * menor * 0.03 + dt2 * dt2 * rede.size.y * 0.55)
+		raio = raio_longe * (1.0 + 0.10 * estufa)
+	# clarão da batida
+	if f >= REDE_BATE and f < REDE_BATE + 0.22:
+		var b := (f - REDE_BATE) / 0.22
+		_rede.draw_arc(centro, raio_longe * (1.2 + b * 3.2), 0.0, TAU, 28, Color(_rede_cor.lightened(0.4), (1.0 - b) * 0.85), grosso * 3.0, true)
+	_desenhar_bola(pos, raio, _rede_t * 13.0 * _rede_lado, visivel)
+
+
+## Um nó da rede: perto de onde a bola bateu ele é empurrado para longe do
+## centro da batida (a malha abre) e desce um pouco - é o "estufar".
+func _ponto_da_rede(rede: Rect2, uv: Vector2, centro: Vector2, estufa: float, alcance: float) -> Vector2:
+	var p := rede.position + rede.size * uv
+	if estufa == 0.0:
+		return p
+	var d := p - centro
+	var g := exp(-d.length_squared() / (alcance * alcance))
+	return p + d * g * estufa * 0.55 + Vector2(0.0, g * estufa * alcance * 0.22)
+
+
+## A bola de futebol: branca, com os gomos pretos girando.
+func _desenhar_bola(pos: Vector2, raio: float, giro: float, a: float) -> void:
+	_rede.draw_circle(pos + Vector2(raio * 0.12, raio * 0.16), raio * 1.06, Color(0, 0, 0, 0.35 * a))
+	_rede.draw_circle(pos, raio * 1.28, Color(_rede_cor, 0.22 * a))
+	_rede.draw_circle(pos, raio, Color(1, 1, 1, a))
+	var preto := Color(0.05, 0.06, 0.09, a)
+	# o gomo do meio (pentágono) e os 5 em volta, cortados pela beirada
+	var meio := PackedVector2Array()
+	for i in range(5):
+		meio.append(pos + Vector2.from_angle(giro + TAU * i / 5.0) * raio * 0.30)
+	_rede.draw_colored_polygon(meio, preto)
+	for i in range(5):
+		var ang := giro + TAU * (i + 0.5) / 5.0
+		var c := pos + Vector2.from_angle(ang) * raio * 0.86
+		var gomo := PackedVector2Array()
+		for k in range(5):
+			var q := c + Vector2.from_angle(ang + PI + TAU * k / 5.0) * raio * 0.24
+			# (não passa da beirada da bola)
+			if (q - pos).length() > raio * 0.97:
+				q = pos + (q - pos).normalized() * raio * 0.97
+			gomo.append(q)
+		_rede.draw_colored_polygon(gomo, preto)
+		_rede.draw_line(pos + Vector2.from_angle(giro + TAU * i / 5.0) * raio * 0.30, pos + Vector2.from_angle(giro + TAU * i / 5.0) * raio * 0.66, Color(preto, preto.a * 0.75), maxf(raio * 0.045, 1.0), true)
+	_rede.draw_arc(pos, raio, 0.0, TAU, 32, Color(0.05, 0.06, 0.09, 0.9 * a), maxf(raio * 0.07, 1.5), true)
+
+
+# ------------------------------------------------- fila dos efeitos (sem engasgo)
+## NO GOL, O QUE IMPORTA SAI NA HORA: o placar, o som do gol e o LED do
+## próximo alvo. O que é enfeite (clarão do cartão, ondas, faíscas, o "+1"
+## subindo) entra nesta fila e é montado nos quadros seguintes, um pedaço por
+## quadro - criar tudo no mesmo quadro do gol é o que fazia a imagem e o som
+## darem um tranco na TV Box. Uso nas partidas:
+##     Efeitos.depois(_explosao_gol.bind(jogador))
+## Com gols em rajada a fila não cresce sem fim: passou de FILA_MAX, o
+## enfeite mais antigo é dispensado (o gol continua valendo e tocando).
+const FILA_MAX := 12
+const FILA_MS_POR_QUADRO := 1.5
+var _fila: Array[Callable] = []
+
+
+func depois(efeito: Callable) -> void:
+	if not is_processing():
+		if efeito.is_valid():
+			efeito.call()
+		return
+	while _fila.size() >= FILA_MAX:
+		_fila.pop_front()
+	_fila.append(efeito)
+
+
+## Quantos enfeites estão esperando (as partidas usam para pular as faíscas
+## quando os gols vêm em rajada).
+func fila_cheia() -> bool:
+	return _fila.size() > 5
+
+
+func _rodar_fila() -> void:
+	if _fila.is_empty():
+		return
+	var inicio := Time.get_ticks_usec()
+	# sempre um por quadro; mais de um só se sobrar tempo
+	while not _fila.is_empty():
+		var efeito: Callable = _fila.pop_front()
+		if efeito.is_valid():
+			efeito.call()
+		if (Time.get_ticks_usec() - inicio) / 1000.0 >= FILA_MS_POR_QUADRO:
+			break
 
 
 func _entrou_tela() -> void:
@@ -292,7 +473,9 @@ var _rampas: Array[Gradient] = []
 var _borda_cor := Color(1.0, 0.12, 0.12)
 
 
-func gol(jogador: int = 0, cor_do_jogador: Variant = null) -> void:
+## onde = o retângulo do cartão de quem fez o gol (na tela): é ali que a bola
+## entra na rede. Sem ele, a rede aparece no meio da tela.
+func gol(jogador: int = 0, cor_do_jogador: Variant = null, onde: Rect2 = Rect2()) -> void:
 	if not LIGADO:
 		return
 	var cor: Color = CORES_JOGADOR[posmod(jogador, CORES_JOGADOR.size())]
@@ -305,6 +488,7 @@ func gol(jogador: int = 0, cor_do_jogador: Variant = null) -> void:
 	_borda_alfa = 0.85
 	_borda.queue_redraw()
 	_confete(cor)
+	_bola_na_rede(cor, onde)
 
 
 ## Bola em alvo apagado.

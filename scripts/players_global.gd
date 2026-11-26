@@ -9,7 +9,7 @@ var cores_players_futebol: Array[Color] = [
 ]
 
 func configurar_players_futebol(qtd: int, cores: Array[Color]) -> void:
-	total_players_futebol = clamp(qtd, 1, 4)
+	total_players_futebol = clamp(qtd, 1, 8)   # (até 8 na partida do MODO EVENTO)
 
 	cores_players_futebol.clear()
 

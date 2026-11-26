@@ -20,9 +20,11 @@ extends Node
 ## O firmware antigo (só LEDs) também funciona: os LEDs acendem, e os
 ## sensores continuam vindo pela placa Zero Delay.
 ##
-## PERMISSÃO USB: o Android pergunta UMA vez ("Permitir que o Olho no
-## Lance acesse o USB?"). Marque "Usar por padrão / Sempre" e OK: nunca mais
-## aparece, nem depois de desligar a TV.
+## PERMISSÃO USB: a janela do Android ("Permitir que o Olho no Lance acesse
+## o USB?") é pedida UMA ÚNICA VEZ para cada Arduino (user://permissoes_usb.cfg).
+## Marque "Usar por padrão / Sempre" e OK: o Android passa a dar a permissão
+## sozinho a cada vez que a caixa liga. O jogo nunca mais pede sozinho: só o
+## operador, abrindo a Central da Máquina (ver _procurar).
 
 signal mudou
 signal sensor(letra: String)
@@ -512,7 +514,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 20"
+const VERSAO := "TV 21"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -691,19 +693,22 @@ func _procurar(agora: int) -> void:
 			sem_permissao = linha
 	if sem_permissao != "":
 		var p := sem_permissao.split("|")
-		# AUTORIZOU UMA VEZ, NUNCA MAIS PERGUNTA (como no Strike Kids).
-		# 1o SEM JANELA: pelo root da caixa (ou pelo adb da própria TV que já
-		#    aceitou o jogo) o jogo vira o app PADRÃO do Arduino - fica
-		#    guardado no Android para sempre (UsbPadrao.java). Nada aparece.
-		# 2o A JANELA DO ANDROID, com um aviso grande do jogo antes dizendo
-		#    para marcar "USAR POR PADRÃO": marcada, o Android guarda a
-		#    permissão para sempre (vale depois de desligar a caixa e com o
-		#    jogo aberto pelo auto start) e o jogo nunca mais pede.
-		#    Só aparece com o MENU parado (nunca por cima de uma partida) e no
-		#    máximo UMA vez por abertura do jogo. Recusou / fechou: não
-		#    insiste; a Central da Máquina pede de novo.
-		if not _usb_tentou and _plugin.has_method("usb_sem_janela"):
+		# AUTORIZOU UMA VEZ, NUNCA MAIS PERGUNTA - igual ao Strike Kids.
+		# A janela do Android é pedida UMA ÚNICA VEZ NA VIDA para cada Arduino
+		# (fica anotado em user://permissoes_usb.cfg, pelo VID:PID dele), com o
+		# aviso grande do jogo antes: "marque USAR POR PADRÃO". Marcada, o
+		# próprio Android dá a permissão sozinho a cada vez que a caixa liga
+		# (pode levar uns segundos depois de o auto start abrir o jogo: o jogo
+		# ESPERA, não pergunta de novo) e nada mais aparece na tela.
+		# Depois dessa vez o jogo NUNCA MAIS abre a janela sozinho: só o
+		# operador, abrindo a Central da Máquina.
+		# Antes da janela, uma tentativa SEM JANELA (root da caixa / adb que já
+		# aceitou o jogo - UsbPadrao.java), também uma única vez por Arduino.
+		var chave := str(p[1])
+		var operador := _pedir_agora
+		if not _usb_tentou and _plugin.has_method("usb_sem_janela") and (operador or not _ja_pediu("sem_janela_" + chave)):
 			_usb_tentou = true
+			_marcar_pedido("sem_janela_" + chave)
 			_plugin.call("usb_sem_janela")
 			_set_status("Arduino no USB: preparando...")
 			return
@@ -712,17 +717,19 @@ func _procurar(agora: int) -> void:
 		if bool(_plugin.call("permissao_pendente")) or _usb_avisando:
 			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
 			return
-		var operador := _pedir_agora
 		if not operador:
-			if _pedidos_usb > 0:
-				_set_status("Arduino no USB sem permissão: abra a Central da Máquina (ela pede de novo) ou tire e ponha o cabo USB")
+			if _ja_pediu(chave):
+				# já foi pedido uma vez: o jogo não pergunta mais, espera o Android
+				if agora - _abriu_em < ESPERA_ANDROID_MS:
+					_set_status("Arduino no USB: aguardando o Android liberar (já autorizado)")
+				else:
+					_set_status("Arduino no USB sem permissão: abra a Central da Máquina para autorizar e marque \"Usar por padrão\"")
 				return
-			if aviso_aberto or agora - _abriu_em < 6000 or not _menu_livre(get_tree().current_scene):
-				_set_status("Arduino no USB: aguardando o menu para pedir a permissão")
+			if aviso_aberto or agora - _abriu_em < 12000 or not _menu_livre(get_tree().current_scene):
+				_set_status("Arduino no USB: aguardando o menu para pedir a permissão (só desta vez)")
 				return
 		_pedir_agora = false
 		_pedidos_usb += 1
-		var chave := "%s" % p[1]
 		var de_novo := _ja_pediu(chave)
 		_marcar_pedido(chave)
 		_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
@@ -730,7 +737,7 @@ func _procurar(agora: int) -> void:
 		_usb_avisando = true
 		_mostrar_aviso("AUTORIZE O ARDUINO" if not de_novo else "AUTORIZE O ARDUINO DE NOVO",
 			"Na janela do Android que vai abrir:\n\n1.  MARQUE  \"USAR POR PADRÃO\"  (ou \"SEMPRE ABRIR\")\n2.  aperte  OK\n\n" +
-			("É só esta vez: depois o jogo nunca mais pede." if not de_novo else "Sem marcar a caixinha o Android esquece ao desligar."),
+			("É só esta vez: depois o jogo nunca mais pede." if not de_novo else "Marcando a caixinha, nunca mais aparece."),
 			"", 25000, false)
 		var nome := p[0]
 		get_tree().create_timer(1.4, true, false, true).timeout.connect(func() -> void:
@@ -747,6 +754,7 @@ func _nome_chip(t: String) -> String:
 
 
 var _usb_avisando := false
+const ESPERA_ANDROID_MS := 60000   # o Android dá a permissão guardada uns segundos depois de ligar
 
 
 ## O aviso "AUTORIZE O ARDUINO" está na tela?

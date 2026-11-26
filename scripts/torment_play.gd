@@ -1,5 +1,9 @@
 extends Node2D
 
+## true = as mensagens de acompanhamento vão para o log (deixa o jogo mais
+## lento na TV Box: cada batida escrevia dezenas de linhas). Só para depurar.
+const DEPURAR := false
+
 # ============================================================
 # TORMENT PLAY — PARTIDAS DO TORNEIO 36
 #
@@ -472,17 +476,17 @@ func _carregar_partida_torneio() -> void:
 		if j.has("cor") and j["cor"] is Color:
 			cores_players[i] = j["cor"]
 
-	print("================================")
-	print("TORMENT PLAY CONFIGURADO")
-	print("FASE: ", fase_torneio)
-	print("NOME FASE: ", fase_nome)
-	print("CHAVE: ", chave_nome)
-	print("PARTIDA: ", nome_partida)
-	print("MODO: ", modo_partida)
-	print("PARTIDA INDEX: ", partida_index)
-	print("TOTAL PLAYERS: ", total_players)
-	print("NOMES: ", nomes_players)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("TORMENT PLAY CONFIGURADO")
+	if DEPURAR: print("FASE: ", fase_torneio)
+	if DEPURAR: print("NOME FASE: ", fase_nome)
+	if DEPURAR: print("CHAVE: ", chave_nome)
+	if DEPURAR: print("PARTIDA: ", nome_partida)
+	if DEPURAR: print("MODO: ", modo_partida)
+	if DEPURAR: print("PARTIDA INDEX: ", partida_index)
+	if DEPURAR: print("TOTAL PLAYERS: ", total_players)
+	if DEPURAR: print("NOMES: ", nomes_players)
+	if DEPURAR: print("================================")
 
 
 func _criar_fallback() -> void:
@@ -1456,7 +1460,8 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null,
+		player_panels[player_atual].get_global_rect() if player_atual < player_panels.size() and is_instance_valid(player_panels[player_atual]) else Rect2())
 
 	scores[player_atual] += valor
 
@@ -2156,13 +2161,13 @@ func _finalizar_partida() -> void:
 
 	get_tree().set_meta("resultado_torneio_pendente", resultado)
 
-	print("================================")
-	print("RESULTADO DO TORNEIO ENVIADO AO LOBBY")
-	print("FASE LOBBY: ", fase_lobby)
-	print("ETAPA: ", etapa_lobby)
-	print("PARTIDA INDEX: ", partida_index)
-	print("RESULTADO: ", resultado)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("RESULTADO DO TORNEIO ENVIADO AO LOBBY")
+	if DEPURAR: print("FASE LOBBY: ", fase_lobby)
+	if DEPURAR: print("ETAPA: ", etapa_lobby)
+	if DEPURAR: print("PARTIDA INDEX: ", partida_index)
+	if DEPURAR: print("RESULTADO: ", resultado)
+	if DEPURAR: print("================================")
 
 	# O campeão real é decidido pelo lobby depois da volta/agregado.
 	# O play só comemora a partida, não encerra o torneio sozinho.
@@ -3676,7 +3681,7 @@ func _sortear_musicas_players() -> void:
 			var repetida: AudioStream = disponiveis[int(randi() % disponiveis.size())]
 			musicas_por_player.append(repetida)
 
-	print("MÚSICAS DOS PLAYERS SORTEADAS: ", musicas_por_player.size())
+	if DEPURAR: print("MÚSICAS DOS PLAYERS SORTEADAS: ", musicas_por_player.size())
 
 
 
@@ -3705,7 +3710,7 @@ func _tocar_musica_do_player(index: int) -> void:
 	audio_fundo.volume_db = -6.0
 	audio_fundo.play()
 
-	print("TOCANDO MÚSICA DO PLAYER ", index + 1, ": ", stream)
+	if DEPURAR: print("TOCANDO MÚSICA DO PLAYER ", index + 1, ": ", stream)
 
 
 func _criar_banco_sfx(caminhos: Array[String], volume_db: float) -> Array[AudioStreamPlayer]:
@@ -4441,9 +4446,10 @@ func _aplicar_destaque_painel_player(index: int, ativo: bool) -> void:
 
 
 func _efeito_gol_player(index: int) -> void:
-	_efeito_gol_card(index)
-	_explosao_gol(index)
-	_mostrar_popup_ponto(index, 1)
+	# enfeites: um por quadro, depois do placar / som / LED (Efeitos.depois)
+	Efeitos.depois(_efeito_gol_card.bind(index))
+	Efeitos.depois(_explosao_gol.bind(index))
+	Efeitos.depois(_mostrar_popup_ponto.bind(index, 1))
 
 
 func _efeito_gol_card(index: int) -> void:
@@ -4547,6 +4553,22 @@ func _explosao_gol(index: int) -> void:
 		tr.tween_property(ring, "scale", Vector2(escala_final, escala_final), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
 		tr.tween_property(ring, "modulate", Color(1, 1, 1, 0), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
 		tr.chain().tween_callback(ring.queue_free)
+
+	# as faíscas: no quadro seguinte (e dispensadas com gols em rajada)
+	if not Efeitos.fila_cheia():
+		Efeitos.depois(_faiscas_gol.bind(index))
+
+
+func _faiscas_gol(index: int) -> void:
+	if index < 0 or index >= player_panels.size():
+		return
+
+	var panel: Panel = player_panels[index]
+	var cor: Color = cores_players[index]
+	var W: float = float(panel.size.x)
+	var H: float = float(panel.size.y)
+	var centro: Vector2 = Vector2(W, H) * 0.5
+	var ref: float = minf(W, H)
 
 	var paleta: Array[Color] = [
 		Color(1.0, 0.85, 0.08),

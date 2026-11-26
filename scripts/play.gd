@@ -1,5 +1,9 @@
 extends Node
 
+## true = as mensagens de acompanhamento vão para o log (deixa o jogo mais
+## lento na TV Box: cada batida escrevia dezenas de linhas). Só para depurar.
+const DEPURAR := false
+
 const MOSTRAR_TECLAS_LED_HUD: bool = false
 const CORES_LED_ALEATORIAS_DOS_PLAYERS: bool = true
 
@@ -204,12 +208,34 @@ var sfx_apito_init: AudioStreamPlayer
 var sfx_apito_troca: AudioStreamPlayer
 var sfx_apito_fim: AudioStreamPlayer
 
+## Até 4 no ARCADE; a partida do MODO EVENTO vai até 8 (as mesmas cores do
+## menu: opening.gd / cores_players).
+const MAX_PLAYERS_ARCADE: int = 4
+const MAX_PLAYERS_EVENTO: int = 8
 var cores_players: Array[Color] = [
 	Color(0.1, 0.75, 1.0),
 	Color(0.2, 1.0, 0.3),
 	Color(1.0, 0.15, 0.15),
-	Color(1.0, 0.85, 0.05)
+	Color(1.0, 0.85, 0.05),
+	Color(1.0, 0.50, 0.05),
+	Color(0.72, 0.38, 1.0),
+	Color(1.0, 0.35, 0.72),
+	Color(0.10, 1.0, 0.82)
 	]
+
+## PARTIDA DO MODO EVENTO (escolhida no menu): até 8 jogadores, com o nome
+## que cada um escreveu no cadastro no lugar de "PLAYER n".
+var partida_evento: bool = false
+var nomes_players: Array = []
+
+
+## "PLAYER 3" ou, na partida do evento, o primeiro nome do cadastro ("ANA").
+func _nome_player(index: int) -> String:
+	if index >= 0 and index < nomes_players.size():
+		var n: String = str(nomes_players[index]).strip_edges().get_slice(" ", 0).to_upper()
+		if n != "":
+			return n.substr(0, 12)
+	return "PLAYER %d" % (index + 1)
 
 
 const CORES_ALVOS_RGB: Array = [
@@ -358,7 +384,7 @@ func _process(delta: float) -> void:
 		var acao: String = "input_led_" + LEDS_LETRAS[i].to_lower()
 
 		if Input.is_action_just_pressed(acao):
-			print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
+			if DEPURAR: print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
 			_processar_input_led(i)
 
 	if player_atual < 0 or player_atual >= total_players:
@@ -384,7 +410,7 @@ func _checar_timeout_alvo() -> void:
 	var agora := float(Time.get_ticks_msec())
 	if agora - _ultimo_acerto_ms >= ALVO_TIMEOUT_MS:
 		_ultimo_acerto_ms = agora
-		print("ALVO SEM ACERTO POR 15s -> TROCANDO GRUPO")
+		if DEPURAR: print("ALVO SEM ACERTO POR 15s -> TROCANDO GRUPO")
 		_sortear_novo_grupo_de_fileiras()
 
 
@@ -531,7 +557,7 @@ func _fechar_jogo_arcade() -> void:
 
 	fechando_jogo = true
 
-	print("FECHANDO PLAY SOMENTE COM CTRL + TAB...")
+	if DEPURAR: print("FECHANDO PLAY SOMENTE COM CTRL + TAB...")
 
 	_serial_write("OFF")
 
@@ -594,7 +620,7 @@ func _carregar_config_players() -> void:
 	# Primeiro tenta ler da metadata da SceneTree.
 	if get_tree().has_meta("fut_total_players"):
 		total_players = int(get_tree().get_meta("fut_total_players"))
-		print("PLAY LEU PLAYERS PELA META: ", total_players)
+		if DEPURAR: print("PLAY LEU PLAYERS PELA META: ", total_players)
 
 	if get_tree().has_meta("fut_cores_players"):
 		cores_recebidas = get_tree().get_meta("fut_cores_players")
@@ -619,16 +645,18 @@ func _carregar_config_players() -> void:
 	else:
 		push_warning("PLAY: /root/PlayersGlobal não encontrado. Usando metadata ou 1 player.")
 
-	total_players = clamp(total_players, 1, 4)
+	partida_evento = bool(get_tree().get_meta("fut_evento", false))
+	nomes_players = get_tree().get_meta("fut_nomes_players", []) if partida_evento else []
+	total_players = clamp(total_players, 1, MAX_PLAYERS_EVENTO if partida_evento else MAX_PLAYERS_ARCADE)
 
 	if cores_recebidas != null and cores_recebidas is Array and cores_recebidas.size() > 0:
 		for i in range(min(cores_recebidas.size(), cores_players.size())):
 			cores_players[i] = cores_recebidas[i]
 
-	print("================================")
-	print("PLAY MONTOU COM PLAYERS: ", total_players)
-	print("PLAY CORES RECEBIDAS: ", cores_recebidas.size())
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("PLAY MONTOU COM PLAYERS: ", total_players)
+	if DEPURAR: print("PLAY CORES RECEBIDAS: ", cores_recebidas.size())
+	if DEPURAR: print("================================")
 
 
 
@@ -802,6 +830,7 @@ func _reconstruir_paineis() -> void:
 			p.queue_free()
 
 	player_panels.clear()
+	fundos_cards.clear()
 	score_labels.clear()
 	tempo_labels.clear()
 	status_labels.clear()
@@ -851,6 +880,18 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 		var h := tela.y / 2.0
 		return Rect2(Vector2(big_w, float(slot) * h), Vector2(small_w, h))
 
+	if qtd > 4:
+		# 5 a 8 (MODO EVENTO): duas fileiras; a de cima com um a mais quando o
+		# total é ímpar, a de baixo centralizada. Todos os cartões do mesmo tamanho.
+		var em_cima: int = int(ceil(qtd / 2.0))
+		var em_baixo: int = qtd - em_cima
+		var wc: float = tela.x / float(em_cima)
+		var hc: float = tela.y / 2.0
+		if index < em_cima:
+			return Rect2(Vector2(float(index) * wc, 0.0), Vector2(wc, hc))
+		var sobra: float = (tela.x - float(em_baixo) * wc) * 0.5
+		return Rect2(Vector2(sobra + float(index - em_cima) * wc, hc), Vector2(wc, hc))
+
 	# 4 players: grade 2x2 bem limpa.
 	var w4 := tela.x / 2.0
 	var h4 := tela.y / 2.0
@@ -860,6 +901,184 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 
 	return Rect2(Vector2(float(col) * w4, float(row) * h4), Vector2(w4, h4))
 
+
+
+# ------------------------------------------------------- fundo dos cartões
+## O CARTÃO DO JOGADOR TEM A SUA PRÓPRIA ARTE, feita para este jogo:
+##   - o estádio (res://fundos/card_estadio.png, desenhado pelo
+##     tools/arte/gerar_card.py): holofotes com os fachos de luz, as luzes da
+##     arquibancada, a rede do gol nas laterais e o gramado em perspectiva;
+##   - O ALVO DE LED atrás do placar - o anel de luzes da máquina - desenhado
+##     aqui no shader, no lugar exato do placar. No cartão de quem está
+##     jogando as luzes do alvo CORREM em volta; nos outros ficam acesas.
+## A arte não tem cor: o shader pinta na cor de cada jogador (as 8 cores),
+## com uma segunda cor vizinha e o branco dos miolos de luz.
+## Um desenho só por cartão (sem nós a mais nem partículas): leve para a TV
+## Box. Nos níveis 4 e 5 de desempenho as luzes não correm.
+const ARTE_CARD: String = "res://fundos/card_estadio.png"
+const SHADER_CARD := """
+shader_type canvas_item;
+
+uniform vec2 tamanho = vec2(100.0, 100.0);
+uniform float raio = 20.0;
+uniform vec3 tinta = vec3(1.0);
+uniform vec2 centro = vec2(50.0, 44.0);
+uniform float anel = 30.0;
+uniform float vivo = 0.0;
+varying vec2 ponto;
+
+void vertex() {
+	ponto = VERTEX;
+}
+
+void fragment() {
+	// canto arredondado
+	vec2 p = ponto - tamanho * 0.5;
+	vec2 q = abs(p) - (tamanho * 0.5 - vec2(raio));
+	float fora = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - raio;
+	float alfa = 1.0 - smoothstep(-1.0, 1.0, fora);
+
+	// o estádio: vermelho = cor do jogador, azul = segunda cor, verde = branco
+	vec3 t = texture(TEXTURE, UV).rgb;
+	vec3 segunda = tinta.brg * 0.45 + tinta * 0.55;
+	vec3 cor = tinta * t.r * 1.05 + segunda * t.b * 0.60 + vec3(t.g) * 0.95;
+
+	// o alvo de LED em volta do placar
+	vec2 d = ponto - centro;
+	float dist = length(d);
+	// (por dentro do alvo fica mais escuro: é onde está o número)
+	cor *= mix(0.42, 1.0, smoothstep(anel * 0.50, anel * 1.02, dist));
+	float faixa = (dist - anel) / (anel * 0.075);
+	if (abs(faixa) < 4.0) {
+		float ang = atan(d.y, d.x);
+		float led = pow(0.5 + 0.5 * cos(ang * 28.0), 3.0);
+		float aro = exp(-faixa * faixa);
+		// as luzes correndo (só no cartão de quem está jogando)
+		float corre = pow(0.5 + 0.5 * cos(ang - TIME * 3.2), 5.0);
+		float forca = mix(0.50, 0.75 + 1.10 * corre, vivo);
+		cor += tinta * aro * (0.30 + 0.70 * led) * forca * 1.25;
+		cor += vec3(1.0) * aro * led * forca * 0.55;
+	}
+	// o aro fino de fora e o brilho em volta do alvo
+	float fino = (dist - anel * 1.23) / (anel * 0.014);
+	cor += tinta * exp(-fino * fino) * mix(0.30, 0.70, vivo);
+	float halo = (dist - anel) / (anel * 0.42);
+	cor += tinta * exp(-halo * halo) * mix(0.07, 0.20, vivo);
+
+	// (no Godot 4 o COLOR já chega multiplicado pela textura: vale só a conta acima)
+	COLOR = vec4(cor, alfa);
+}
+"""
+static var _shader_card: Shader
+var fundos_cards: Array[ShaderMaterial] = []
+
+
+## O FUNDO DO RESULTADO FINAL: a arte res://fundos/fundo_result.png (a mesma
+## do resultado da Copa) com dois efeitos vivos feitos no próprio desenho -
+## raios de luz na cor do campeão girando devagar e um brilho que varre a
+## janela a cada 4 s. É UM desenho só (um shader, sem partículas nem nós a
+## mais): não pesa. Nas caixas mais fracas (Visual.nivel 4 ou 5) fica parado.
+const FUNDO_RESULTADO := "res://fundos/fundo_result.png"
+const SHADER_FUNDO_RESULTADO := """
+shader_type canvas_item;
+
+uniform vec2 tamanho = vec2(100.0, 100.0);
+uniform float raio = 30.0;
+uniform vec3 tinta = vec3(1.0);
+uniform float animar = 1.0;
+varying vec2 ponto;
+
+void vertex() {
+	ponto = VERTEX;
+}
+
+void fragment() {
+	vec2 p = ponto - tamanho * 0.5;
+	vec2 q = abs(p) - (tamanho * 0.5 - vec2(raio));
+	float dist = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - raio;
+	float alfa = 1.0 - smoothstep(-1.0, 1.0, dist);
+
+	vec3 cor = texture(TEXTURE, UV).rgb * 0.82;
+	vec2 n = ponto / tamanho;
+	// raios de luz saindo do alto, girando devagar, na cor do campeão
+	vec2 d = n - vec2(0.5, 0.06);
+	float feixe = 0.5 + 0.5 * sin(atan(d.y, d.x) * 14.0 + TIME * 0.45);
+	feixe *= feixe;
+	cor += tinta * feixe * (1.0 - smoothstep(0.0, 0.95, length(d))) * 0.20 * animar;
+	// um brilho que atravessa a janela na diagonal
+	float onde = fract(TIME * 0.25) * 2.6 - 0.8;
+	cor += vec3(1.0) * (1.0 - smoothstep(0.0, 0.09, abs(n.x + n.y * 0.35 - onde))) * 0.06 * animar;
+	// a cor do campeão subindo de baixo
+	cor += tinta * 0.10 * smoothstep(0.55, 1.0, n.y);
+	// (no Godot 4 o COLOR já chega multiplicado pela textura: aqui vale só a conta acima)
+	COLOR = vec4(cor, alfa);
+}
+"""
+static var _shader_fundo_resultado: Shader
+
+
+func _adicionar_fundo_resultado(panel: Panel, cor: Color) -> void:
+	if not ResourceLoader.exists(FUNDO_RESULTADO):
+		return
+	if _shader_fundo_resultado == null:
+		_shader_fundo_resultado = Shader.new()
+		_shader_fundo_resultado.code = SHADER_FUNDO_RESULTADO
+	var borda := 4.0
+	var img := TextureRect.new()
+	img.position = Vector2(borda, borda)
+	img.size = panel.size - Vector2(borda * 2.0, borda * 2.0)
+	img.texture = load(FUNDO_RESULTADO)
+	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_fundo_resultado
+	mat.set_shader_parameter("tamanho", img.size)
+	mat.set_shader_parameter("raio", 32.0)
+	mat.set_shader_parameter("tinta", Vector3(cor.r, cor.g, cor.b))
+	mat.set_shader_parameter("animar", 0.0 if Visual.nivel >= 4 else 1.0)
+	img.material = mat
+	panel.add_child(img)
+
+
+func _adicionar_fundo_card(panel: Panel, index: int, cor: Color) -> void:
+	if not ResourceLoader.exists(ARTE_CARD):
+		return
+	if _shader_card == null:
+		_shader_card = Shader.new()
+		_shader_card.code = SHADER_CARD
+	var borda := 3.0
+	var tam: Vector2 = panel.size - Vector2(borda * 2.0, borda * 2.0)
+	if tam.x <= 0.0 or tam.y <= 0.0:
+		return
+	var img := TextureRect.new()
+	img.position = Vector2(borda, borda)
+	img.size = tam
+	img.texture = load(ARTE_CARD)
+	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_card
+	mat.set_shader_parameter("tamanho", tam)
+	mat.set_shader_parameter("raio", 21.0)
+	mat.set_shader_parameter("tinta", Vector3(cor.r, cor.g, cor.b))
+	# o alvo fica atrás do placar (o placar está a 44% da altura do cartão)
+	mat.set_shader_parameter("centro", Vector2(panel.size.x * 0.5, panel.size.y * 0.44) - Vector2(borda, borda))
+	mat.set_shader_parameter("anel", minf(panel.size.x * 0.40, panel.size.y * 0.215))
+	mat.set_shader_parameter("vivo", 0.0)
+	img.material = mat
+	panel.add_child(img)
+	while fundos_cards.size() <= index:
+		fundos_cards.append(null)
+	fundos_cards[index] = mat
+
+
+## As luzes do alvo correm só no cartão de quem está jogando.
+func _acender_alvo_do_card(index: int, sim: bool) -> void:
+	if index < 0 or index >= fundos_cards.size() or fundos_cards[index] == null:
+		return
+	fundos_cards[index].set_shader_parameter("vivo", 1.0 if sim and Visual.nivel < 4 else 0.0)
 
 
 func _criar_painel_player(index: int, rect: Rect2) -> void:
@@ -904,6 +1123,9 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	style.shadow_offset = Vector2.ZERO
 	panel.add_theme_stylebox_override("panel", style)
 
+	# o fundo ilustrado do cartão, na cor do jogador
+	_adicionar_fundo_card(panel, index, cor)
+
 	# faixa decorativa no topo
 	var faixa := ColorRect.new()
 	faixa.color = Color(cor.r, cor.g, cor.b, 0.22)
@@ -914,7 +1136,7 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	# TÍTULO
 	# (nome em BRANCO com contorno escuro: na cor do jogador ele sumia quando
 	# o card acende na mesma cor; a cor fica no brilho em volta)
-	var titulo := _novo_label_card("PLAYER %d" % [index + 1], W, c_titulo, fs_titulo, Color.WHITE)
+	var titulo := _novo_label_card(_nome_player(index), W, c_titulo, fs_titulo, Color.WHITE)
 	titulo.add_theme_color_override("font_shadow_color", cor)
 	titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
 	titulo.add_theme_constant_override("outline_size", 6)
@@ -1234,6 +1456,7 @@ func _criar_overlay_turno() -> void:
 	style.shadow_size = 38
 	style.shadow_offset = Vector2.ZERO
 	overlay_panel.add_theme_stylebox_override("panel", style)
+	_criar_fundo_overlay()
 
 	overlay_titulo = Label.new()
 	overlay_titulo.text = ""
@@ -1303,12 +1526,15 @@ func _mostrar_preparacao_player() -> void:
 
 	var cor := cores_players[player_atual]
 
-	overlay_titulo.text = "PLAYER %d" % [player_atual + 1]
+	overlay_titulo.text = _nome_player(player_atual)
 	overlay_numero.text = "PRONTO?"
 	overlay_subtitulo.text = "APERTE START PARA COMEÇAR"
 	overlay_titulo.add_theme_color_override("font_shadow_color", cor)
-	overlay_numero.add_theme_color_override("font_color", cor)
+	overlay_numero.add_theme_color_override("font_color", Color.WHITE)
 	overlay_numero.add_theme_color_override("font_shadow_color", cor)
+	for l in [overlay_titulo, overlay_numero, overlay_subtitulo]:
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		l.add_theme_constant_override("outline_size", 8)
 
 	_set_overlay_cor(cor)
 	_mostrar_overlay()
@@ -1330,7 +1556,7 @@ func _iniciar_contagem_turno() -> void:
 func _rodar_contagem_inicio() -> void:
 	var cor := cores_players[player_atual]
 
-	overlay_titulo.text = "PLAYER %d PREPARE-SE" % [player_atual + 1]
+	overlay_titulo.text = "%s PREPARE-SE" % _nome_player(player_atual)
 	overlay_subtitulo.text = "VALENDO EM..."
 
 	for n in range(TEMPO_CONTAGEM_INICIAL, 0, -1):
@@ -1444,12 +1670,12 @@ func _sortear_novo_grupo_de_fileiras() -> void:
 			leds_ativos.append(novo)
 			cores_leds_ativos[novo] = _rgb_aleatorio_alvo()
 
-	print("================================")
-	print("NOVO GRUPO SORTEADO PARA O PLAYER ", player_atual + 1)
-	print("QUANTIDADE: ", leds_ativos.size())
-	print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
-	print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("NOVO GRUPO SORTEADO PARA O PLAYER ", player_atual + 1)
+	if DEPURAR: print("QUANTIDADE: ", leds_ativos.size())
+	if DEPURAR: print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
+	if DEPURAR: print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
+	if DEPURAR: print("================================")
 
 	_atualizar_leds_hud()
 	_enviar_leds_para_arduino()
@@ -1480,6 +1706,85 @@ func _set_overlay_cor(cor: Color) -> void:
 	var style := overlay_panel.get_theme_stylebox("panel") as StyleBoxFlat
 	style.border_color = cor
 	style.shadow_color = Color(cor.r, cor.g, cor.b, 0.72)
+	_fundo_overlay_do_player(player_atual)
+
+
+# -------------------------------------------- fundo do "PRONTO?" (como na Copa)
+## A janela do "PRONTO?" e da contagem tem a ARTE DO ESTÁDIO (holofotes, gol
+## e a bola em chamas - res://fundos/blue|green|red|yellow.png, as mesmas da
+## Copa) na cor de quem vai jogar. Do 5o ao 8o jogador (MODO EVENTO) a arte
+## mais próxima tem a cor girada para a dele (laranja, roxo, rosa, turquesa).
+## Um desenho só, com o canto arredondado feito no shader.
+const FUNDOS_PREP: Array = [
+	["res://fundos/blue.png", 0.0], ["res://fundos/green.png", 0.0], ["res://fundos/red.png", 0.0], ["res://fundos/yellow.png", 0.0],
+	["res://fundos/red.png", 0.42], ["res://fundos/blue.png", 0.95], ["res://fundos/red.png", -0.62], ["res://fundos/green.png", 0.85]]
+const SHADER_FUNDO_PREP := """
+shader_type canvas_item;
+
+uniform vec2 tamanho = vec2(100.0, 100.0);
+uniform float raio = 30.0;
+uniform float giro = 0.0;
+uniform float brilho = 0.78;
+uniform float meio = 0.30;
+uniform float aproxima = 1.0;
+uniform vec2 forma = vec2(0.8, 1.3);
+varying vec2 ponto;
+
+void vertex() {
+	ponto = VERTEX;
+}
+
+void fragment() {
+	vec2 p = ponto - tamanho * 0.5;
+	vec2 q = abs(p) - (tamanho * 0.5 - vec2(raio));
+	float dist = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - raio;
+	float alfa = 1.0 - smoothstep(-1.0, 1.0, dist);
+
+	// (aproxima > 1: a arte chega mais perto e as linhas da moldura dela saem do quadro)
+	vec3 cor = texture(TEXTURE, (UV - 0.5) / aproxima + 0.5).rgb;
+	// gira a cor da arte (o branco dos holofotes e da bola continua branco)
+	vec3 k = vec3(0.57735);
+	float c = cos(giro);
+	cor = cor * c + cross(k, cor) * sin(giro) + k * dot(k, cor) * (1.0 - c);
+	// mais escuro no meio, onde ficam as letras
+	vec2 n = ponto / tamanho - 0.5;
+	cor *= brilho * (1.0 - meio * (1.0 - smoothstep(0.05, 0.50, length(n * forma))));
+	COLOR = vec4(clamp(cor, 0.0, 1.0), alfa);
+}
+"""
+static var _shader_fundo_prep: Shader
+var overlay_fundo_img: TextureRect
+
+
+func _criar_fundo_overlay() -> void:
+	if _shader_fundo_prep == null:
+		_shader_fundo_prep = Shader.new()
+		_shader_fundo_prep.code = SHADER_FUNDO_PREP
+	var borda := 4.0
+	overlay_fundo_img = TextureRect.new()
+	overlay_fundo_img.position = Vector2(borda, borda)
+	overlay_fundo_img.size = overlay_panel.size - Vector2(borda * 2.0, borda * 2.0)
+	overlay_fundo_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	overlay_fundo_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	overlay_fundo_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_fundo_prep
+	mat.set_shader_parameter("tamanho", overlay_fundo_img.size)
+	mat.set_shader_parameter("raio", 32.0)
+	overlay_fundo_img.material = mat
+	overlay_panel.add_child(overlay_fundo_img)
+
+
+func _fundo_overlay_do_player(index: int) -> void:
+	if overlay_fundo_img == null or not is_instance_valid(overlay_fundo_img):
+		return
+	var par: Array = FUNDOS_PREP[posmod(index, FUNDOS_PREP.size())]
+	var caminho := str(par[0])
+	overlay_fundo_img.visible = ResourceLoader.exists(caminho)
+	if not overlay_fundo_img.visible:
+		return
+	overlay_fundo_img.texture = load(caminho)
+	(overlay_fundo_img.material as ShaderMaterial).set_shader_parameter("giro", float(par[1]))
 
 
 func _animar_painel_atual() -> void:
@@ -1547,6 +1852,7 @@ func _atualizar_hud() -> void:
 			style.shadow_size = 6
 
 			player_panels[i].modulate = Color(0.72, 0.72, 0.72, 1.0)
+			_acender_alvo_do_card(i, false)
 
 		elif i == player_atual:
 			if partida_ativa:
@@ -1567,6 +1873,7 @@ func _atualizar_hud() -> void:
 			style.shadow_size = int(26.0 + pulso * 20.0)
 
 			player_panels[i].modulate = Color(1, 1, 1, 1)
+			_acender_alvo_do_card(i, true)
 
 		else:
 			status_labels[i].text = "AGUARDANDO"
@@ -1577,7 +1884,8 @@ func _atualizar_hud() -> void:
 			style.shadow_color = Color(cor.r, cor.g, cor.b, 0.18)
 			style.shadow_size = 8
 
-			player_panels[i].modulate = Color(0.58, 0.58, 0.58, 1.0)
+			player_panels[i].modulate = Color(0.66, 0.66, 0.66, 1.0)
+			_acender_alvo_do_card(i, false)
 	
 	_atualizar_medalhas_lider()
 
@@ -1652,6 +1960,22 @@ func _explosao_gol(index: int) -> void:
 		tr.tween_property(ring, "modulate", Color(1, 1, 1, 0), dur) \
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
 		tr.chain().tween_callback(ring.queue_free)
+
+	# as faíscas: no quadro seguinte (e dispensadas com gols em rajada)
+	if not Efeitos.fila_cheia():
+		Efeitos.depois(_faiscas_gol.bind(index))
+
+
+func _faiscas_gol(index: int) -> void:
+	if index < 0 or index >= player_panels.size():
+		return
+
+	var panel: Panel = player_panels[index]
+	var cor: Color = cores_players[index]
+	var W: float = float(panel.size.x)
+	var H: float = float(panel.size.y)
+	var centro: Vector2 = Vector2(W, H) * 0.5
+	var ref: float = minf(W, H)
 
 	# --- faíscas / confetes ---
 	var paleta: Array[Color] = [
@@ -1738,7 +2062,7 @@ func _finalizar_turno_player() -> void:
 	if proximo == -1:
 		await _mostrar_aviso_turno(
 			"TEMPO ESGOTADO",
-			"PLAYER %d FINALIZOU COM %d GOLS" % [player_finalizado + 1, scores[player_finalizado]],
+			"%s FINALIZOU COM %d GOLS" % [_nome_player(player_finalizado), scores[player_finalizado]],
 			cores_players[player_finalizado]
 		)
 
@@ -1746,10 +2070,10 @@ func _finalizar_turno_player() -> void:
 	else:
 		await _mostrar_aviso_turno(
 			"TEMPO ESGOTADO",
-			"PLAYER %d FEZ %d GOLS  •  PRÓXIMO: PLAYER %d" % [
-				player_finalizado + 1,
+			"%s FEZ %d GOLS  •  PRÓXIMO: %s" % [
+				_nome_player(player_finalizado),
 				scores[player_finalizado],
-				proximo + 1
+				_nome_player(proximo)
 			],
 			cores_players[player_finalizado]
 		)
@@ -1857,7 +2181,8 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null,
+		player_panels[player_atual].get_global_rect() if player_atual < player_panels.size() and is_instance_valid(player_panels[player_atual]) else Rect2())
 
 	var score_antes: int = scores[player_atual]
 	scores[player_atual] += valor
@@ -1895,11 +2220,15 @@ func registrar_ponto(valor: int = 1) -> void:
 	_verificar_vitoria_antecipada()
 
 	# efeitos visuais
-	_animar_score(player_atual)
-	_efeito_gol_card(player_atual)
-	_explosao_gol(player_atual)
-	_mostrar_popup_ponto(player_atual, valor)
+	# NA HORA: o placar (o som do gol já tocou acima; o LED sai em seguida).
 	_atualizar_hud()
+	_animar_score(player_atual)
+	# ENFEITES: um por quadro, nos quadros seguintes (Efeitos.depois) - criar
+	# tudo junto com o gol é o que dava o tranco na imagem e no som.
+	var quem: int = player_atual
+	Efeitos.depois(_efeito_gol_card.bind(quem))
+	Efeitos.depois(_explosao_gol.bind(quem))
+	Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
 
 
 func _tocar_campeao_agora() -> void:
@@ -1921,7 +2250,7 @@ func _tocar_campeao_agora() -> void:
 	sfx_campeao.stop()
 	sfx_campeao.play()
 
-	print("SOM DE CAMPEÃO TOCANDO AGORA")
+	if DEPURAR: print("SOM DE CAMPEÃO TOCANDO AGORA")
 
 
 
@@ -1954,12 +2283,12 @@ func _verificar_vitoria_antecipada() -> void:
 	if sfx_reativo and sfx_reativo.playing:
 		_campeao_pendente = true
 		_reativo_bloqueado_por_campeao = true
-		print("CAMPEÃO ANTECIPADO PENDENTE: aguardando som reativo terminar.")
+		if DEPURAR: print("CAMPEÃO ANTECIPADO PENDENTE: aguardando som reativo terminar.")
 		return
 
 	_tocar_campeao_agora()
 
-	print("VITÓRIA ANTECIPADA: PLAYER ", player_atual + 1, " já garantiu o título!")
+	if DEPURAR: print("VITÓRIA ANTECIPADA: PLAYER ", player_atual + 1, " já garantiu o título!")
 
 
 func _mostrar_popup_ponto(index: int, valor: int) -> void:
@@ -2108,10 +2437,59 @@ func _finalizar_partida() -> void:
 	partida_finalizada = true
 	partida_ativa = false
 	_atualizar_hud()
+	_salvar_evento_no_mural()
 
 	await get_tree().create_timer(0.25).timeout
 	_mostrar_modal_final()
 
+
+
+## A PARTIDA DO MODO EVENTO É UM TORNEIO: com 2 jogadores ou mais, o pódio
+## (até 3, com os nomes do cadastro) entra no Mural de Campeões como TORNEIO,
+## com o nome do evento. Aparece no filtro TORNEIOS do Mural e conta no Ranking.
+var _evento_salvo_no_mural: bool = false
+
+
+func _salvar_evento_no_mural() -> void:
+	if _evento_salvo_no_mural or not partida_evento or total_players < 2:
+		return
+	var db := get_node_or_null("/root/ChampionsDb")
+	if db == null or not db.has_method("registrar_copa"):
+		return
+	var ranking := _montar_ranking()
+	if ranking.is_empty() or int(ranking[0]["score"]) <= 0:
+		return   # (ninguém marcou: não há campeão para guardar)
+	_evento_salvo_no_mural = true
+	var top3: Array = []
+	for i in range(mini(ranking.size(), 3)):
+		var item := ranking[i]
+		top3.append({
+			"nome": _nome_player(int(item["player"]) - 1),
+			"gols_total": int(item["score"]),
+			"gols_normais": int(item["score"]),
+			"penaltis_total": 0,
+			"jogos_total": 1,
+			"vitorias_total": 1 if int(item["posicao"]) == 1 else 0,
+			"pontos_grupo": int(item["score"]),
+			"grupo": "-",
+			"fase_nome": "EVENTO"
+		})
+	var gols := 0
+	for g in scores:
+		gols += int(g)
+	var nome_evento: String = Leads.evento if Leads.evento != "" else "EVENTO"
+	db.registrar_copa({
+		"tipo": "TORNEIO",
+		"titulo": nome_evento,
+		"top3": top3,
+		"resumo": {
+			"fase_final": "Partida do evento",
+			"partidas_total": 1,
+			"grupos_total": 1,
+			"jogadores_reais": total_players,
+			"gols_total": gols
+		}
+	})
 
 
 func _montar_ranking() -> Array[Dictionary]:
@@ -2210,6 +2588,7 @@ func _mostrar_modal_final() -> void:
 	style.shadow_size = 44
 	style.shadow_offset = Vector2.ZERO
 	panel.add_theme_stylebox_override("panel", style)
+	_adicionar_fundo_resultado(panel, cor_vencedor)
 
 	var titulo := Label.new()
 	titulo.text = "RESULTADO FINAL"
@@ -2228,9 +2607,12 @@ func _mostrar_modal_final() -> void:
 
 	panel.add_child(titulo)
 
+	# (até 4 linhas no tamanho de sempre; de 5 a 8 - MODO EVENTO - elas
+	# encolhem para caber todas entre o título e o destaque)
 	var y := 118.0
-	var altura_linha := 74.0
-	var passo := 88.0
+	var passo: float = minf(88.0, 380.0 / float(maxi(ranking.size(), 1)))
+	var altura_linha: float = passo - (14.0 if passo >= 80.0 else 8.0)
+	var escala_linha: float = altura_linha / 74.0
 
 	for i in range(ranking.size()):
 		var item := ranking[i]
@@ -2269,8 +2651,8 @@ func _mostrar_modal_final() -> void:
 		# 1º = ouro, 2º = prata, 3º = bronze.
 		# 4º lugar não recebe medalha.
 		if posicao_item >= 1 and posicao_item <= 3:
-			var medalha_linha := _criar_medalha_ranking(linha, cor, posicao_item, 0.50)
-			medalha_linha.position = Vector2(-62, -6)
+			var medalha_linha := _criar_medalha_ranking(linha, cor, posicao_item, 0.50 * escala_linha)
+			medalha_linha.position = Vector2(-62, -6) * escala_linha
 			medalha_linha.z_index = 150
 			linha.add_child(medalha_linha)
 
@@ -2281,21 +2663,21 @@ func _mostrar_modal_final() -> void:
 			txt_empate = "  •  EMPATE"
 
 		if eh_campeao:
-			texto.text = "CAMPEÃO  •  PLAYER %d  •  %d GOLS" % [
-				player_num,
+			texto.text = "CAMPEÃO  •  %s  •  %d GOLS" % [
+				_nome_player(player_num - 1),
 				score_item
 			]
 		else:
 			if posicao_item == 4:
-				texto.text = "4º LUGAR  •  PLAYER %d  •  %d GOLS%s" % [
-					player_num,
+				texto.text = "4º LUGAR  •  %s  •  %d GOLS%s" % [
+					_nome_player(player_num - 1),
 					score_item,
 					txt_empate
 				]
 			else:
-				texto.text = "%dº  •  PLAYER %d  •  %d GOLS%s" % [
+				texto.text = "%dº  •  %s  •  %d GOLS%s" % [
 					posicao_item,
-					player_num,
+					_nome_player(player_num - 1),
 					score_item,
 					txt_empate
 				]
@@ -2320,7 +2702,7 @@ func _mostrar_modal_final() -> void:
 		if texto.text.length() > 62:
 			tamanho_texto -= 2
 
-		texto.add_theme_font_size_override("font_size", max(tamanho_texto, 17))
+		texto.add_theme_font_size_override("font_size", max(int(tamanho_texto * maxf(escala_linha, 0.72)), 15))
 		texto.add_theme_color_override("font_color", Color.WHITE if eh_campeao else Color(0.85, 0.88, 0.92))
 		texto.add_theme_color_override("font_shadow_color", cor)
 		texto.add_theme_constant_override("shadow_offset_x", 0)
@@ -2346,7 +2728,7 @@ func _mostrar_modal_final() -> void:
 	elif vencedores.size() > 1:
 		destaque.text = "EMPATE ENTRE PLAYERS " + ", ".join(vencedores.map(func(v): return str(v)))
 	else:
-		destaque.text = "VENCEDOR: PLAYER %d" % vencedores[0]
+		destaque.text = "VENCEDOR: %s" % _nome_player(vencedores[0] - 1)
 
 	destaque.position = Vector2(20, 500)
 	destaque.size = Vector2(780, 44)
@@ -2509,8 +2891,8 @@ func _confetes_vencedor(panel: Panel, cor: Color) -> void:
 
 func _reiniciar_partida() -> void:
 	# Em modo crédito, cada nova partida exige outro crédito no menu.
-	# Em modo evento, os próximos jogadores fazem o cadastro no menu.
-	if ArcadeData.modo_atual() != "livre":
+	# Na partida do evento, os próximos jogadores fazem o cadastro no menu.
+	if partida_evento or not ArcadeData.livre():
 		_voltar_ao_opening()
 		return
 
@@ -2580,7 +2962,7 @@ func _sortear_musicas_players() -> void:
 		else:
 			musicas_por_player.append(null)  # fallback se faltar arquivo
 
-	print("MÚSICAS SORTEADAS: ", musicas_por_player.size(), " de ", disponiveis.size(), " disponíveis")
+	if DEPURAR: print("MÚSICAS SORTEADAS: ", musicas_por_player.size(), " de ", disponiveis.size(), " disponíveis")
 
 
 
@@ -2711,11 +3093,11 @@ func _completar_leds_ativos() -> void:
 			leds_ativos.append(novo)
 			cores_leds_ativos[novo] = _rgb_aleatorio_alvo()
 
-	print("================================")
-	print("GRUPO COMPLETADO")
-	print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
-	print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("GRUPO COMPLETADO")
+	if DEPURAR: print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
+	if DEPURAR: print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
+	if DEPURAR: print("================================")
 
 	_atualizar_leds_hud()
 	_enviar_leds_para_arduino()
@@ -2750,13 +3132,13 @@ func _processar_input_led(index_led: int) -> void:
 
 	var letra_sensor := LEDS_LETRAS[index_led]
 
-	print("================================")
-	print("SENSOR ATIVADO: ", letra_sensor)
-	print("FILEIRAS VÁLIDAS NO MOMENTO: ", _texto_fileiras_ativas())
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("SENSOR ATIVADO: ", letra_sensor)
+	if DEPURAR: print("FILEIRAS VÁLIDAS NO MOMENTO: ", _texto_fileiras_ativas())
+	if DEPURAR: print("================================")
 
 	if leds_ativos.has(index_led):
-		print("ACERTOU: ", letra_sensor, " / MARCOU 1 GOL")
+		if DEPURAR: print("ACERTOU: ", letra_sensor, " / MARCOU 1 GOL")
 
 		_ultimo_acerto_ms = float(Time.get_ticks_msec())   # zera o timeout de 15s
 
@@ -2775,7 +3157,7 @@ func _processar_input_led(index_led: int) -> void:
 		_completar_leds_ativos()
 
 	else:
-		print("ERROU: ", letra_sensor, " NÃO ESTAVA ACESO")
+		if DEPURAR: print("ERROU: ", letra_sensor, " NÃO ESTAVA ACESO")
 
 		_flash_led(index_led, false)
 		registrar_erro(0)
@@ -2791,7 +3173,7 @@ func _abrir_serial_arduino() -> void:
 		return
 
 	if not USAR_ARDUINO:
-		print("Arduino desativado por USAR_ARDUINO = false")
+		if DEPURAR: print("Arduino desativado por USAR_ARDUINO = false")
 		return
 
 	if USAR_PONTE_POWERSHELL:
@@ -2807,10 +3189,10 @@ func _abrir_serial_arduino() -> void:
 
 		await get_tree().create_timer(0.20).timeout
 
-		print("================================")
-		print("ARDUINO PRONTO PARA A LÓGICA ÚNICA DO JOGO")
-		print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
-		print("================================")
+		if DEPURAR: print("================================")
+		if DEPURAR: print("ARDUINO PRONTO PARA A LÓGICA ÚNICA DO JOGO")
+		if DEPURAR: print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
+		if DEPURAR: print("================================")
 		return
 
 	push_warning("SerialPort do Godot desativado. Usando somente ponte PowerShell.")
@@ -2843,7 +3225,7 @@ ForEach-Object {
 
 	OS.execute("powershell.exe", args, output, true, false)
 
-	print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
+	if DEPURAR: print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
 
 
 
@@ -2973,12 +3355,12 @@ catch {
 
 	ponte_ps_pid = OS.create_process("powershell.exe", args, false)
 
-	print("================================")
-	print("PONTE POWERSHELL INICIADA")
-	print("PID: ", ponte_ps_pid)
-	print("QUEUE: ", caminho_fila_arduino)
-	print("LOG FILE: ", caminho_log_arduino)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("PONTE POWERSHELL INICIADA")
+	if DEPURAR: print("PID: ", ponte_ps_pid)
+	if DEPURAR: print("QUEUE: ", caminho_fila_arduino)
+	if DEPURAR: print("LOG FILE: ", caminho_log_arduino)
+	if DEPURAR: print("================================")
 
 
 func _serial_write(texto: String) -> void:
@@ -2995,10 +3377,10 @@ func _serial_write(texto: String) -> void:
 	if cmd == "":
 		return
 
-	print("================================")
-	print("SERIAL/PONTE WRITE -> ", cmd)
-	print("FILA: ", caminho_fila_arduino)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("SERIAL/PONTE WRITE -> ", cmd)
+	if DEPURAR: print("FILA: ", caminho_fila_arduino)
+	if DEPURAR: print("================================")
 
 	if USAR_PONTE_POWERSHELL:
 		if caminho_fila_arduino == "":
@@ -3039,7 +3421,7 @@ func _serial_write(texto: String) -> void:
 func _processar_linha_arduino(linha: String) -> void:
 	linha = linha.strip_edges().to_upper()
 
-	print("ARDUINO:", linha)
+	if DEPURAR: print("ARDUINO:", linha)
 
 	if linha.begins_with("HIT:"):
 		var letra := linha.substr(4, 1)
@@ -3050,7 +3432,7 @@ func _processar_linha_arduino(linha: String) -> void:
 			_processar_input_led(index_led)
 
 	elif linha == "READY":
-		print("ARDUINO PRONTO")
+		if DEPURAR: print("ARDUINO PRONTO")
 
 	elif linha.begins_with("OK:"):
 		pass
@@ -3073,7 +3455,7 @@ func _enviar_leds_para_arduino() -> void:
 
 	if leds_ativos.is_empty():
 		_serial_write("OFF")
-		print("ENVIOU PARA ARDUINO: OFF")
+		if DEPURAR: print("ENVIOU PARA ARDUINO: OFF")
 		return
 
 	var partes: Array[String] = []
@@ -3104,13 +3486,13 @@ func _enviar_leds_para_arduino() -> void:
 
 	_serial_write(comando)
 
-	print("================================")
-	print("COMANDO FINAL PARA O NANO:")
-	print(comando)
-	print("PLAYER ATUAL: ", player_atual + 1)
-	print("FILEIRAS ACESAS: ", _texto_fileiras_ativas())
-	print("RGB SALVOS: ", cores_leds_ativos)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("COMANDO FINAL PARA O NANO:")
+	if DEPURAR: print(comando)
+	if DEPURAR: print("PLAYER ATUAL: ", player_atual + 1)
+	if DEPURAR: print("FILEIRAS ACESAS: ", _texto_fileiras_ativas())
+	if DEPURAR: print("RGB SALVOS: ", cores_leds_ativos)
+	if DEPURAR: print("================================")
 
 
 
@@ -3126,23 +3508,23 @@ func _texto_fileiras_ativas() -> String:
 
 
 func _teste_arduino_colunas() -> void:
-	print("TESTE ARDUINO: acendendo A / D2 azul")
+	if DEPURAR: print("TESTE ARDUINO: acendendo A / D2 azul")
 	_serial_write("SET:A=0,0,255")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: acendendo B / D3 verde")
+	if DEPURAR: print("TESTE ARDUINO: acendendo B / D3 verde")
 	_serial_write("SET:B=0,255,0")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: acendendo C / D4 vermelho")
+	if DEPURAR: print("TESTE ARDUINO: acendendo C / D4 vermelho")
 	_serial_write("SET:C=255,0,0")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: acendendo G / D8 amarelo")
+	if DEPURAR: print("TESTE ARDUINO: acendendo G / D8 amarelo")
 	_serial_write("SET:G=255,255,0")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: apagando")
+	if DEPURAR: print("TESTE ARDUINO: apagando")
 	_serial_write("OFF")
 
 
@@ -3323,6 +3705,9 @@ func _novo_label_card(texto: String, largura: float, centro_y: float, fonte_size
 	lbl.add_theme_color_override("font_color", cor)
 	lbl.add_theme_constant_override("shadow_offset_x", 0)
 	lbl.add_theme_constant_override("shadow_offset_y", 0)
+	# (contorno escuro: as letras ficam por cima da arte do cartão)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.88))
+	lbl.add_theme_constant_override("outline_size", maxi(4, int(fonte_size * 0.16)))
 
 	if fonte_orbitron:
 		lbl.add_theme_font_override("font", fonte_orbitron)
