@@ -51,9 +51,8 @@ func _ready() -> void:
 	var tela := get_viewport().get_visible_rect().size
 	# a tela inteira, com tamanho de verdade: é isto que deixa o menu "atrás"
 	# (nem o mouse nem as setas do controle chegam aos botões dele)
-	set_anchors_preset(Control.PRESET_FULL_RECT)
-	position = Vector2.ZERO
-	size = tela
+	# (as âncoras de tela cheia já vêm postas por Leads.abrir_lobby, antes de
+	# entrar na árvore: postas aqui, o tamanho ficava zero)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_aberto_em = Time.get_ticks_msec()

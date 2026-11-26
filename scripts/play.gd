@@ -2827,7 +2827,8 @@ func _mostrar_modal_final() -> void:
 func _iniciar_chuva_confetes(root: Control, cor: Color) -> void:
 	var meu_token := _final_token
 
-	while is_instance_valid(root) and partida_finalizada and meu_token == _final_token:
+	# (is_inside_tree: a tela pode ter sido trocada com a chuva ainda caindo)
+	while is_inside_tree() and is_instance_valid(root) and partida_finalizada and meu_token == _final_token:
 		_spawn_lote_confetes(root, cor)
 		await get_tree().create_timer(0.35).timeout
 
