@@ -611,11 +611,13 @@ func _abrir_avancado() -> void:
 	_linha_ajuste(box, "ORDEM DAS CORES DOS LEDS", "Pediu vermelho e acendeu outra cor? Aperte até os alvos ficarem VERMELHOS.", VERMELHO, _trocar_ordem_das_cores)
 	_linha_ajuste(box, "ENSINAR SENSORES E BOTÕES", "Para a placa Zero Delay: a tela pede cada alvo e botão, um por vez.", AMARELO, _ensinar_entradas)
 	if ArduinoBridge.tem_plugin() or OS.get_environment("OLHO_TESTE_TV") != "":
-		# TV Box / TV Android: o jogo abre sozinho depois que a TV liga
-		_linha_ajuste(box, "ABRIR O JOGO AO LIGAR A TV", "A TV Box liga e já entra no jogo, sem passar pela tela do Android.", VERDE, _escolher_tela_inicial)
-		inicio_label = _label(_texto_inicio(), 13, Color(0.55, 0.64, 0.76))
-		inicio_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		box.add_child(inicio_label)
+		# TV Box / TV Android: o jogo abre sozinho depois que a TV liga.
+		# (desligado - ArduinoBridge.ABRIR_SOZINHO: quem abre é o app auto start)
+		if ArduinoBridge.ABRIR_SOZINHO:
+			_linha_ajuste(box, "ABRIR O JOGO AO LIGAR A TV", "A TV Box liga e já entra no jogo, sem passar pela tela do Android.", VERDE, _escolher_tela_inicial)
+			inicio_label = _label(_texto_inicio(), 13, Color(0.55, 0.64, 0.76))
+			inicio_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			box.add_child(inicio_label)
 		_linha_ajuste(box, "SAIR PARA A TV", "Fecha o jogo e volta para a tela do Android.", CINZA, _sair_para_tv)
 	_linha_ajuste(box, "ZERAR CONTADOR DE PARTIDAS", "O total de partidas jogadas volta para zero.", Color(1.0, 0.55, 0.20), func() -> void:
 		_confirmar("ZERAR O CONTADOR DE PARTIDAS?", "Total, Arcade e Copa voltam para zero.", "SIM, ZERAR", func() -> void:

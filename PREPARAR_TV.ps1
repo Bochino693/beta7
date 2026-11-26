@@ -16,6 +16,12 @@
 # versao" > Opcoes do desenvolvedor > Depuracao USB LIGADA (e "Depuracao por
 # rede", se houver). PC e TV Box na mesma rede.
 $ErrorActionPreference = "Stop"
+# A CHAVE DO "ABRIR SOZINHO AO LIGAR" (a mesma de scripts/arduino_bridge.gd e
+# InicioDaTv.java). $false (hoje): quem abre o jogo ao ligar e o app AUTO
+# START da caixa - este script NAO mexe na tela inicial nem desliga a tela da
+# ROM; instala o APK, da as permissoes (pendrive, Arduino no USB para sempre)
+# e deixa a TV sempre ligada. $true: volta a fazer do jogo a tela inicial.
+$AbrirSozinho = $false
 $Projeto = $PSScriptRoot.TrimEnd('\')
 $Pacote = "com.lazersport.golflasharena"
 $Inicio = "$Pacote/com.lazersport.strikeserial.StrikeInicioAtivo"
@@ -74,10 +80,15 @@ if (Test-Path -LiteralPath $apk) {
     throw "o jogo nao esta na TV Box e nao achei APK-Pronto\OlhoNoLance.apk. Rode o GERAR_APK.bat antes (ou instale o APK pelo pendrive)."
 }
 
+if ($AbrirSozinho) {
 Write-Host "Preparando: o jogo como tela inicial, abrir de fundo e TV sempre ligada..."
 [void](Adb @("shell", "pm", "enable", $Inicio))
 [void](Adb @("shell", "cmd", "package", "set-home-activity", $Inicio))
 if ($sdk -ge 29) { [void](Adb @("shell", "cmd", "role", "add-role-holder", "android.app.role.HOME", $Pacote)) }
+} else {
+Write-Host "Preparando: permissoes, Arduino no USB (sem janela) e TV sempre ligada..."
+Write-Host "  (quem abre o jogo ao ligar e o app AUTO START da caixa: a tela inicial nao e mexida)"
+}
 [void](Adb @("shell", "appops", "set", $Pacote, "SYSTEM_ALERT_WINDOW", "allow"))
 [void](Adb @("shell", "appops", "set", $Pacote, "TURN_SCREEN_ON", "allow"))
 [void](Adb @("shell", "dumpsys", "deviceidle", "whitelist", "+$Pacote"))
@@ -97,7 +108,9 @@ foreach ($s in @("window_animation_scale 0", "transition_animation_scale 0", "an
 # caixa ligar direto no jogo. So com a tela inicial do jogo instalada (sem
 # nenhuma, a TV nao abriria nada); ficam anotadas para o -DevolverTv.
 $telas = Adb @("shell", "cmd", "package", "query-activities", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
-if ($telas -match "StrikeInicioAtivo") {
+if (-not $AbrirSozinho) {
+    # (auto start: a tela da ROM fica como esta)
+} elseif ($telas -match "StrikeInicioAtivo") {
     $outras = @()
     foreach ($linha in ($telas -split "`n")) {
         if ($linha -match '^\s*([A-Za-z0-9_.]+)/') {
@@ -118,7 +131,10 @@ $casa = Adb @("shell", "cmd", "package", "resolve-activity", "-a", "android.inte
 [void](Adb @("shell", "monkey", "-p", $Pacote, "-c", "android.intent.category.LEANBACK_LAUNCHER", "1"))
 [void](Adb @("shell", "monkey", "-p", $Pacote, "-c", "android.intent.category.LAUNCHER", "1"))
 Write-Host ""
-if ($casa -match [Regex]::Escape($Pacote)) {
+if (-not $AbrirSozinho) {
+    Write-Host "TV PRONTA: o jogo foi aberto e o Arduino no USB ja tem permissao para sempre." -ForegroundColor Green
+    Write-Host "Ao ligar a TV Box, quem abre o jogo e o app AUTO START instalado nela."
+} elseif ($casa -match [Regex]::Escape($Pacote)) {
     Write-Host "TV PRONTA: tire a TV Box da tomada, espere 10 s e ligue - abre o jogo." -ForegroundColor Green
     Write-Host "A tela da ROM foi desligada: a caixa e so do jogo. NAO desinstale o jogo sem"
     Write-Host "antes rodar o -DevolverTv (a caixa ficaria sem tela inicial)."

@@ -61,6 +61,22 @@ import java.util.List;
 final class InicioDaTv {
 
 	private static final String TAG = "StrikeSerial";
+	/**
+	 * A CHAVE DO "ABRIR SOZINHO AO LIGAR".
+	 * false (hoje): quem abre o jogo quando a TV Box liga é o app AUTO START
+	 * instalado na caixa. O jogo não se põe como tela inicial, não ouve o
+	 * "ligou", não liga o guarda, não mexe na TV pelo root / adb e não pede
+	 * nada na tela. TODO O CÓDIGO CONTINUA AQUI, só desligado.
+	 * PARA VOLTAR A ABRIR SOZINHO (sem o auto start):
+	 *   1. aqui: ABRIR_SOZINHO = true;
+	 *   2. AndroidManifest.xml deste plugin: android:enabled="true" em
+	 *      StrikeInicioAtivo, StrikeLigou e StrikeSempre;
+	 *   3. scripts/arduino_bridge.gd: ABRIR_SOZINHO := true;
+	 *   4. sh tools/android/StrikeSerial/construir.sh e gerar o APK.
+	 * O Arduino (permissão USB guardada, StrikeArduinoAtivo / UsbPadrao) não
+	 * depende desta chave: funciona igual com o auto start.
+	 */
+	static final boolean ABRIR_SOZINHO = false;
 	static final int PEDIDO_PAPEL = 7501;
 	private static final String PREFS = "golflash_inicio";
 	private static final int VEZES_PARA_SAIR = 5;
@@ -130,6 +146,31 @@ final class InicioDaTv {
 					&& e != PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER;
 		} catch (Throwable t) {
 			return true;
+		}
+	}
+
+	/**
+	 * COM O "ABRIR SOZINHO" DESLIGADO a tela inicial do jogo vem desligada no
+	 * manifesto. Mas uma caixa preparada por uma versão anterior pode ter
+	 * ficado com a tela da ROM desligada: sem nenhuma tela inicial ela não
+	 * abriria nada. Se não existe outra tela inicial ligada, a do jogo é
+	 * religada (nada aparece na tela). true = religou.
+	 */
+	static boolean garantirTelaInicial(Context c) {
+		try {
+			PackageManager pm = c.getPackageManager();
+			for (ResolveInfo r : pm.queryIntentActivities(home(), PackageManager.MATCH_DEFAULT_ONLY)) {
+				if (r.activityInfo != null && r.priority >= 0 && !r.activityInfo.packageName.equals("android")) {
+					return false;   // a TV tem tela inicial (a da ROM ou a do jogo)
+				}
+			}
+			pm.setComponentEnabledSetting(new ComponentName(c, StrikeInicioAtivo.class),
+					PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+			Log.i(TAG, "inicio: a TV estava sem tela inicial: a do jogo foi religada");
+			return true;
+		} catch (Throwable t) {
+			Log.i(TAG, "inicio: garantir tela inicial: " + t);
+			return false;
 		}
 	}
 
