@@ -208,12 +208,34 @@ var sfx_apito_init: AudioStreamPlayer
 var sfx_apito_troca: AudioStreamPlayer
 var sfx_apito_fim: AudioStreamPlayer
 
+## Até 4 no ARCADE; a partida do MODO EVENTO vai até 8 (as mesmas cores do
+## menu: opening.gd / cores_players).
+const MAX_PLAYERS_ARCADE: int = 4
+const MAX_PLAYERS_EVENTO: int = 8
 var cores_players: Array[Color] = [
 	Color(0.1, 0.75, 1.0),
 	Color(0.2, 1.0, 0.3),
 	Color(1.0, 0.15, 0.15),
-	Color(1.0, 0.85, 0.05)
+	Color(1.0, 0.85, 0.05),
+	Color(1.0, 0.50, 0.05),
+	Color(0.72, 0.38, 1.0),
+	Color(1.0, 0.35, 0.72),
+	Color(0.10, 1.0, 0.82)
 	]
+
+## PARTIDA DO MODO EVENTO (escolhida no menu): até 8 jogadores, com o nome
+## que cada um escreveu no cadastro no lugar de "PLAYER n".
+var partida_evento: bool = false
+var nomes_players: Array = []
+
+
+## "PLAYER 3" ou, na partida do evento, o primeiro nome do cadastro ("ANA").
+func _nome_player(index: int) -> String:
+	if index >= 0 and index < nomes_players.size():
+		var n: String = str(nomes_players[index]).strip_edges().get_slice(" ", 0).to_upper()
+		if n != "":
+			return n.substr(0, 12)
+	return "PLAYER %d" % (index + 1)
 
 
 const CORES_ALVOS_RGB: Array = [
@@ -623,7 +645,9 @@ func _carregar_config_players() -> void:
 	else:
 		push_warning("PLAY: /root/PlayersGlobal não encontrado. Usando metadata ou 1 player.")
 
-	total_players = clamp(total_players, 1, 4)
+	partida_evento = bool(get_tree().get_meta("fut_evento", false))
+	nomes_players = get_tree().get_meta("fut_nomes_players", []) if partida_evento else []
+	total_players = clamp(total_players, 1, MAX_PLAYERS_EVENTO if partida_evento else MAX_PLAYERS_ARCADE)
 
 	if cores_recebidas != null and cores_recebidas is Array and cores_recebidas.size() > 0:
 		for i in range(min(cores_recebidas.size(), cores_players.size())):
@@ -855,6 +879,18 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 		var h := tela.y / 2.0
 		return Rect2(Vector2(big_w, float(slot) * h), Vector2(small_w, h))
 
+	if qtd > 4:
+		# 5 a 8 (MODO EVENTO): duas fileiras; a de cima com um a mais quando o
+		# total é ímpar, a de baixo centralizada. Todos os cartões do mesmo tamanho.
+		var em_cima: int = int(ceil(qtd / 2.0))
+		var em_baixo: int = qtd - em_cima
+		var wc: float = tela.x / float(em_cima)
+		var hc: float = tela.y / 2.0
+		if index < em_cima:
+			return Rect2(Vector2(float(index) * wc, 0.0), Vector2(wc, hc))
+		var sobra: float = (tela.x - float(em_baixo) * wc) * 0.5
+		return Rect2(Vector2(sobra + float(index - em_cima) * wc, hc), Vector2(wc, hc))
+
 	# 4 players: grade 2x2 bem limpa.
 	var w4 := tela.x / 2.0
 	var h4 := tela.y / 2.0
@@ -918,7 +954,7 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	# TÍTULO
 	# (nome em BRANCO com contorno escuro: na cor do jogador ele sumia quando
 	# o card acende na mesma cor; a cor fica no brilho em volta)
-	var titulo := _novo_label_card("PLAYER %d" % [index + 1], W, c_titulo, fs_titulo, Color.WHITE)
+	var titulo := _novo_label_card(_nome_player(index), W, c_titulo, fs_titulo, Color.WHITE)
 	titulo.add_theme_color_override("font_shadow_color", cor)
 	titulo.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
 	titulo.add_theme_constant_override("outline_size", 6)
@@ -1307,7 +1343,7 @@ func _mostrar_preparacao_player() -> void:
 
 	var cor := cores_players[player_atual]
 
-	overlay_titulo.text = "PLAYER %d" % [player_atual + 1]
+	overlay_titulo.text = _nome_player(player_atual)
 	overlay_numero.text = "PRONTO?"
 	overlay_subtitulo.text = "APERTE START PARA COMEÇAR"
 	overlay_titulo.add_theme_color_override("font_shadow_color", cor)
@@ -1334,7 +1370,7 @@ func _iniciar_contagem_turno() -> void:
 func _rodar_contagem_inicio() -> void:
 	var cor := cores_players[player_atual]
 
-	overlay_titulo.text = "PLAYER %d PREPARE-SE" % [player_atual + 1]
+	overlay_titulo.text = "%s PREPARE-SE" % _nome_player(player_atual)
 	overlay_subtitulo.text = "VALENDO EM..."
 
 	for n in range(TEMPO_CONTAGEM_INICIAL, 0, -1):
@@ -1758,7 +1794,7 @@ func _finalizar_turno_player() -> void:
 	if proximo == -1:
 		await _mostrar_aviso_turno(
 			"TEMPO ESGOTADO",
-			"PLAYER %d FINALIZOU COM %d GOLS" % [player_finalizado + 1, scores[player_finalizado]],
+			"%s FINALIZOU COM %d GOLS" % [_nome_player(player_finalizado), scores[player_finalizado]],
 			cores_players[player_finalizado]
 		)
 
@@ -1766,10 +1802,10 @@ func _finalizar_turno_player() -> void:
 	else:
 		await _mostrar_aviso_turno(
 			"TEMPO ESGOTADO",
-			"PLAYER %d FEZ %d GOLS  •  PRÓXIMO: PLAYER %d" % [
-				player_finalizado + 1,
+			"%s FEZ %d GOLS  •  PRÓXIMO: %s" % [
+				_nome_player(player_finalizado),
 				scores[player_finalizado],
-				proximo + 1
+				_nome_player(proximo)
 			],
 			cores_players[player_finalizado]
 		)
@@ -2252,9 +2288,12 @@ func _mostrar_modal_final() -> void:
 
 	panel.add_child(titulo)
 
+	# (até 4 linhas no tamanho de sempre; de 5 a 8 - MODO EVENTO - elas
+	# encolhem para caber todas entre o título e o destaque)
 	var y := 118.0
-	var altura_linha := 74.0
-	var passo := 88.0
+	var passo: float = minf(88.0, 380.0 / float(maxi(ranking.size(), 1)))
+	var altura_linha: float = passo - (14.0 if passo >= 80.0 else 8.0)
+	var escala_linha: float = altura_linha / 74.0
 
 	for i in range(ranking.size()):
 		var item := ranking[i]
@@ -2293,8 +2332,8 @@ func _mostrar_modal_final() -> void:
 		# 1º = ouro, 2º = prata, 3º = bronze.
 		# 4º lugar não recebe medalha.
 		if posicao_item >= 1 and posicao_item <= 3:
-			var medalha_linha := _criar_medalha_ranking(linha, cor, posicao_item, 0.50)
-			medalha_linha.position = Vector2(-62, -6)
+			var medalha_linha := _criar_medalha_ranking(linha, cor, posicao_item, 0.50 * escala_linha)
+			medalha_linha.position = Vector2(-62, -6) * escala_linha
 			medalha_linha.z_index = 150
 			linha.add_child(medalha_linha)
 
@@ -2305,21 +2344,21 @@ func _mostrar_modal_final() -> void:
 			txt_empate = "  •  EMPATE"
 
 		if eh_campeao:
-			texto.text = "CAMPEÃO  •  PLAYER %d  •  %d GOLS" % [
-				player_num,
+			texto.text = "CAMPEÃO  •  %s  •  %d GOLS" % [
+				_nome_player(player_num - 1),
 				score_item
 			]
 		else:
 			if posicao_item == 4:
-				texto.text = "4º LUGAR  •  PLAYER %d  •  %d GOLS%s" % [
-					player_num,
+				texto.text = "4º LUGAR  •  %s  •  %d GOLS%s" % [
+					_nome_player(player_num - 1),
 					score_item,
 					txt_empate
 				]
 			else:
-				texto.text = "%dº  •  PLAYER %d  •  %d GOLS%s" % [
+				texto.text = "%dº  •  %s  •  %d GOLS%s" % [
 					posicao_item,
-					player_num,
+					_nome_player(player_num - 1),
 					score_item,
 					txt_empate
 				]
@@ -2344,7 +2383,7 @@ func _mostrar_modal_final() -> void:
 		if texto.text.length() > 62:
 			tamanho_texto -= 2
 
-		texto.add_theme_font_size_override("font_size", max(tamanho_texto, 17))
+		texto.add_theme_font_size_override("font_size", max(int(tamanho_texto * maxf(escala_linha, 0.72)), 15))
 		texto.add_theme_color_override("font_color", Color.WHITE if eh_campeao else Color(0.85, 0.88, 0.92))
 		texto.add_theme_color_override("font_shadow_color", cor)
 		texto.add_theme_constant_override("shadow_offset_x", 0)
@@ -2370,7 +2409,7 @@ func _mostrar_modal_final() -> void:
 	elif vencedores.size() > 1:
 		destaque.text = "EMPATE ENTRE PLAYERS " + ", ".join(vencedores.map(func(v): return str(v)))
 	else:
-		destaque.text = "VENCEDOR: PLAYER %d" % vencedores[0]
+		destaque.text = "VENCEDOR: %s" % _nome_player(vencedores[0] - 1)
 
 	destaque.position = Vector2(20, 500)
 	destaque.size = Vector2(780, 44)
@@ -2533,8 +2572,8 @@ func _confetes_vencedor(panel: Panel, cor: Color) -> void:
 
 func _reiniciar_partida() -> void:
 	# Em modo crédito, cada nova partida exige outro crédito no menu.
-	# Em modo evento, os próximos jogadores fazem o cadastro no menu.
-	if ArcadeData.modo_atual() != "livre":
+	# Na partida do evento, os próximos jogadores fazem o cadastro no menu.
+	if partida_evento or not ArcadeData.livre():
 		_voltar_ao_opening()
 		return
 

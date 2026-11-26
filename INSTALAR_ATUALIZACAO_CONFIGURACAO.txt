@@ -51,3 +51,16 @@ ATUALIZAÇÃO — CENTRAL SIMPLES, MODO EVENTO E MOUSE
 - Mouse: cursor próprio do jogo (seta amarela) em todas as telas; no menu,
   com o mouse em uso, aparece o botão "⚙ CENTRAL DA MÁQUINA".
 - Detalhes: LEIA-ME_TV_BOX.txt, itens 3, 5 e 6.
+
+ATUALIZAÇÃO TV 21 — EVENTO NO MENU, DADOS NA CENTRAL, ARDUINO UMA VEZ
+- EVENTO é a 3ª opção do menu (ARCADE, COPA, EVENTO): partida de até 8
+  jogadores, sem ficha, com cadastro de cada um; os nomes aparecem na partida.
+- Central: "ARCADE E COPA" (livre / crédito) e "DADOS DA MÁQUINA" (partidas de
+  arcade, copa e evento, jogadores cadastrados). "EVENTOS E DADOS" cria e usa
+  eventos, apaga um, vários ou tudo, e descarrega no pendrive.
+- Pendrive: eventos.csv, partidas.csv e resumo.txt (estatísticas prontas).
+- Arduino: a janela de permissão é pedida UMA vez por Arduino, nunca mais.
+- Quem abre o jogo ao ligar é o app de auto start (o jogo não pede mais nada).
+- Mural e Ranking: START volta, SELECT troca filtro / aba, voltam sozinhos.
+- Gol sem tranco: placar, som e LED na hora; os enfeites nos quadros seguintes.
+- Controle remoto: ▲ ▼ trocam de fileira, ◀ ▶ andam na fileira.

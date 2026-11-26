@@ -33,17 +33,15 @@ func _initialize() -> void:
 	confere("nome em formato de planilha", L.limpar_nome("  MARIA   DA silva ") == "Maria da Silva")
 	confere("nome não começa por sinal", L.limpar_nome("=SOMA(A1) ANA") == "Soma(a1) Ana")
 
-	print("liga com ou sem pendrive; ligado, a ficha é livre")
+	print("a opção EVENTO liga com ou sem pendrive; ARCADE e COPA seguem o crédito")
+	L._apagados.clear()
 	confere("liga", L.ligar(true) and L.ligado)
 	var A := root.get_node("ArcadeData")
 	var modo_antes: String = A.modo_operacao
 	var creditos_antes: int = A.creditos
 	A.modo_operacao = "credito"
 	A.creditos = 0
-	confere("evento: joga sem crédito", A.modo_atual() == "evento" and A.pode_jogar() and A.consumir_credito() and A.creditos == 0)
-	L.ligado = false
-	confere("crédito sem ficha: não joga", A.modo_atual() == "credito" and not A.pode_jogar() and not A.consumir_credito())
-	L.ligado = true
+	confere("crédito sem ficha: ARCADE / COPA não jogam, mesmo com o evento no menu", A.evento() and A.modo_atual() == "credito" and not A.pode_jogar() and not A.consumir_credito())
 	A.modo_operacao = modo_antes
 	A.creditos = creditos_antes
 
@@ -72,6 +70,7 @@ func _initialize() -> void:
 
 	print("máquina nova + pendrive que já tem jogadores (reconhecer)")
 	L.apagar_tudo()
+	L._apagados.clear()   # (uma OUTRA máquina, que nunca apagou nada)
 	confere("máquina vazia", L.total() == 0 and L.procurar("maria@gmail.com").is_empty())
 	L.registrar("CARLA NOVA", "carla@uol.com.br", 40, "ARCADE")
 	confere("junta e grava", L.gravar_no_pendrive())
@@ -105,7 +104,7 @@ func _initialize() -> void:
 	L.acertar_relogio("mes", -1)
 	confere("mês vai e volta", absi(L.agora_unix() - antes) <= 3 * 86400)
 	L.ajuste_relogio = 0
-	L.ligar(false)
 	L.apagar_tudo()
+	L._apagados.clear()
 	print("RESULTADO: ", "TUDO CERTO" if falhas == 0 else "%d FALHA(S)" % falhas)
 	quit(1 if falhas > 0 else 0)

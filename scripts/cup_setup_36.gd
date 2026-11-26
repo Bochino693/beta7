@@ -615,7 +615,9 @@ func _tentar_confirmar_cadastro() -> void:
 		return
 
 	# MODO EVENTO: cada jogador de verdade completa a ficha (e-mail e idade)
-	if Leads.ligado:
+	# (desligado: o cadastro agora é só da partida do EVENTO do menu; para a
+	# Copa voltar a pedir, tire o "false and")
+	if false and Leads.ligado:
 		if _feira_pedindo:
 			return
 		_feira_pedindo = true

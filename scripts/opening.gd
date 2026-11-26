@@ -3,6 +3,7 @@ extends Node2D
 const CENA_TORNEIO: String = "res://scenes/cup_setup_36.tscn"
 const COR_TORNEIO: Color = Color(0.95, 0.00, 1.00) # roxo/magenta bem forte
 const COR_NEON: Color = Color(0.10, 0.75, 1.00)
+const COR_EVENTO: Color = Color(0.20, 0.72, 1.00) # azul do MODO EVENTO
 
 
 const META_PULAR_PATROCINADORES_OPENING: String = "pular_patrocinadores_opening_uma_vez"
@@ -141,7 +142,13 @@ var arcade_status_label: Label = null
 
 const TEMPO_ESCOLHA: float = 12.0
 const TEMPO_TELA_INICIANDO: float = 1.8
-const MAX_PLAYERS: int = 4
+const MAX_PLAYERS_ARCADE: int = 4
+const MAX_PLAYERS_EVENTO: int = 8
+## Quantos jogadores a escolha aceita agora: 4 no ARCADE, 8 no EVENTO.
+var max_players: int = MAX_PLAYERS_ARCADE
+## A partida que está sendo montada é a do MODO EVENTO (sem ficha, até 8
+## jogadores, com o cadastro de cada um)?
+var evento_em_curso: bool = false
 const COOLDOWN_START_MS: int = 320
 
 
@@ -274,7 +281,12 @@ var cores_players: Array[Color] = [
 	Color(0.1, 0.75, 1.0),
 	Color(0.2, 1.0, 0.3),
 	Color(1.0, 0.15, 0.15),
-	Color(1.0, 0.85, 0.05)
+	Color(1.0, 0.85, 0.05),
+	# (5 a 8: só na partida do MODO EVENTO)
+	Color(1.0, 0.50, 0.05),
+	Color(0.72, 0.38, 1.0),
+	Color(1.0, 0.35, 0.72),
+	Color(0.10, 1.0, 0.82)
 ]
 
 
@@ -1680,7 +1692,7 @@ func _abrir_modal_players() -> void:
 
 	var titulo := Label.new()
 	titulo.name = "TituloPlayers"
-	titulo.text = "ESCOLHA OS PLAYERS"
+	titulo.text = "EVENTO  •  ATÉ 8 PLAYERS" if evento_em_curso else "ESCOLHA OS PLAYERS"
 	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	titulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	titulo.position = Vector2(0, 28)
@@ -1771,8 +1783,13 @@ func _abrir_modal_players() -> void:
 	var card_h := 82
 	var gap_x := 40
 	var gap_y := 30
+	if max_players > 4:
+		# EVENTO: 8 cartões (2 colunas x 4 linhas) no mesmo espaço
+		start_y = 140
+		card_h = 62
+		gap_y = 12
 
-	for i in range(MAX_PLAYERS):
+	for i in range(max_players):
 		var card := Panel.new()
 		card.size = Vector2(card_w, card_h)
 
@@ -1798,7 +1815,7 @@ func _abrir_modal_players() -> void:
 		if fonte_orbitron:
 			p.add_theme_font_override("font", fonte_orbitron)
 
-		p.add_theme_font_size_override("font_size", 28)
+		p.add_theme_font_size_override("font_size", 28 if max_players <= 4 else 24)
 		p.add_theme_color_override("font_color", Color(0.35, 0.35, 0.35))
 		p.add_theme_color_override("font_shadow_color", Color.TRANSPARENT)
 		p.add_theme_constant_override("shadow_offset_x", 0)
@@ -1819,7 +1836,7 @@ func _abrir_modal_players() -> void:
 	_estilizar_barra_tempo(cores_players[0])
 
 	var rodape := Label.new()
-	rodape.text = "A partida começa automaticamente após a contagem"
+	rodape.text = "START: mais um jogador  •  depois da contagem, cada um faz o cadastro" if evento_em_curso else "A partida começa automaticamente após a contagem"
 	rodape.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rodape.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	rodape.position = Vector2(0, 498)
@@ -1860,7 +1877,7 @@ func _atualizar_contador_inteiro() -> void:
 
 
 func _adicionar_player() -> void:
-	if total_players >= MAX_PLAYERS:
+	if total_players >= max_players:
 		return
 
 	total_players += 1
@@ -1876,7 +1893,7 @@ func _adicionar_player() -> void:
 	_atualizar_players()
 	_animar_card_player(total_players - 1)
 
-	if total_players >= MAX_PLAYERS:
+	if total_players >= max_players:
 		await get_tree().create_timer(0.35).timeout
 		_preparar_inicio_partida()
 
@@ -1898,7 +1915,7 @@ func _atualizar_players() -> void:
 	if modal == null:
 		return
 
-	var cor_modal := cores_players[clamp(total_players - 1, 0, MAX_PLAYERS - 1)]
+	var cor_modal := cores_players[clamp(total_players - 1, 0, max_players - 1)]
 
 	_aplicar_neon_modal(modal, cor_modal)
 	_estilizar_barra_tempo(cor_modal)
@@ -1910,7 +1927,7 @@ func _atualizar_players() -> void:
 
 	var aviso := modal.get_node_or_null("AvisoPlayers") as Label
 	if aviso:
-		if total_players < MAX_PLAYERS:
+		if total_players < max_players:
 			aviso.text = "%d PLAYER%s SELECIONADO%s  •  PRÓXIMO: PLAYER %d" % [
 				total_players,
 				"" if total_players == 1 else "S",
@@ -1918,12 +1935,12 @@ func _atualizar_players() -> void:
 				total_players + 1
 			]
 		else:
-			aviso.text = "4 PLAYERS SELECIONADOS  •  INICIANDO PARTIDA"
+			aviso.text = "%d PLAYERS SELECIONADOS  •  INICIANDO PARTIDA" % max_players
 
 		aviso.add_theme_color_override("font_color", cor_modal)
 		aviso.add_theme_color_override("font_shadow_color", cor_modal)
 
-	for i in range(MAX_PLAYERS):
+	for i in range(max_players):
 		if i >= player_labels.size() or i >= player_cards.size():
 			continue
 
@@ -2023,7 +2040,7 @@ func _aplicar_neon_multicor(panel: Panel, quantidade: int) -> void:
 	if panel == null:
 		return
 
-	quantidade = clamp(quantidade, 1, MAX_PLAYERS)
+	quantidade = clamp(quantidade, 1, max_players)
 
 	# Base escura elegante.
 	var base := StyleBoxFlat.new()
@@ -2166,13 +2183,15 @@ func _preparar_inicio_partida() -> void:
 
 	# MODO EVENTO: cada jogador preenche a ficha (e-mail, nome, idade) antes
 	# de a partida começar. Abandonou: o crédito volta e o menu continua.
-	if Leads.ligado:
+	if evento_em_curso and Leads.ligado:
 		var cores_ficha: Array = []
 		for i in range(total_players):
 			cores_ficha.append(cores_players[i])
-		if not await Leads.cadastrar_jogadores(total_players, cores_ficha, "ARCADE"):
-			ArcadeData.devolver_partida("arcade")
+		if not await Leads.cadastrar_jogadores(total_players, cores_ficha, "EVENTO"):
+			ArcadeData.devolver_partida("evento")
+			Leads.descontar_partida_evento()
 			iniciando_jogo = false
+			evento_em_curso = false
 			_atualizar_status_arcade("CADASTRO CANCELADO")
 			_reiniciar_led_atrativo(0.8)
 			return
@@ -2271,7 +2290,7 @@ func _mostrar_tela_iniciando() -> void:
 
 	iniciando_sub_label.add_theme_font_size_override("font_size", 22)
 	iniciando_sub_label.add_theme_color_override("font_color", Color(0.82, 0.90, 0.96))
-	iniciando_sub_label.add_theme_color_override("font_shadow_color", cores_players[clamp(total_players - 1, 0, MAX_PLAYERS - 1)])
+	iniciando_sub_label.add_theme_color_override("font_shadow_color", cores_players[clamp(total_players - 1, 0, max_players - 1)])
 	iniciando_sub_label.add_theme_constant_override("shadow_offset_x", 0)
 	iniciando_sub_label.add_theme_constant_override("shadow_offset_y", 0)
 	iniciando_panel.add_child(iniciando_sub_label)
@@ -2360,7 +2379,7 @@ func _mostrar_tela_iniciando() -> void:
 	rodape.z_index = 80
 	rodape.add_theme_font_size_override("font_size", 26)
 	rodape.add_theme_color_override("font_color", Color.WHITE)
-	rodape.add_theme_color_override("font_shadow_color", cores_players[clamp(total_players - 1, 0, MAX_PLAYERS - 1)])
+	rodape.add_theme_color_override("font_shadow_color", cores_players[clamp(total_players - 1, 0, max_players - 1)])
 	rodape.add_theme_constant_override("shadow_offset_x", 0)
 	rodape.add_theme_constant_override("shadow_offset_y", 0)
 
@@ -2379,7 +2398,7 @@ func _iniciar_jogo() -> void:
 	if total_players <= 0:
 		total_players = 1
 
-	total_players = clamp(total_players, 1, MAX_PLAYERS)
+	total_players = clamp(total_players, 1, max_players)
 
 	var cores_selecionadas: Array[Color] = []
 
@@ -2401,6 +2420,9 @@ func _iniciar_jogo() -> void:
 	# Backup forte: mesmo se o autoload falhar, a play ainda recebe.
 	get_tree().set_meta("fut_total_players", total_players)
 	get_tree().set_meta("fut_cores_players", cores_selecionadas)
+	# a partida do MODO EVENTO: até 8 jogadores, com os nomes do cadastro
+	get_tree().set_meta("fut_evento", evento_em_curso)
+	get_tree().set_meta("fut_nomes_players", Leads.nomes_cadastrados() if evento_em_curso else [])
 
 	print("================================")
 	print("OPENING VAI ABRIR PLAY")
@@ -2425,6 +2447,17 @@ func _rgb_player(index: int) -> Array[int]:
 			return [255, 0, 0]       # Player 3 - vermelho forte
 		3:
 			return [255, 255, 0]     # Player 4 - amarelo forte
+
+	# 5 a 8: só na partida do MODO EVENTO
+	match index:
+		4:
+			return [255, 90, 0]      # laranja
+		5:
+			return [150, 0, 255]     # roxo
+		6:
+			return [255, 0, 140]     # rosa
+		7:
+			return [0, 255, 200]     # turquesa
 
 	return [255, 255, 255]
 
@@ -2767,6 +2800,17 @@ func _rgb_player_suave(index: int) -> Array[int]:
 			return [255, 0, 0]       # vermelho forte
 		3:
 			return [255, 255, 0]     # amarelo forte
+
+	# 5 a 8: só na partida do MODO EVENTO
+	match index:
+		4:
+			return [255, 90, 0]      # laranja
+		5:
+			return [150, 0, 255]     # roxo
+		6:
+			return [255, 0, 140]     # rosa
+		7:
+			return [0, 255, 200]     # turquesa
 
 	return [255, 255, 255]
 
@@ -3957,10 +4001,16 @@ func _definir_modos() -> void:
 		}
 		# NOVOS MODOS AQUI
 	]
-	# MODO EVENTO: só o ARCADE (ficha livre + cadastro de cada jogador).
+	# EVENTO: a 3a opção do menu (dá para esconder em AJUSTES AVANÇADOS). É um arcade de até 8
+	# jogadores, sem ficha, com o cadastro de cada um antes de começar.
 	if ArcadeData.evento():
-		modos_jogo.resize(1)
-		modo_focado = 0
+		modos_jogo.append({
+			"id": "EVENTO",
+			"titulo": "EVENTO",
+			"sub": "1 – 8 PLAYERS  •  CADASTRO",
+			"cor": COR_EVENTO,
+			"acao": "evento"
+		})
 
 
 func _offsets_carrossel(size: int) -> Array:
@@ -4198,16 +4248,21 @@ func _confirmar_modo_focado() -> void:
 	var modo: Dictionary = modos_jogo[modo_focado]
 	var acao: String = str(modo.get("acao", ""))
 
-	if not ArcadeData.consumir_credito():
+	# A partida do EVENTO não pede ficha; ARCADE e COPA seguem o modo da máquina.
+	evento_em_curso = acao == "evento"
+	if not evento_em_curso and not ArcadeData.consumir_credito():
 		_atualizar_status_arcade("SEM CRÉDITO")
 		_set_leds_todos_rgb([255, 0, 0])
 		_reiniciar_led_atrativo(0.8)
 		return
 	ArcadeData.registrar_partida(acao)
+	if evento_em_curso:
+		Leads.contar_partida_evento()
 	_atualizar_status_arcade("PARTIDA LIBERADA")
+	max_players = MAX_PLAYERS_EVENTO if evento_em_curso else MAX_PLAYERS_ARCADE
 
 	match acao:
-		"arcade":
+		"arcade", "evento":
 			_abrir_modal_players()
 		"copa":
 			_entrar_copa_direto()
@@ -4320,14 +4375,15 @@ func _criar_status_arcade() -> void:
 func _atualizar_etiqueta_feira() -> void:
 	if status_feira == null or not is_instance_valid(status_feira):
 		return
-	status_feira.visible = Leads.ligado
-	if not Leads.ligado:
+	# (só aparece quando há um evento com nome ou cadastros guardados)
+	status_feira.visible = Leads.ligado and (Leads.evento != "" or Leads.total() > 0)
+	if not status_feira.visible:
 		return
 	if Leads.tem_pendrive():
-		status_feira.text = "●  %d jogador%s cadastrado%s" % [Leads.total(), "" if Leads.total() == 1 else "es", "" if Leads.total() == 1 else "s"]
+		status_feira.text = "●  EVENTO: %s  •  %d cadastrado%s" % [Leads.evento if Leads.evento != "" else Leads.SEM_NOME, Leads.total(), "" if Leads.total() == 1 else "s"]
 		status_feira.add_theme_color_override("font_color", Color(0.45, 1.0, 0.62))
 	else:
-		status_feira.text = "●  SEM PENDRIVE  •  cadastros guardados na máquina"
+		status_feira.text = "●  EVENTO: %s  •  %d cadastrado%s  •  sem pendrive" % [Leads.evento if Leads.evento != "" else Leads.SEM_NOME, Leads.total(), "" if Leads.total() == 1 else "s"]
 		status_feira.add_theme_color_override("font_color", Color(1.0, 0.84, 0.10))
 
 
@@ -4356,10 +4412,7 @@ func _atualizar_status_arcade(aviso: String = "") -> void:
 		return
 	var estado := "livre"
 	var cor := Color(0.16, 0.86, 0.42)
-	if ArcadeData.evento():
-		estado = "evento"
-		cor = Color(1.0, 0.84, 0.10)
-	elif ArcadeData.modo_operacao == "credito":
+	if ArcadeData.modo_operacao == "credito":
 		if ArcadeData.creditos <= 0:
 			estado = "sem"
 			cor = Color(1.0, 0.30, 0.22)
@@ -4374,11 +4427,6 @@ func _atualizar_status_arcade(aviso: String = "") -> void:
 			arcade_status_label.text = "JOGO LIVRE"
 			var n: int = ArcadeData.partidas_total
 			status_sub.text = "%d partida%s jogada%s" % [n, "" if n == 1 else "s", "" if n == 1 else "s"]
-		"evento":
-			status_icone_txt.text = "★"
-			status_icone_txt.add_theme_color_override("font_color", Color(0.30, 0.18, 0.0))
-			arcade_status_label.text = "MODO EVENTO"
-			status_sub.text = "jogo livre  •  com cadastro"
 		"credito":
 			status_icone_txt.text = str(mini(ArcadeData.creditos, 99))
 			status_icone_txt.add_theme_color_override("font_color", Color(0.30, 0.18, 0.0))

@@ -84,6 +84,7 @@ func _ready() -> void:
 	_carregar_cfg()
 	_carregar()
 	ControleTv.teclado_fechou.connect(_teclado_fechou)
+	ArcadeData.dados_atualizados.connect(func() -> void: pendente = true)
 
 
 func _exit_tree() -> void:
@@ -95,8 +96,13 @@ func _exit_tree() -> void:
 func _carregar_cfg() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(_pasta.path_join("config.cfg"))
-	ligado = bool(cfg.get_value("feira", "ligado", false))
+	# ("ligado" = a opção EVENTO aparece no menu do jogo; vem ligada)
+	ligado = bool(cfg.get_value("feira", "no_menu", true))
 	evento = str(cfg.get_value("feira", "evento", ""))
+	var lista: Variant = cfg.get_value("eventos", "lista", [])
+	_eventos = lista if lista is Array else []
+	var apag: Variant = cfg.get_value("eventos", "apagados", {})
+	_apagados = apag if apag is Dictionary else {}
 	maquina = str(cfg.get_value("feira", "maquina", ""))
 	pendente = bool(cfg.get_value("feira", "pendente", false))
 	ultima_gravacao = str(cfg.get_value("feira", "ultima_gravacao", ""))
@@ -112,8 +118,10 @@ func _carregar_cfg() -> void:
 
 func _guardar_cfg() -> void:
 	var cfg := ConfigFile.new()
-	cfg.set_value("feira", "ligado", ligado)
+	cfg.set_value("feira", "no_menu", ligado)
 	cfg.set_value("feira", "evento", evento)
+	cfg.set_value("eventos", "lista", _eventos)
+	cfg.set_value("eventos", "apagados", _apagados)
 	cfg.set_value("feira", "maquina", maquina)
 	cfg.set_value("feira", "pendente", pendente)
 	cfg.set_value("feira", "ultima_gravacao", ultima_gravacao)
@@ -141,6 +149,194 @@ func ligar(sim: bool) -> bool:
 func definir_evento(nome: String) -> void:
 	evento = _uma_linha(nome).to_upper().substr(0, 40)
 	_guardar_cfg()
+
+
+# ------------------------------------------------------------------ eventos
+## OS EVENTOS CRIADOS NESTA MÁQUINA (Central da Máquina > DADOS).
+## Cada evento tem o nome, quando foi criado e quantas partidas teve; os
+## jogadores e os cadastros dele são contados no diário (visitas.csv).
+## O "evento atual" (var evento) é o que recebe as próximas partidas.
+## APAGAR um evento tira da máquina as partidas e os cadastros dele (quem só
+## jogou nele sai da lista de jogadores) e, na próxima descarga, do pendrive
+## também: fica anotado quando foi apagado (_apagados) para o que ainda
+## estiver no pendrive não voltar para a máquina.
+const SEM_NOME := "SEM NOME"
+var _eventos: Array = []           # [{"nome", "criado", "partidas"}]
+var _apagados := {}                # nome do evento (ou "*" = tudo) -> "AAAA-MM-DD HH:MM:SS"
+
+
+func _indice_evento(nome: String) -> int:
+	for i in range(_eventos.size()):
+		if _eventos[i] is Dictionary and str(_eventos[i].get("nome", "")) == nome:
+			return i
+	return -1
+
+
+func _garantir_evento(nome: String) -> int:
+	var i := _indice_evento(nome)
+	if i < 0:
+		_eventos.append({"nome": nome, "criado": texto_data(agora_unix()), "partidas": 0})
+		i = _eventos.size() - 1
+	return i
+
+
+## Cria o evento (ou escolhe um que já existe) e passa a usá-lo.
+func criar_evento(nome: String) -> String:
+	evento = _uma_linha(nome).to_upper().substr(0, 40)
+	_garantir_evento(evento)
+	_apagados.erase(evento)
+	_guardar_cfg()
+	mudou.emit()
+	return evento
+
+
+## Uma partida do MODO EVENTO começou (o menu chama).
+func contar_partida_evento() -> void:
+	var i := _garantir_evento(evento)
+	_eventos[i]["partidas"] = int(_eventos[i].get("partidas", 0)) + 1
+	pendente = true
+	_guardar_cfg()
+	mudou.emit()
+
+
+## A partida foi liberada mas não começou (cadastro abandonado).
+func descontar_partida_evento() -> void:
+	var i := _indice_evento(evento)
+	if i >= 0:
+		_eventos[i]["partidas"] = maxi(int(_eventos[i].get("partidas", 0)) - 1, 0)
+		_guardar_cfg()
+
+
+func _linhas_da_maquina() -> PackedStringArray:
+	var local := _pasta.path_join("visitas.csv")
+	return _ler_visitas(FileAccess.get_file_as_string(local) if FileAccess.file_exists(local) else "")
+
+
+## Um evento por linha, o atual primeiro e depois os mais novos:
+## {nome, mostrar, criado, partidas, jogadores, cadastros, primeiro, ultimo, atual}
+func eventos_resumo() -> Array:
+	var por_nome := {}
+	for ev in _eventos:
+		if ev is Dictionary:
+			por_nome[str(ev.get("nome", ""))] = {"nome": str(ev.get("nome", "")), "criado": str(ev.get("criado", "")), "partidas": int(ev.get("partidas", 0)),
+				"emails": {}, "cadastros": 0, "primeiro": "", "ultimo": ""}
+	for l in _linhas_da_maquina():
+		var p := _partes_csv(l)
+		if p.size() < 6:
+			continue
+		var nome: String = p[7] if p.size() > 7 else ""
+		if not por_nome.has(nome):
+			por_nome[nome] = {"nome": nome, "criado": p[0] + " " + p[1], "partidas": 0, "emails": {}, "cadastros": 0, "primeiro": "", "ultimo": ""}
+		var d: Dictionary = por_nome[nome]
+		d["emails"][limpar_email(p[4])] = true
+		d["cadastros"] = int(d["cadastros"]) + 1
+		var quando := p[0] + " " + p[1]
+		if str(d["primeiro"]) == "" or quando < str(d["primeiro"]):
+			d["primeiro"] = quando
+		if quando > str(d["ultimo"]):
+			d["ultimo"] = quando
+	var saida: Array = []
+	for nome in por_nome:
+		var d: Dictionary = por_nome[nome]
+		d["jogadores"] = (d["emails"] as Dictionary).size()
+		d.erase("emails")
+		d["mostrar"] = nome if nome != "" else SEM_NOME
+		d["atual"] = nome == evento
+		saida.append(d)
+	saida.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if bool(a["atual"]) != bool(b["atual"]):
+			return bool(a["atual"])
+		return str(a["criado"]) > str(b["criado"]))
+	return saida
+
+
+func total_partidas_evento() -> int:
+	var n := 0
+	for ev in _eventos:
+		if ev is Dictionary:
+			n += int(ev.get("partidas", 0))
+	return n
+
+
+## Esta linha do diário é de um evento apagado (e de antes de ele ser apagado)?
+func _linha_apagada(l: String) -> bool:
+	if _apagados.is_empty():
+		return false
+	var p := _partes_csv(l)
+	if p.size() < 2:
+		return false
+	var quando := p[0] + " " + p[1]
+	if _apagados.has("*") and quando <= str(_apagados["*"]):
+		return true
+	var nome: String = p[7] if p.size() > 7 else ""
+	return _apagados.has(nome) and quando <= str(_apagados[nome])
+
+
+func _sem_apagadas(linhas: PackedStringArray) -> PackedStringArray:
+	if _apagados.is_empty():
+		return linhas
+	var saida: PackedStringArray = []
+	for l in linhas:
+		if not _linha_apagada(l):
+			saida.append(l)
+	return saida
+
+
+## As fichas passam a valer só pelo que sobrou no diário: quem não tem mais
+## nenhuma linha sai; os outros ficam com as visitas e as datas que restaram.
+func _fichas_pelo_diario(linhas: PackedStringArray) -> void:
+	var contas := {}
+	var primeiras := {}
+	var ultimas := {}
+	for l in linhas:
+		var p := _partes_csv(l)
+		if p.size() < 6:
+			continue
+		var e := limpar_email(p[4])
+		contas[e] = int(contas.get(e, 0)) + 1
+		if not primeiras.has(e):
+			primeiras[e] = p
+		ultimas[e] = p
+	for e in _leads.keys():
+		if not contas.has(e):
+			_leads.erase(e)
+			continue
+		var u: PackedStringArray = ultimas[e]
+		var pr: PackedStringArray = primeiras[e]
+		var r: Dictionary = _leads[e]
+		r["visitas"] = int(contas[e])
+		r["primeira_visita"] = pr[0] + " " + pr[1]
+		r["ultima_visita"] = u[0] + " " + u[1]
+		r["nome"] = limpar_nome(u[3])
+		r["idade"] = int(u[5])
+		r["modo"] = u[6] if u.size() > 6 else ""
+		r["evento"] = u[7] if u.size() > 7 else ""
+
+
+## Apaga um ou vários eventos (os nomes como estão em eventos_resumo): as
+## partidas, os cadastros e os jogadores que só jogaram neles. Devolve quantos
+## cadastros saíram.
+func apagar_eventos(nomes: Array) -> int:
+	var agora := texto_data(agora_unix())
+	for n in nomes:
+		var nome := str(n)
+		_apagados[nome] = agora
+		var i := _indice_evento(nome)
+		if i >= 0:
+			_eventos.remove_at(i)
+		if nome == evento:
+			evento = ""
+	var antes := _linhas_da_maquina()
+	var depois := _sem_apagadas(antes)
+	_gravar_seguro(_pasta.path_join("visitas.csv"), _texto_visitas(depois), false)
+	_visitas = depois.size()
+	_fichas_pelo_diario(depois)
+	_guardar()
+	ultimo_instante = maxi(ultimo_instante, agora_unix())
+	pendente = true   # o pendrive é regravado sem eles na próxima descarga
+	_guardar_cfg()
+	mudou.emit()
+	return antes.size() - depois.size()
 
 
 # ------------------------------------------------------------------- relógio
@@ -306,6 +502,7 @@ func registrar(nome: String, email: String, idade: int, modo: String) -> Diction
 	r["autorizou_contato"] = "sim"
 	r["maquina"] = maquina
 	_leads[e] = r
+	_garantir_evento(evento)
 	_anotar_visita(r, quando, modo)
 	ultimo_instante = agora
 	pendente = true
@@ -565,6 +762,21 @@ func _refazer_do_diario(linhas: PackedStringArray) -> bool:
 	return mexeu
 
 
+## Quantas vezes a máquina foi jogada, por tipo (partidas.csv no pendrive).
+func _partidas_csv() -> String:
+	return "\r\n".join(["tipo,partidas", "ARCADE,%d" % ArcadeData.partidas_arcade, "COPA,%d" % ArcadeData.partidas_copa,
+		"EVENTO,%d" % ArcadeData.partidas_evento, "TOTAL,%d" % ArcadeData.partidas_total, ""])
+
+
+## Um evento criado por linha (eventos.csv no pendrive).
+func _eventos_csv() -> String:
+	var linhas: PackedStringArray = ["evento,criado,partidas,jogadores,cadastros,primeiro_cadastro,ultimo_cadastro,atual"]
+	for d in eventos_resumo():
+		linhas.append(",".join([_csv_campo(str(d["mostrar"]), ","), str(d["criado"]), str(int(d["partidas"])), str(int(d["jogadores"])),
+			str(int(d["cadastros"])), str(d["primeiro"]), str(d["ultimo"]), "sim" if bool(d["atual"]) else "nao"]))
+	return "\r\n".join(linhas) + "\r\n"
+
+
 ## AS ESTATÍSTICAS PRONTAS PARA LER (resumo.txt no pendrive): por evento,
 ## quantos jogadores, quantos cadastros (partidas), novos x quem voltou,
 ## idades e movimento por dia. Feito das mesmas linhas do visitas.csv.
@@ -598,7 +810,13 @@ func _resumo_texto(linhas: PackedStringArray) -> String:
 	# ("até" = o cadastro mais recente: o arquivo só muda quando os dados mudam)
 	t.append("Máquina: %s        Cadastros até: %s" % [maquina, ultimo_dia if ultimo_dia != "" else "-"])
 	t.append("")
-	t.append("NO TOTAL")
+	t.append("PARTIDAS JOGADAS NESTA MÁQUINA")
+	t.append("  arcade ...................... %d" % ArcadeData.partidas_arcade)
+	t.append("  copa ........................ %d" % ArcadeData.partidas_copa)
+	t.append("  evento ...................... %d" % ArcadeData.partidas_evento)
+	t.append("  total ....................... %d" % ArcadeData.partidas_total)
+	t.append("")
+	t.append("CADASTROS, NO TOTAL")
 	t.append("  jogadores diferentes ........ %d" % _leads.size())
 	t.append("  cadastros (um por partida) .. %d" % linhas.size())
 	t.append("  jogaram mais de uma vez ..... %d" % _quantos_voltaram())
@@ -608,6 +826,8 @@ func _resumo_texto(linhas: PackedStringArray) -> String:
 		var emails: Dictionary = ev["emails"]
 		t.append("")
 		t.append("EVENTO: %s" % nome_ev)
+		var i_ev := _indice_evento("" if nome_ev == "(sem nome de evento)" else nome_ev)
+		t.append("  partidas .................... %d" % (int(_eventos[i_ev].get("partidas", 0)) if i_ev >= 0 else 0))
 		t.append("  jogadores diferentes ........ %d" % emails.size())
 		t.append("  cadastros (um por partida) .. %d" % int(ev["cad"]))
 		t.append("  novos neste evento .......... %d" % int(ev["novos"]))
@@ -678,6 +898,8 @@ func _leia_me() -> String:
 		"                  para reconhecer quem já se cadastrou. NÃO EDITE.",
 		"visitas.csv       O histórico: uma linha para cada cadastro / partida",
 		"                  (data, hora, jogador, modo de jogo, evento).",
+		"eventos.csv       Um evento criado por linha: partidas, jogadores, cadastros.",
+		"partidas.csv      Quantas vezes a máquina foi jogada: arcade, copa, evento.",
 		"resumo.txt        AS ESTATÍSTICAS PRONTAS: por evento, quantos jogadores,",
 		"                  quantos cadastros, novos x quem já tinha cadastro,",
 		"                  idades e movimento por dia. É só abrir e ler.",
@@ -895,9 +1117,15 @@ func gravar_no_pendrive() -> bool:
 	var local := _pasta.path_join("visitas.csv")
 	var meu_diario := FileAccess.get_file_as_string(local) if FileAccess.file_exists(local) else ""
 	var minhas := _ler_visitas(meu_diario)
-	var todas := _ler_visitas(meu_diario + "\n" + _pen_ler(dest, "visitas.csv"))
+	var todas := _sem_apagadas(_ler_visitas(meu_diario + "\n" + _pen_ler(dest, "visitas.csv")))
 	if _refazer_do_diario(todas):
 		mudou_n += 1
+	if not _apagados.is_empty():
+		# o que foi apagado na máquina não volta pelo pendrive
+		var n_antes := _leads.size()
+		_fichas_pelo_diario(todas)
+		if _leads.size() != n_antes:
+			mudou_n += 1
 	if todas.size() != minhas.size():
 		_gravar_seguro(local, _texto_visitas(todas), false)
 		_visitas = todas.size()
@@ -906,7 +1134,8 @@ func gravar_no_pendrive() -> bool:
 	# 2. os arquivos do pendrive
 	var certo := true
 	for par in [["leads.json", _json_texto()], ["leads.csv", _csv_texto(",", false)], ["leads_excel.csv", _csv_texto(";", true)],
-			["visitas.csv", _texto_visitas(todas)], ["resumo.txt", _resumo_texto(todas)], ["LEIA-ME.txt", _leia_me()]]:
+			["visitas.csv", _texto_visitas(todas)], ["eventos.csv", _eventos_csv()], ["partidas.csv", _partidas_csv()],
+			["resumo.txt", _resumo_texto(todas)], ["LEIA-ME.txt", _leia_me()]]:
 		if not _trocar_no_pen(dest, str(par[0]), str(par[1])):
 			certo = false
 			_erro_pen = "não consegui gravar " + str(par[0])
@@ -927,8 +1156,8 @@ func texto_pendrive() -> String:
 	var dest := achar_pendrive()
 	if dest.is_empty():
 		if pendente:
-			return "SEM PENDRIVE  •  os cadastros estão guardados na máquina e vão para o pendrive quando ele for espetado"
-		return "SEM PENDRIVE  •  espete um para receber os cadastros"
+			return "SEM PENDRIVE  •  os dados estão guardados na máquina e descem para o pendrive quando ele for espetado"
+		return "SEM PENDRIVE  •  espete um para descarregar os dados"
 	if _erro_pen != "":
 		return "PENDRIVE COM ERRO: %s  •  tente outro pendrive" % _erro_pen
 	if pendente:
@@ -954,7 +1183,11 @@ func apagar_tudo() -> void:
 	_visitas = 0
 	for nome in ["leads.json", "leads.json.bak", "leads.json.tmp", "visitas.csv"]:
 		DirAccess.remove_absolute(_pasta.path_join(nome))
-	pendente = false
+	# (anotado: o que ainda estiver no pendrive não volta para a máquina, e
+	# na próxima descarga o pendrive fica igual à máquina)
+	_eventos.clear()
+	_apagados = {"*": texto_data(agora_unix())}
+	pendente = true
 	ultima_gravacao = ""
 	_guardar()
 	_guardar_cfg()
@@ -1215,7 +1448,19 @@ func _montar_ficha() -> void:
 	_voltar_em = 0
 
 
+## Os nomes que os jogadores escreveram na última ficha (na ordem deles).
+var _ultimos_nomes: Array = []
+
+
+func nomes_cadastrados() -> Array:
+	return _ultimos_nomes.duplicate()
+
+
 func _desmontar_ficha() -> void:
+	_ultimos_nomes = []
+	for j in _fila:
+		if j is Dictionary and j.has("cadastro"):
+			_ultimos_nomes.append(str(j["cadastro"].get("nome", "")))
 	ControleTv.fechar_teclado()
 	if _ficha != null and is_instance_valid(_ficha):
 		_ficha.queue_free()
