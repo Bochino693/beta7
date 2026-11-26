@@ -246,6 +246,8 @@ func _criar_ponteiro() -> void:
 	ponteiro_layer = CanvasLayer.new()
 	ponteiro_layer.layer = 128
 	add_child(ponteiro_layer)
+	# (um cursor só no jogo inteiro: a seta amarela do ControleTv; este anel fica sem uso)
+	ponteiro_layer.visible = false
 
 	ponteiro = Control.new()
 	ponteiro.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -276,6 +276,9 @@ NO PENDRIVE, pasta OlhoNoLance_Leads:
     leads_excel.csv   para abrir com 2 cliques no Excel (ponto e vírgula)
     leads.json        completo; é o que o jogo lê para reconhecer jogadores
     visitas.csv       histórico: uma linha por cadastro / partida
+    resumo.txt        as estatísticas prontas para ler: por evento, quantos
+                      jogadores, cadastros, novos x quem já tinha cadastro,
+                      idades e movimento por dia
     LEIA-ME.txt       o que é cada arquivo e cada coluna
     copia_de_seguranca\   a versão anterior de cada arquivo
   Cada arquivo é escrito inteiro, conferido e só então trocado: tirar o

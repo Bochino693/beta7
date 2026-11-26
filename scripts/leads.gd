@@ -22,6 +22,7 @@ extends CanvasLayer
 ##       leads.json        os mesmos dados, completos (é o que o jogo lê
 ##                         para RECONHECER quem já estava no pendrive)
 ##       visitas.csv       o histórico: uma linha por cadastro / partida
+##       resumo.txt        as estatísticas prontas para ler (por evento)
 ##       LEIA-ME.txt       o que é cada arquivo
 ##       copia_de_seguranca/   a versão anterior de cada arquivo
 ##     Cada arquivo é escrito inteiro num arquivo novo, conferido e só
@@ -564,6 +565,102 @@ func _refazer_do_diario(linhas: PackedStringArray) -> bool:
 	return mexeu
 
 
+## AS ESTATÍSTICAS PRONTAS PARA LER (resumo.txt no pendrive): por evento,
+## quantos jogadores, quantos cadastros (partidas), novos x quem voltou,
+## idades e movimento por dia. Feito das mesmas linhas do visitas.csv.
+func _resumo_texto(linhas: PackedStringArray) -> String:
+	var eventos := {}      # nome -> {"cad", "emails" {e-mail: idade}, "novos", "dias", "modos"}
+	var ordem: Array = []
+	var vistos := {}       # e-mails que já apareceram (as linhas vêm em ordem de data)
+	var ultimo_dia := ""
+	for l in linhas:
+		var p := _partes_csv(l)
+		if p.size() < 6:
+			continue
+		var e := limpar_email(p[4])
+		var nome_ev: String = p[7] if p.size() > 7 and p[7] != "" else "(sem nome de evento)"
+		if not eventos.has(nome_ev):
+			eventos[nome_ev] = {"cad": 0, "emails": {}, "novos": 0, "dias": {}, "modos": {}}
+			ordem.append(nome_ev)
+		var ev: Dictionary = eventos[nome_ev]
+		ev["cad"] = int(ev["cad"]) + 1
+		ev["emails"][e] = int(p[5])
+		ev["dias"][p[0]] = int(ev["dias"].get(p[0], 0)) + 1
+		var modo: String = p[6] if p.size() > 6 and p[6] != "" else "-"
+		ev["modos"][modo] = int(ev["modos"].get(modo, 0)) + 1
+		if not vistos.has(e):
+			vistos[e] = true
+			ev["novos"] = int(ev["novos"]) + 1
+		ultimo_dia = p[0] + " " + p[1]
+	var t: PackedStringArray = []
+	t.append("OLHO NO LANCE - RESUMO DOS CADASTROS (MODO EVENTO)")
+	t.append("==================================================")
+	# ("até" = o cadastro mais recente: o arquivo só muda quando os dados mudam)
+	t.append("Máquina: %s        Cadastros até: %s" % [maquina, ultimo_dia if ultimo_dia != "" else "-"])
+	t.append("")
+	t.append("NO TOTAL")
+	t.append("  jogadores diferentes ........ %d" % _leads.size())
+	t.append("  cadastros (um por partida) .. %d" % linhas.size())
+	t.append("  jogaram mais de uma vez ..... %d" % _quantos_voltaram())
+	t.append("  idades ...................... %s" % _texto_idades(_idades_de(_leads)))
+	for nome_ev in ordem:
+		var ev: Dictionary = eventos[nome_ev]
+		var emails: Dictionary = ev["emails"]
+		t.append("")
+		t.append("EVENTO: %s" % nome_ev)
+		t.append("  jogadores diferentes ........ %d" % emails.size())
+		t.append("  cadastros (um por partida) .. %d" % int(ev["cad"]))
+		t.append("  novos neste evento .......... %d" % int(ev["novos"]))
+		t.append("  já tinham cadastro .......... %d" % (emails.size() - int(ev["novos"])))
+		t.append("  idades ...................... %s" % _texto_idades(emails.values()))
+		var modos: PackedStringArray = []
+		for m in ev["modos"]:
+			modos.append("%s %d" % [m, int(ev["modos"][m])])
+		t.append("  por modo de jogo ............ %s" % "  /  ".join(modos))
+		t.append("  por dia:")
+		var dias: Array = (ev["dias"] as Dictionary).keys()
+		dias.sort()
+		for d in dias:
+			t.append("    %s/%s/%s ................ %d cadastro(s)" % [str(d).substr(8, 2), str(d).substr(5, 2), str(d).substr(0, 4), int(ev["dias"][d])])
+	t.append("")
+	t.append("A lista completa está no leads.csv (um jogador por linha) e no")
+	t.append("visitas.csv (uma linha por cadastro).")
+	t.append("")
+	return "\r\n".join(t)
+
+
+func _quantos_voltaram() -> int:
+	var n := 0
+	for e in _leads:
+		if int(_leads[e].get("visitas", 1)) > 1:
+			n += 1
+	return n
+
+
+func _idades_de(fichas: Dictionary) -> Array:
+	var saida: Array = []
+	for e in fichas:
+		saida.append(int(fichas[e].get("idade", 0)))
+	return saida
+
+
+## "média 21 anos / até 12: 3 / 13 a 17: 2 / 18 a 29: 5 / 30 a 49: 4 / 50+: 1"
+func _texto_idades(idades: Array) -> String:
+	var faixas := [0, 0, 0, 0, 0]
+	var soma := 0
+	var n := 0
+	for i in idades:
+		var a := int(i)
+		if a <= 0:
+			continue
+		soma += a
+		n += 1
+		faixas[0 if a <= 12 else (1 if a <= 17 else (2 if a <= 29 else (3 if a <= 49 else 4)))] += 1
+	if n == 0:
+		return "-"
+	return "média %d anos  /  até 12: %d  /  13 a 17: %d  /  18 a 29: %d  /  30 a 49: %d  /  50+: %d" % [int(round(float(soma) / n)), faixas[0], faixas[1], faixas[2], faixas[3], faixas[4]]
+
+
 func _leia_me() -> String:
 	return "\r\n".join([
 		"OLHO NO LANCE - CADASTROS DOS JOGADORES (MODO EVENTO)",
@@ -581,6 +678,9 @@ func _leia_me() -> String:
 		"                  para reconhecer quem já se cadastrou. NÃO EDITE.",
 		"visitas.csv       O histórico: uma linha para cada cadastro / partida",
 		"                  (data, hora, jogador, modo de jogo, evento).",
+		"resumo.txt        AS ESTATÍSTICAS PRONTAS: por evento, quantos jogadores,",
+		"                  quantos cadastros, novos x quem já tinha cadastro,",
+		"                  idades e movimento por dia. É só abrir e ler.",
 		"copia_de_seguranca\\  A versão anterior de cada arquivo.",
 		"",
 		"COLUNAS DO leads.csv",
@@ -806,7 +906,7 @@ func gravar_no_pendrive() -> bool:
 	# 2. os arquivos do pendrive
 	var certo := true
 	for par in [["leads.json", _json_texto()], ["leads.csv", _csv_texto(",", false)], ["leads_excel.csv", _csv_texto(";", true)],
-			["visitas.csv", _texto_visitas(todas)], ["LEIA-ME.txt", _leia_me()]]:
+			["visitas.csv", _texto_visitas(todas)], ["resumo.txt", _resumo_texto(todas)], ["LEIA-ME.txt", _leia_me()]]:
 		if not _trocar_no_pen(dest, str(par[0]), str(par[1])):
 			certo = false
 			_erro_pen = "não consegui gravar " + str(par[0])
