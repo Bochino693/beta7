@@ -902,6 +902,115 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 
 
 
+# ------------------------------------------------------- fundo dos cartões
+## CADA CARTÃO TEM A ARTE DO ESTÁDIO NA COR DO JOGADOR: holofotes, o gol, a
+## torcida e a bola em chamas - as mesmas artes da janela do "PRONTO?"
+## (FUNDOS_PREP / SHADER_FUNDO_PREP, mais abaixo), um pouco mais escuras no
+## meio para o placar e o tempo ficarem legíveis. Do 5o ao 8o jogador (MODO
+## EVENTO) a cor da arte é girada para a dele. Um desenho só por cartão: leve
+## para a TV Box. O cartão apagado / aceso continua valendo, porque o fundo é
+## filho do cartão.
+## O FUNDO DO RESULTADO FINAL: a arte res://fundos/fundo_result.png (a mesma
+## do resultado da Copa) com dois efeitos vivos feitos no próprio desenho -
+## raios de luz na cor do campeão girando devagar e um brilho que varre a
+## janela a cada 4 s. É UM desenho só (um shader, sem partículas nem nós a
+## mais): não pesa. Nas caixas mais fracas (Visual.nivel 4 ou 5) fica parado.
+const FUNDO_RESULTADO := "res://fundos/fundo_result.png"
+const SHADER_FUNDO_RESULTADO := """
+shader_type canvas_item;
+
+uniform vec2 tamanho = vec2(100.0, 100.0);
+uniform float raio = 30.0;
+uniform vec3 tinta = vec3(1.0);
+uniform float animar = 1.0;
+varying vec2 ponto;
+
+void vertex() {
+	ponto = VERTEX;
+}
+
+void fragment() {
+	vec2 p = ponto - tamanho * 0.5;
+	vec2 q = abs(p) - (tamanho * 0.5 - vec2(raio));
+	float dist = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - raio;
+	float alfa = 1.0 - smoothstep(-1.0, 1.0, dist);
+
+	vec3 cor = texture(TEXTURE, UV).rgb * 0.82;
+	vec2 n = ponto / tamanho;
+	// raios de luz saindo do alto, girando devagar, na cor do campeão
+	vec2 d = n - vec2(0.5, 0.06);
+	float feixe = 0.5 + 0.5 * sin(atan(d.y, d.x) * 14.0 + TIME * 0.45);
+	feixe *= feixe;
+	cor += tinta * feixe * (1.0 - smoothstep(0.0, 0.95, length(d))) * 0.20 * animar;
+	// um brilho que atravessa a janela na diagonal
+	float onde = fract(TIME * 0.25) * 2.6 - 0.8;
+	cor += vec3(1.0) * (1.0 - smoothstep(0.0, 0.09, abs(n.x + n.y * 0.35 - onde))) * 0.06 * animar;
+	// a cor do campeão subindo de baixo
+	cor += tinta * 0.10 * smoothstep(0.55, 1.0, n.y);
+	// (no Godot 4 o COLOR já chega multiplicado pela textura: aqui vale só a conta acima)
+	COLOR = vec4(cor, alfa);
+}
+"""
+static var _shader_fundo_resultado: Shader
+
+
+func _adicionar_fundo_resultado(panel: Panel, cor: Color) -> void:
+	if not ResourceLoader.exists(FUNDO_RESULTADO):
+		return
+	if _shader_fundo_resultado == null:
+		_shader_fundo_resultado = Shader.new()
+		_shader_fundo_resultado.code = SHADER_FUNDO_RESULTADO
+	var borda := 4.0
+	var img := TextureRect.new()
+	img.position = Vector2(borda, borda)
+	img.size = panel.size - Vector2(borda * 2.0, borda * 2.0)
+	img.texture = load(FUNDO_RESULTADO)
+	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_fundo_resultado
+	mat.set_shader_parameter("tamanho", img.size)
+	mat.set_shader_parameter("raio", 32.0)
+	mat.set_shader_parameter("tinta", Vector3(cor.r, cor.g, cor.b))
+	mat.set_shader_parameter("animar", 0.0 if Visual.nivel >= 4 else 1.0)
+	img.material = mat
+	panel.add_child(img)
+
+
+func _adicionar_fundo_card(panel: Panel, index: int, _cor: Color) -> void:
+	var par: Array = FUNDOS_PREP[posmod(index, FUNDOS_PREP.size())]
+	var caminho := str(par[0])
+	if not ResourceLoader.exists(caminho):
+		return
+	if _shader_fundo_prep == null:
+		_shader_fundo_prep = Shader.new()
+		_shader_fundo_prep.code = SHADER_FUNDO_PREP
+	var borda := 3.0
+	var tam: Vector2 = panel.size - Vector2(borda * 2.0, borda * 2.0)
+	if tam.x <= 0.0 or tam.y <= 0.0:
+		return
+	var img := TextureRect.new()
+	img.position = Vector2(borda, borda)
+	img.size = tam
+	img.texture = load(caminho)
+	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_fundo_prep
+	mat.set_shader_parameter("tamanho", tam)
+	mat.set_shader_parameter("raio", 21.0)
+	mat.set_shader_parameter("giro", float(par[1]))
+	mat.set_shader_parameter("brilho", 0.70)
+	mat.set_shader_parameter("meio", 0.62)
+	mat.set_shader_parameter("aproxima", 1.26)
+	# (a coluna do meio, onde ficam GOL, o placar, TEMPO e o estado, mais escura)
+	mat.set_shader_parameter("forma", Vector2(1.25, 0.72))
+	img.material = mat
+	panel.add_child(img)
+
+
 func _criar_painel_player(index: int, rect: Rect2) -> void:
 	if index < 0 or index >= cores_players.size():
 		return
@@ -943,6 +1052,9 @@ func _criar_painel_player(index: int, rect: Rect2) -> void:
 	style.shadow_size = 10
 	style.shadow_offset = Vector2.ZERO
 	panel.add_theme_stylebox_override("panel", style)
+
+	# o fundo ilustrado do cartão, na cor do jogador
+	_adicionar_fundo_card(panel, index, cor)
 
 	# faixa decorativa no topo
 	var faixa := ColorRect.new()
@@ -1274,6 +1386,7 @@ func _criar_overlay_turno() -> void:
 	style.shadow_size = 38
 	style.shadow_offset = Vector2.ZERO
 	overlay_panel.add_theme_stylebox_override("panel", style)
+	_criar_fundo_overlay()
 
 	overlay_titulo = Label.new()
 	overlay_titulo.text = ""
@@ -1347,8 +1460,11 @@ func _mostrar_preparacao_player() -> void:
 	overlay_numero.text = "PRONTO?"
 	overlay_subtitulo.text = "APERTE START PARA COMEÇAR"
 	overlay_titulo.add_theme_color_override("font_shadow_color", cor)
-	overlay_numero.add_theme_color_override("font_color", cor)
+	overlay_numero.add_theme_color_override("font_color", Color.WHITE)
 	overlay_numero.add_theme_color_override("font_shadow_color", cor)
+	for l in [overlay_titulo, overlay_numero, overlay_subtitulo]:
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		l.add_theme_constant_override("outline_size", 8)
 
 	_set_overlay_cor(cor)
 	_mostrar_overlay()
@@ -1520,6 +1636,85 @@ func _set_overlay_cor(cor: Color) -> void:
 	var style := overlay_panel.get_theme_stylebox("panel") as StyleBoxFlat
 	style.border_color = cor
 	style.shadow_color = Color(cor.r, cor.g, cor.b, 0.72)
+	_fundo_overlay_do_player(player_atual)
+
+
+# -------------------------------------------- fundo do "PRONTO?" (como na Copa)
+## A janela do "PRONTO?" e da contagem tem a ARTE DO ESTÁDIO (holofotes, gol
+## e a bola em chamas - res://fundos/blue|green|red|yellow.png, as mesmas da
+## Copa) na cor de quem vai jogar. Do 5o ao 8o jogador (MODO EVENTO) a arte
+## mais próxima tem a cor girada para a dele (laranja, roxo, rosa, turquesa).
+## Um desenho só, com o canto arredondado feito no shader.
+const FUNDOS_PREP: Array = [
+	["res://fundos/blue.png", 0.0], ["res://fundos/green.png", 0.0], ["res://fundos/red.png", 0.0], ["res://fundos/yellow.png", 0.0],
+	["res://fundos/red.png", 0.42], ["res://fundos/blue.png", 0.95], ["res://fundos/red.png", -0.62], ["res://fundos/green.png", 0.85]]
+const SHADER_FUNDO_PREP := """
+shader_type canvas_item;
+
+uniform vec2 tamanho = vec2(100.0, 100.0);
+uniform float raio = 30.0;
+uniform float giro = 0.0;
+uniform float brilho = 0.78;
+uniform float meio = 0.30;
+uniform float aproxima = 1.0;
+uniform vec2 forma = vec2(0.8, 1.3);
+varying vec2 ponto;
+
+void vertex() {
+	ponto = VERTEX;
+}
+
+void fragment() {
+	vec2 p = ponto - tamanho * 0.5;
+	vec2 q = abs(p) - (tamanho * 0.5 - vec2(raio));
+	float dist = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - raio;
+	float alfa = 1.0 - smoothstep(-1.0, 1.0, dist);
+
+	// (aproxima > 1: a arte chega mais perto e as linhas da moldura dela saem do quadro)
+	vec3 cor = texture(TEXTURE, (UV - 0.5) / aproxima + 0.5).rgb;
+	// gira a cor da arte (o branco dos holofotes e da bola continua branco)
+	vec3 k = vec3(0.57735);
+	float c = cos(giro);
+	cor = cor * c + cross(k, cor) * sin(giro) + k * dot(k, cor) * (1.0 - c);
+	// mais escuro no meio, onde ficam as letras
+	vec2 n = ponto / tamanho - 0.5;
+	cor *= brilho * (1.0 - meio * (1.0 - smoothstep(0.05, 0.50, length(n * forma))));
+	COLOR = vec4(clamp(cor, 0.0, 1.0), alfa);
+}
+"""
+static var _shader_fundo_prep: Shader
+var overlay_fundo_img: TextureRect
+
+
+func _criar_fundo_overlay() -> void:
+	if _shader_fundo_prep == null:
+		_shader_fundo_prep = Shader.new()
+		_shader_fundo_prep.code = SHADER_FUNDO_PREP
+	var borda := 4.0
+	overlay_fundo_img = TextureRect.new()
+	overlay_fundo_img.position = Vector2(borda, borda)
+	overlay_fundo_img.size = overlay_panel.size - Vector2(borda * 2.0, borda * 2.0)
+	overlay_fundo_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	overlay_fundo_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	overlay_fundo_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_fundo_prep
+	mat.set_shader_parameter("tamanho", overlay_fundo_img.size)
+	mat.set_shader_parameter("raio", 32.0)
+	overlay_fundo_img.material = mat
+	overlay_panel.add_child(overlay_fundo_img)
+
+
+func _fundo_overlay_do_player(index: int) -> void:
+	if overlay_fundo_img == null or not is_instance_valid(overlay_fundo_img):
+		return
+	var par: Array = FUNDOS_PREP[posmod(index, FUNDOS_PREP.size())]
+	var caminho := str(par[0])
+	overlay_fundo_img.visible = ResourceLoader.exists(caminho)
+	if not overlay_fundo_img.visible:
+		return
+	overlay_fundo_img.texture = load(caminho)
+	(overlay_fundo_img.material as ShaderMaterial).set_shader_parameter("giro", float(par[1]))
 
 
 func _animar_painel_atual() -> void:
@@ -1617,7 +1812,7 @@ func _atualizar_hud() -> void:
 			style.shadow_color = Color(cor.r, cor.g, cor.b, 0.18)
 			style.shadow_size = 8
 
-			player_panels[i].modulate = Color(0.58, 0.58, 0.58, 1.0)
+			player_panels[i].modulate = Color(0.66, 0.66, 0.66, 1.0)
 	
 	_atualizar_medalhas_lider()
 
@@ -1913,7 +2108,8 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null,
+		player_panels[player_atual].get_global_rect() if player_atual < player_panels.size() and is_instance_valid(player_panels[player_atual]) else Rect2())
 
 	var score_antes: int = scores[player_atual]
 	scores[player_atual] += valor
@@ -2319,6 +2515,7 @@ func _mostrar_modal_final() -> void:
 	style.shadow_size = 44
 	style.shadow_offset = Vector2.ZERO
 	panel.add_theme_stylebox_override("panel", style)
+	_adicionar_fundo_resultado(panel, cor_vencedor)
 
 	var titulo := Label.new()
 	titulo.text = "RESULTADO FINAL"
@@ -3435,6 +3632,9 @@ func _novo_label_card(texto: String, largura: float, centro_y: float, fonte_size
 	lbl.add_theme_color_override("font_color", cor)
 	lbl.add_theme_constant_override("shadow_offset_x", 0)
 	lbl.add_theme_constant_override("shadow_offset_y", 0)
+	# (contorno escuro: as letras ficam por cima da arte do cartão)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.88))
+	lbl.add_theme_constant_override("outline_size", maxi(4, int(fonte_size * 0.16)))
 
 	if fonte_orbitron:
 		lbl.add_theme_font_override("font", fonte_orbitron)

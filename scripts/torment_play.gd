@@ -1460,7 +1460,8 @@ func registrar_ponto(valor: int = 1) -> void:
 		return
 
 	# comemoração na tela (clarão, onda e confete na cor do jogador)
-	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null)
+	Efeitos.gol(player_atual, cores_players[player_atual] if player_atual < cores_players.size() else null,
+		player_panels[player_atual].get_global_rect() if player_atual < player_panels.size() and is_instance_valid(player_panels[player_atual]) else Rect2())
 
 	scores[player_atual] += valor
 
