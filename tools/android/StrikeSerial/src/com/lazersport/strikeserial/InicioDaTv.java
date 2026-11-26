@@ -586,7 +586,9 @@ final class InicioDaTv {
 		try {
 			SharedPreferences p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 			long ligou = ligouEm(c);
-			boolean podePerguntar = p.getLong("adb_perguntou", Long.MIN_VALUE) != ligou;
+			// (com o auto start - ABRIR_SOZINHO desligado - o jogo nunca faz a TV
+			// perguntar "Permitir depuração?": só usa o adb que já o aceitou)
+			boolean podePerguntar = ABRIR_SOZINHO && p.getLong("adb_perguntou", Long.MIN_VALUE) != ligou;
 			if (podePerguntar) {
 				p.edit().putLong("adb_perguntou", ligou).commit();
 			}
