@@ -40,8 +40,11 @@ const PASTA_PEN := "OlhoNoLance_Leads"
 const COPIA := "copia_de_seguranca"
 const FORMATO := "olho-no-lance-leads"
 const ANO_MINIMO := 2026           # relógio da TV antes disto = relógio errado
-const COLUNAS := ["id", "nome", "email", "idade", "primeira_visita", "ultima_visita", "visitas", "evento", "modo", "autorizou_contato", "maquina"]
-const CAB_VISITAS := "data,hora,id,nome,email,idade,modo,evento,maquina"
+const COLUNAS := ["id", "nome", "email", "telefone", "idade", "cidade", "estado", "pais", "primeira_visita", "ultima_visita", "visitas", "evento", "modo", "autorizou_contato", "maquina"]
+# (telefone, cidade, estado e país entraram DEPOIS: ficam no fim da linha, e
+# as linhas antigas - sem eles - continuam valendo)
+const CAB_VISITAS := "data,hora,id,nome,email,idade,modo,evento,maquina,telefone,cidade,estado,pais"
+const CAMPOS_LUGAR := ["telefone", "cidade", "estado", "pais"]   # colunas 9 a 12 do diário
 const IDADE_MIN := 3
 const IDADE_MAX := 110
 const SEM_TOQUE_S := 150.0         # ficha parada este tempo: volta para o menu
@@ -110,6 +113,9 @@ func _carregar_cfg() -> void:
 	ajuste_relogio = int(cfg.get_value("relogio", "ajuste", 0))
 	ajuste_com_relogio_errado = bool(cfg.get_value("relogio", "com_relogio_errado", false))
 	ultimo_instante = int(cfg.get_value("relogio", "ultimo_instante", 0))
+	var lugar: Variant = cfg.get_value("feira", "ultimo_lugar", [])
+	if lugar is Array and (lugar as Array).size() == 3:
+		ultimo_lugar = lugar
 	if maquina == "":
 		# o nome desta máquina nos arquivos (para saber de onde veio cada cadastro)
 		maquina = "M-" + ("%08X" % (randi() ^ int(Time.get_unix_time_from_system()))).substr(0, 6)
@@ -129,6 +135,7 @@ func _guardar_cfg() -> void:
 	cfg.set_value("relogio", "ajuste", ajuste_relogio)
 	cfg.set_value("relogio", "com_relogio_errado", ajuste_com_relogio_errado)
 	cfg.set_value("relogio", "ultimo_instante", ultimo_instante)
+	cfg.set_value("feira", "ultimo_lugar", ultimo_lugar)
 	cfg.save(_pasta.path_join("config.cfg"))
 
 
@@ -311,6 +318,7 @@ func _fichas_pelo_diario(linhas: PackedStringArray) -> void:
 		r["idade"] = int(u[5])
 		r["modo"] = u[6] if u.size() > 6 else ""
 		r["evento"] = u[7] if u.size() > 7 else ""
+		_por_lugar(r, u)
 
 
 ## Apaga um ou vários eventos (os nomes como estão em eventos_resumo): as
@@ -485,7 +493,7 @@ func procurar(email: String) -> Dictionary:
 
 # ------------------------------------------------------------ cadastrar
 ## Guarda (ou atualiza) o jogador. Devolve a ficha; "novo" diz se é a 1a vez.
-func registrar(nome: String, email: String, idade: int, modo: String) -> Dictionary:
+func registrar(nome: String, email: String, idade: int, modo: String, telefone: String = "", cidade: String = "", estado: String = "", pais: String = "") -> Dictionary:
 	var e := limpar_email(email)
 	var agora := agora_unix()
 	var quando := texto_data(agora)
@@ -495,6 +503,11 @@ func registrar(nome: String, email: String, idade: int, modo: String) -> Diction
 		r = {"id": id_de(e), "email": e, "primeira_visita": quando, "visitas": 0}
 	r["nome"] = limpar_nome(nome)
 	r["idade"] = clampi(idade, 0, 130)
+	# (quem volta sem dizer de novo o telefone / a cidade fica com o que já tinha)
+	var lugar := {"telefone": _uma_linha(telefone), "cidade": _uma_linha(cidade), "estado": _uma_linha(estado), "pais": _uma_linha(pais)}
+	for k in CAMPOS_LUGAR:
+		if str(lugar[k]) != "" or not r.has(k):
+			r[k] = lugar[k]
 	r["ultima_visita"] = quando
 	r["visitas"] = int(r.get("visitas", 0)) + 1
 	r["evento"] = evento
@@ -540,7 +553,29 @@ func _anotar_visita(r: Dictionary, quando: String, modo: String) -> void:
 
 func _linha_visita(r: Dictionary, quando: String, modo: String) -> String:
 	return ",".join([quando.substr(0, 10), quando.substr(11), str(r.get("id", "")), _csv_campo(str(r.get("nome", "")), ","),
-		str(r.get("email", "")), str(int(r.get("idade", 0))), _csv_campo(modo, ","), _csv_campo(evento, ","), maquina])
+		str(r.get("email", "")), str(int(r.get("idade", 0))), _csv_campo(modo, ","), _csv_campo(evento, ","), maquina,
+		_csv_campo(str(r.get("telefone", "")), ","), _csv_campo(str(r.get("cidade", "")), ","), _csv_campo(str(r.get("estado", "")), ","), _csv_campo(str(r.get("pais", "")), ",")])
+
+
+## O telefone e o lugar que vêm numa linha do diário (as antigas não têm).
+static func _lugar_da_linha(p: PackedStringArray) -> Dictionary:
+	var d := {}
+	for i in range(CAMPOS_LUGAR.size()):
+		d[CAMPOS_LUGAR[i]] = p[9 + i] if p.size() > 9 + i else ""
+	return d
+
+
+## Põe na ficha o telefone / lugar que a linha traz (nunca apaga o que já tem).
+static func _por_lugar(r: Dictionary, p: PackedStringArray) -> bool:
+	var mexeu := false
+	var d := _lugar_da_linha(p)
+	for k in CAMPOS_LUGAR:
+		if str(d[k]) != "" and str(r.get(k, "")) != str(d[k]):
+			r[k] = d[k]
+			mexeu = true
+		elif not r.has(k):
+			r[k] = ""
+	return mexeu
 
 
 # --------------------------------------------------- arquivos da máquina
@@ -616,6 +651,8 @@ func _juntar_json(texto: String) -> int:
 			"visitas": maxi(int(item.get("visitas", 1)), 1), "evento": _uma_linha(str(item.get("evento", ""))),
 			"modo": _uma_linha(str(item.get("modo", ""))), "autorizou_contato": str(item.get("autorizou_contato", "sim")),
 			"maquina": _uma_linha(str(item.get("maquina", "")))}
+		for k in CAMPOS_LUGAR:
+			r[k] = _uma_linha(str(item.get(k, "")))
 		if _juntar_ficha(r):
 			mudou_n += 1
 	return mudou_n
@@ -630,6 +667,13 @@ func _juntar_ficha(r: Dictionary) -> bool:
 		return true
 	var meu: Dictionary = _leads[e]
 	var antes := meu.duplicate()
+	var mais_nova: bool = str(r["ultima_visita"]) > str(meu.get("ultima_visita", ""))
+	for k in CAMPOS_LUGAR:
+		# telefone e lugar: o da visita mais nova; vazio nunca apaga o que já tem
+		if str(r.get(k, "")) != "" and (mais_nova or str(meu.get(k, "")) == ""):
+			meu[k] = r[k]
+		elif not meu.has(k):
+			meu[k] = ""
 	if str(r["primeira_visita"]) != "" and (str(meu.get("primeira_visita", "")) == "" or str(r["primeira_visita"]) < str(meu["primeira_visita"])):
 		meu["primeira_visita"] = r["primeira_visita"]
 	if str(r["ultima_visita"]) > str(meu.get("ultima_visita", "")):
@@ -755,10 +799,19 @@ func _refazer_do_diario(linhas: PackedStringArray) -> bool:
 			_leads[e] = {"id": id_de(e), "email": e, "nome": limpar_nome(p[3]), "idade": int(p[5]), "primeira_visita": quando,
 				"ultima_visita": quando, "visitas": int(contas[e]), "evento": p[7] if p.size() > 7 else "",
 				"modo": p[6] if p.size() > 6 else "", "autorizou_contato": "sim", "maquina": p[8] if p.size() > 8 else ""}
+			_por_lugar(_leads[e], p)
 			mexeu = true
-		elif int(_leads[e].get("visitas", 0)) < int(contas[e]):
-			_leads[e]["visitas"] = int(contas[e])
-			mexeu = true
+		else:
+			var guardado: Dictionary = _leads[e]
+			if int(guardado.get("visitas", 0)) < int(contas[e]):
+				guardado["visitas"] = int(contas[e])
+				mexeu = true
+			# (ficha de antes do telefone / cidade: completa com o que o diário tem)
+			var d := _lugar_da_linha(p)
+			for k in CAMPOS_LUGAR:
+				if str(guardado.get(k, "")) == "" and str(d[k]) != "":
+					guardado[k] = d[k]
+					mexeu = true
 	return mexeu
 
 
@@ -821,6 +874,11 @@ func _resumo_texto(linhas: PackedStringArray) -> String:
 	t.append("  cadastros (um por partida) .. %d" % linhas.size())
 	t.append("  jogaram mais de uma vez ..... %d" % _quantos_voltaram())
 	t.append("  idades ...................... %s" % _texto_idades(_idades_de(_leads)))
+	t.append("  com telefone ................ %d" % _quantos_com("telefone"))
+	var cidades := _cidades_texto()
+	if not cidades.is_empty():
+		t.append("  de onde são:")
+		t.append_array(cidades)
 	for nome_ev in ordem:
 		var ev: Dictionary = eventos[nome_ev]
 		var emails: Dictionary = ev["emails"]
@@ -847,6 +905,114 @@ func _resumo_texto(linhas: PackedStringArray) -> String:
 	t.append("visitas.csv (uma linha por cadastro).")
 	t.append("")
 	return "\r\n".join(t)
+
+
+func _quantos_com(campo: String) -> int:
+	var n := 0
+	for e in _leads:
+		if str(_leads[e].get(campo, "")) != "":
+			n += 1
+	return n
+
+
+## "    São Paulo - SP (Brasil) ...... 12", as 12 cidades com mais jogadores.
+func _cidades_texto() -> PackedStringArray:
+	var conta := {}
+	for e in _leads:
+		var r: Dictionary = _leads[e]
+		if str(r.get("cidade", "")) == "":
+			continue
+		var nome := lugar_texto(str(r.get("cidade", "")), str(r.get("estado", "")), str(r.get("pais", "")))
+		conta[nome] = int(conta.get(nome, 0)) + 1
+	var nomes: Array = conta.keys()
+	nomes.sort_custom(func(a: String, b: String) -> bool:
+		return int(conta[a]) > int(conta[b]) if int(conta[a]) != int(conta[b]) else a < b)
+	var saida: PackedStringArray = []
+	for i in range(mini(nomes.size(), 12)):
+		saida.append("    %s %s %d" % [nomes[i], ".".repeat(maxi(3, 40 - str(nomes[i]).length())), int(conta[nomes[i]])])
+	if nomes.size() > 12:
+		saida.append("    (e mais %d cidades)" % (nomes.size() - 12))
+	return saida
+
+
+## "São Paulo - SP (Brasil)"
+static func lugar_texto(cidade: String, estado: String, pais: String) -> String:
+	if cidade == "":
+		return ""
+	var t := cidade
+	if estado != "" and estado != cidade:
+		t += " - " + estado
+	if pais != "":
+		t += " (" + pais + ")"
+	return t
+
+
+# ------------------------------------------------------------- telefone
+## Só os números que a pessoa digitou (DDD + número; sem o código do país).
+static func limpar_telefone(t: String) -> String:
+	var s := ""
+	for c in t:
+		if c >= "0" and c <= "9":
+			s += c
+	return s.substr(0, 13)
+
+
+## Brasil: DDD (2, sem zero na frente) + 8 ou 9 números. Outros países: de 6 a 12.
+static func telefone_valido(numeros: String, ddi: String = "55") -> bool:
+	if ddi == "55":
+		return (numeros.length() == 10 or numeros.length() == 11) and numeros[0] != "0"
+	return numeros.length() >= 6 and numeros.length() <= 12
+
+
+## Como vai para os arquivos: "55 11 91234-5678" (com espaços, para o Excel
+## não trocar por uma conta; sem os espaços e o traço = número do WhatsApp).
+static func telefone_guardar(numeros: String, ddi: String = "55") -> String:
+	if numeros == "":
+		return ""
+	if ddi == "55" and numeros.length() >= 10:
+		return "55 %s %s-%s" % [numeros.substr(0, 2), numeros.substr(2, numeros.length() - 6), numeros.substr(numeros.length() - 4)]
+	return "%s %s" % [ddi, numeros]
+
+
+## Como aparece na ficha: "(11) 91234-5678"
+static func telefone_na_tela(numeros: String, ddi: String = "55") -> String:
+	if numeros == "":
+		return ""
+	if ddi == "55" and numeros.length() >= 10:
+		return "(%s) %s-%s" % [numeros.substr(0, 2), numeros.substr(2, numeros.length() - 6), numeros.substr(numeros.length() - 4)]
+	return "+%s %s" % [ddi, numeros]
+
+
+## Do arquivo ("55 11 91234-5678") de volta para o que se digita ("11912345678").
+static func telefone_digitado(guardado: String) -> String:
+	var partes := guardado.strip_edges().split(" ", false, 1)
+	return limpar_telefone(partes[1]) if partes.size() > 1 else limpar_telefone(guardado)
+
+
+## Na tela do operador os contatos aparecem pela metade (os completos vão no
+## pendrive): "ma•••@gmail.com" e "55 11 9••••-5678".
+static func esconder_email(e: String) -> String:
+	var a := e.find("@")
+	if a < 0:
+		return e
+	return e.substr(0, mini(2, a)) + "•••" + e.substr(a)
+
+
+static func esconder_telefone(t: String) -> String:
+	if t.length() < 8:
+		return t
+	var fim := t.substr(t.length() - 4)
+	var ini := t.substr(0, t.length() - 4)
+	var saida := ""
+	var vistos := 0
+	for i in range(ini.length() - 1, -1, -1):
+		var c := ini[i]
+		if c >= "0" and c <= "9" and vistos < 4:
+			saida = "•" + saida
+			vistos += 1
+		else:
+			saida = c + saida
+	return saida + fim
 
 
 func _quantos_voltaram() -> int:
@@ -897,7 +1063,8 @@ func _leia_me() -> String:
 		"leads.json        A mesma lista, completa. É o arquivo que o JOGO lê",
 		"                  para reconhecer quem já se cadastrou. NÃO EDITE.",
 		"visitas.csv       O histórico: uma linha para cada cadastro / partida",
-		"                  (data, hora, jogador, modo de jogo, evento).",
+		"                  (data, hora, jogador, modo de jogo, evento, telefone,",
+		"                  cidade, estado, país).",
 		"eventos.csv       Um evento criado por linha: partidas, jogadores, cadastros.",
 		"partidas.csv      Quantas vezes a máquina foi jogada: arcade, copa, evento.",
 		"resumo.txt        AS ESTATÍSTICAS PRONTAS: por evento, quantos jogadores,",
@@ -908,10 +1075,14 @@ func _leia_me() -> String:
 		"COLUNAS DO leads.csv",
 		"  id                 código do jogador (sempre o mesmo para o mesmo e-mail)",
 		"  nome, email, idade o que o jogador informou na última visita",
+		"  telefone           código do país + DDD + número  (55 11 91234-5678):",
+		"                     sem os espaços e o traço é o número do WhatsApp",
+		"  cidade, estado,    de onde o jogador é (estado = a sigla, no Brasil)",
+		"  pais",
 		"  primeira_visita    data e hora do 1o cadastro (AAAA-MM-DD HH:MM:SS)",
 		"  ultima_visita      data e hora do último cadastro",
 		"  visitas            quantas vezes ele se cadastrou para jogar",
-		"  evento             nome do evento / feira (Central da Máquina)",
+		"  evento             nome do evento (escolhido no jogo: menu > EVENTO)",
 		"  modo               modo de jogo da última visita (ARCADE, COPA...)",
 		"  autorizou_contato  sim = aceitou o aviso de contato na ficha",
 		"  maquina            código da máquina onde foi a última visita",
@@ -923,8 +1094,11 @@ func _leia_me() -> String:
 		"O jogo lê o que já está aqui, reconhece esses jogadores e grava tudo",
 		"junto, sem perder nem repetir ninguém.",
 		"",
-		"ANTES DE TIRAR O PENDRIVE: espere a Central da Máquina (Modo Evento)",
-		"mostrar \"GRAVADO - PODE TIRAR O PENDRIVE\".",
+		"NADA SE REPETE NO PENDRIVE: antes de gravar, o jogo confere o que já",
+		"está aqui e só acrescenta o que falta (a tela EVENTOS mostra a conta).",
+		"",
+		"ANTES DE TIRAR O PENDRIVE: espere a tela EVENTOS do jogo (menu > EVENTO)",
+		"mostrar \"PENDRIVE EM DIA - PODE TIRAR\".",
 		"",
 		"Dados pessoais (LGPD): use estes contatos só para o que foi avisado ao",
 		"jogador na ficha, guarde o pendrive em lugar seguro e apague os dados",
@@ -1151,6 +1325,99 @@ func gravar_no_pendrive() -> bool:
 	return certo
 
 
+## O QUE JÁ ESTÁ NO PENDRIVE E O QUE FALTA, sem gravar nada (linha por linha
+## do diário - cada cadastro é uma linha, e a mesma linha nunca entra 2 vezes):
+##   tem ........ há pendrive          na_maquina . cadastros guardados aqui
+##   ja_estao ... já estão nos dois     faltam ..... estão aqui e não no pendrive
+##   so_no_pen .. estão só no pendrive (de outra máquina / de antes): entram aqui
+##   saem ....... estão no pendrive mas são de evento apagado: saem de lá
+##   em_dia ..... nada a gravar: pode tirar o pendrive
+func conferir_pendrive() -> Dictionary:
+	var aqui := _linhas_da_maquina()
+	var d := {"tem": false, "na_maquina": aqui.size(), "ja_estao": 0, "faltam": aqui.size(), "so_no_pen": 0, "saem": 0, "em_dia": false}
+	var dest := achar_pendrive()
+	if dest.is_empty():
+		return d
+	d["tem"] = true
+	var la := {}
+	for l in _ler_visitas(_pen_ler(dest, "visitas.csv")):
+		la[l] = true
+	var faltam := 0
+	for l in aqui:
+		if la.has(l):
+			la.erase(l)
+		else:
+			faltam += 1
+	var saem := 0
+	for l in la:
+		if _linha_apagada(l):
+			saem += 1
+	d["faltam"] = faltam
+	d["ja_estao"] = aqui.size() - faltam
+	d["saem"] = saem
+	d["so_no_pen"] = la.size() - saem
+	d["em_dia"] = faltam == 0 and la.is_empty() and not pendente and _erro_pen == ""
+	return d
+
+
+## A conferência em uma frase (a tela EVENTOS mostra).
+func texto_conferencia() -> String:
+	var c := conferir_pendrive()
+	if not bool(c["tem"]):
+		if int(c["na_maquina"]) == 0:
+			return "SEM PENDRIVE  •  espete um para descarregar os dados"
+		if pendente:
+			return "SEM PENDRIVE  •  %d cadastros guardados na máquina, com dados novos esperando o pendrive" % int(c["na_maquina"])
+		return "SEM PENDRIVE  •  %d cadastros guardados na máquina (já descarregados em %s)" % [int(c["na_maquina"]), ultima_gravacao if ultima_gravacao != "" else "-"]
+	if _erro_pen != "":
+		return "PENDRIVE COM ERRO: %s  •  tente outro pendrive" % _erro_pen
+	if bool(c["em_dia"]):
+		return "PENDRIVE EM DIA  •  os %d cadastros já estão nele  •  PODE TIRAR" % int(c["na_maquina"])
+	var partes: PackedStringArray = ["PENDRIVE:  %d cadastros já estão nele" % int(c["ja_estao"])]
+	if int(c["faltam"]) > 0:
+		partes.append("%d NOVOS para gravar" % int(c["faltam"]))
+	if int(c["so_no_pen"]) > 0:
+		partes.append("%d que só estão nele entram na máquina" % int(c["so_no_pen"]))
+	if int(c["saem"]) > 0:
+		partes.append("%d de evento apagado saem dele" % int(c["saem"]))
+	if int(c["faltam"]) == 0 and int(c["so_no_pen"]) == 0 and int(c["saem"]) == 0:
+		partes.append("falta atualizar os contadores e o resumo")
+	return "  •  ".join(partes)
+
+
+## OS JOGADORES DE UM EVENTO (um por e-mail, o mais recente primeiro):
+## {nome, email, idade, telefone, cidade, estado, pais, partidas, ultima}
+func leads_do_evento(nome_evento: String) -> Array:
+	var por_email := {}
+	for l in _linhas_da_maquina():
+		var p := _partes_csv(l)
+		if p.size() < 6 or (p[7] if p.size() > 7 else "") != nome_evento:
+			continue
+		var e := limpar_email(p[4])
+		var d: Dictionary = por_email.get(e, {"email": e, "partidas": 0, "ultima": ""})
+		d["partidas"] = int(d["partidas"]) + 1
+		var quando := p[0] + " " + p[1]
+		if quando >= str(d["ultima"]):
+			d["ultima"] = quando
+			d["nome"] = limpar_nome(p[3])
+			d["idade"] = int(p[5])
+		por_email[e] = d
+	var saida: Array = []
+	for e in por_email:
+		var d: Dictionary = por_email[e]
+		var ficha: Dictionary = _leads.get(e, {})
+		for k in CAMPOS_LUGAR:
+			d[k] = str(ficha.get(k, ""))
+		saida.append(d)
+	saida.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a["ultima"]) > str(b["ultima"]) if str(a["ultima"]) != str(b["ultima"]) else str(a["email"]) < str(b["email"]))
+	return saida
+
+
+## O último lugar escolhido na ficha (a próxima já abre nele): [país, estado, cidade]
+var ultimo_lugar: Array = ["Brasil", "", ""]
+
+
 ## O estado do pendrive em uma linha, para a Central da Máquina.
 func texto_pendrive() -> String:
 	var dest := achar_pendrive()
@@ -1195,6 +1462,8 @@ func apagar_tudo() -> void:
 
 
 func _process(delta: float) -> void:
+	if _lobby != null and get_tree().current_scene != _cena_do_lobby:
+		_lobby.call("_fechar", false)     # a tela de trás mudou: os EVENTOS fecham
 	if _ficha != null:
 		_ficha_quadro(delta)
 		return
@@ -1232,6 +1501,9 @@ var _modo := "ARCADE"
 var _campo_email: LineEdit
 var _campo_nome: LineEdit
 var _campo_idade: LineEdit
+var _campo_tel: LineEdit
+var _bt_cidade: Button
+var _lugar: Array = ["", "", ""]      # [país, estado, cidade] deste jogador
 var _titulo: Label
 var _conta: Label
 var _recado: Label
@@ -1244,12 +1516,15 @@ var _reconhecido := ""
 var _estilo_cartao: StyleBoxFlat
 
 
+## (a ficha ou a tela EVENTOS: as duas ficam na frente do menu)
 func ficha_aberta() -> bool:
-	return _ficha != null
+	return _ficha != null or _lobby != null
 
 
 func tocou() -> void:
 	_parado = 0.0
+	if _lobby != null:
+		_lobby.set("parado", 0.0)
 
 
 ## ARCADE: uma ficha por jogador (cores = a cor de cada um). Devolve false
@@ -1407,28 +1682,45 @@ func _montar_ficha() -> void:
 	_campo_nome = _campo(_cartao, Vector2(134, 156), Vector2(660, 50), "nome e sobrenome", "", "NOME DO JOGADOR", 40)
 	_rotulo(_cartao, "IDADE", 20, Color(0.72, 0.84, 1.0), Vector2(814, 156), Vector2(90, 50), FONTE_FORTE)
 	_campo_idade = _campo(_cartao, Vector2(910, 156), Vector2(200, 50), "anos", "numero", "IDADE DO JOGADOR (ANOS)", 3)
+	# a cidade é escolhida numa lista (país > estado > cidade); o telefone, com DDD
+	_rotulo(_cartao, "CIDADE", 20, Color(0.72, 0.84, 1.0), Vector2(30, 214), Vector2(100, 50), FONTE_FORTE)
+	_bt_cidade = Button.new()
+	_bt_cidade.position = Vector2(134, 214)
+	_bt_cidade.size = Vector2(540, 50)
+	_bt_cidade.focus_mode = Control.FOCUS_NONE
+	_bt_cidade.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_bt_cidade.clip_text = true
+	_bt_cidade.add_theme_font_size_override("font_size", 24)
+	_bt_cidade.add_theme_stylebox_override("normal", _caixa(Color(0.02, 0.04, 0.08), Color(0.30, 0.48, 0.72), 12))
+	_bt_cidade.add_theme_stylebox_override("hover", _caixa(Color(0.05, 0.10, 0.18), Color(0.45, 0.70, 1.0), 12))
+	_bt_cidade.add_theme_stylebox_override("pressed", _caixa(Color(0.05, 0.10, 0.18), Color(0.45, 0.70, 1.0), 12))
+	_bt_cidade.pressed.connect(func() -> void: _abrir_seletor())
+	_cartao.add_child(_bt_cidade)
+	_rotulo(_cartao, "TELEFONE", 20, Color(0.72, 0.84, 1.0), Vector2(694, 214), Vector2(116, 50), FONTE_FORTE)
+	_campo_tel = _campo(_cartao, Vector2(814, 214), Vector2(296, 50), "DDD + número", "numero", "TELEFONE COM DDD  (só os números)", 13)
 
-	_recado = _rotulo(_cartao, "", 24, Color(0.80, 0.88, 0.98), Vector2(30, 216), Vector2(1080, 44), FONTE_FORTE, HORIZONTAL_ALIGNMENT_CENTER)
+	_recado = _rotulo(_cartao, "", 24, Color(0.80, 0.88, 0.98), Vector2(30, 270), Vector2(1080, 42), FONTE_FORTE, HORIZONTAL_ALIGNMENT_CENTER)
 
-	# os 3 passos, grandes: o que falta fica à vista
+	# os 5 passos: o que falta fica à vista
 	_passos.clear()
-	var nomes_passo := ["1   E-MAIL", "2   NOME", "3   IDADE"]
-	for i in range(3):
+	for i in range(NOMES_PASSO.size()):
 		var p := Panel.new()
-		p.position = Vector2(30 + i * 366, 276)
-		p.size = Vector2(348, 150)
+		p.position = Vector2(30 + i * 218, 320)
+		p.size = Vector2(208, 120)
 		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		p.add_theme_stylebox_override("panel", _caixa(Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.16), 20))
+		p.add_theme_stylebox_override("panel", _caixa(Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.16), 18))
 		_cartao.add_child(p)
-		_rotulo(p, nomes_passo[i], 30, Color.WHITE, Vector2(20, 14), Vector2(308, 40), FONTE_TITULO)
-		_rotulo(p, "", 22, Color(0.70, 0.78, 0.90), Vector2(20, 60), Vector2(308, 76)).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_rotulo(p, NOMES_PASSO[i], 25, Color.WHITE, Vector2(14, 8), Vector2(184, 34), FONTE_TITULO)
+		var det := _rotulo(p, "", 17, Color(0.70, 0.78, 0.90), Vector2(14, 44), Vector2(184, 70))
+		det.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		det.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		_passos.append(p)
 
 	var ajuda := _rotulo(_cartao, "Use o MOUSE ou as SETAS + OK do controle.   Já jogou antes?  Digite o mesmo e-mail: seus dados voltam sozinhos.", 20,
-		Color(0.72, 0.80, 0.92), Vector2(30, 440), Vector2(1080, 34), "", HORIZONTAL_ALIGNMENT_CENTER)
+		Color(0.72, 0.80, 0.92), Vector2(30, 452), Vector2(1080, 34), "", HORIZONTAL_ALIGNMENT_CENTER)
 	ajuda.clip_text = false
 	var aviso := _rotulo(_cartao, "Ao confirmar, você autoriza a Lazer & Sport a guardar estes dados e a entrar em contato com você.\nMenor de idade: o cadastro é feito pelo responsável.",
-		16, Color(0.52, 0.60, 0.72), Vector2(30, 486), Vector2(1080, 50), "", HORIZONTAL_ALIGNMENT_CENTER)
+		16, Color(0.52, 0.60, 0.72), Vector2(30, 494), Vector2(1080, 50), "", HORIZONTAL_ALIGNMENT_CENTER)
 	aviso.clip_text = false
 
 	_bt_voltar = _botao(_cartao, "✕  SAIR SEM JOGAR", Vector2(30, 600), Vector2(300, 66), Color(0.75, 0.80, 0.88), false)
@@ -1446,6 +1738,9 @@ func _montar_ficha() -> void:
 	tw.tween_property(_cartao, "scale", Vector2.ONE, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_parado = 0.0
 	_voltar_em = 0
+
+
+const NOMES_PASSO := ["E-MAIL", "NOME", "IDADE", "CIDADE", "TELEFONE"]
 
 
 ## Os nomes que os jogadores escreveram na última ficha (na ordem deles).
@@ -1467,6 +1762,8 @@ func _desmontar_ficha() -> void:
 	_ficha = null
 	_palco = null
 	_cartao = null
+	_seletor = null
+	_campo_outra = null
 	_passos.clear()
 	_fila = []
 
@@ -1483,6 +1780,9 @@ func _mostrar_jogador() -> void:
 	_campo_nome.text = limpar_nome(str(j.get("nome", ""))) if fixo else ""
 	_campo_nome.editable = not fixo
 	_campo_idade.text = ""
+	_campo_tel.text = ""
+	_lugar = ["", "", ""]
+	_fechar_seletor()
 	_reconhecido = ""
 	_bt_confirmar.text = "CONFIRMAR E JOGAR  ▶" if _indice == _fila.size() - 1 else "CONFIRMAR  •  PRÓXIMO JOGADOR  ▶"
 	_dizer("Digite o seu E-MAIL para começar", Color(0.80, 0.88, 0.98))
@@ -1505,19 +1805,43 @@ func _campo_mudou() -> void:
 	_atualizar_passos()
 
 
+func _ddi() -> String:
+	var pais := str(_lugar[0]) if str(_lugar[0]) != "" else str(ultimo_lugar[0])
+	for p in Lugares.PAISES:
+		if str(p["nome"]) == pais:
+			return str(p["ddi"])
+	return "55"
+
+
+func _telefone() -> String:
+	return limpar_telefone(_campo_tel.text) if _campo_tel != null else ""
+
+
+## [e-mail, nome, idade, cidade, telefone] - o que já está certo.
+func _certos() -> Array:
+	var idade := int(_campo_idade.text) if _campo_idade.text.is_valid_int() else 0
+	return [email_valido(limpar_email(_campo_email.text)), nome_valido(_campo_nome.text), idade >= IDADE_MIN and idade <= IDADE_MAX,
+		str(_lugar[2]) != "", telefone_valido(_telefone(), _ddi())]
+
+
 func _atualizar_passos() -> void:
-	if _passos.size() < 3:
+	if _passos.size() < NOMES_PASSO.size():
 		return
 	var e := limpar_email(_campo_email.text)
 	var idade := int(_campo_idade.text) if _campo_idade.text.is_valid_int() else 0
-	var certos := [email_valido(e), nome_valido(_campo_nome.text), idade >= IDADE_MIN and idade <= IDADE_MAX]
+	var certos := _certos()
+	var cidade := lugar_texto(str(_lugar[2]), str(_lugar[1]), "")
+	_bt_cidade.text = (cidade + ("   •   " + str(_lugar[0]) if str(_lugar[0]) != "" else "")) if cidade != "" else "escolher na lista  ▸"
+	_bt_cidade.add_theme_color_override("font_color", Color.WHITE if cidade != "" else Color(0.50, 0.58, 0.70))
+	_bt_cidade.add_theme_color_override("font_hover_color", Color.WHITE)
 	var textos := [e if e != "" else "ainda não digitado", _campo_nome.text if _campo_nome.text != "" else "ainda não digitado",
-		("%d anos" % idade) if _campo_idade.text != "" else "ainda não digitada"]
-	for i in range(3):
+		("%d anos" % idade) if _campo_idade.text != "" else "ainda não digitada", cidade if cidade != "" else "ainda não escolhida",
+		telefone_na_tela(_telefone(), _ddi()) if _telefone() != "" else "ainda não digitado"]
+	for i in range(NOMES_PASSO.size()):
 		var cor: Color = VERDE if certos[i] else Color(1, 1, 1, 0.16)
-		_passos[i].add_theme_stylebox_override("panel", _caixa(Color(VERDE.r, VERDE.g, VERDE.b, 0.10) if certos[i] else Color(1, 1, 1, 0.04), cor, 20))
+		_passos[i].add_theme_stylebox_override("panel", _caixa(Color(VERDE.r, VERDE.g, VERDE.b, 0.10) if certos[i] else Color(1, 1, 1, 0.04), cor, 18))
 		var titulo := _passos[i].get_child(0) as Label
-		titulo.text = ["E-MAIL", "NOME", "IDADE"][i] + ("   ✔" if certos[i] else "")
+		titulo.text = NOMES_PASSO[i] + ("  ✔" if certos[i] else "")
 		titulo.add_theme_color_override("font_color", VERDE if certos[i] else Color.WHITE)
 		(_passos[i].get_child(1) as Label).text = textos[i]
 
@@ -1532,6 +1856,11 @@ func _teclado_fechou(campo: LineEdit, pronto: bool) -> void:
 func _seguir(campo: LineEdit) -> void:
 	if _ficha == null:
 		return
+	if campo == _campo_outra:
+		_cidade_escrita()
+		return
+	if campo == _campo_tel:
+		_campo_tel.text = _telefone()
 	if campo == _campo_email:
 		var e := limpar_email(_campo_email.text)
 		_campo_email.text = e
@@ -1546,6 +1875,9 @@ func _seguir(campo: LineEdit) -> void:
 			if _campo_nome.editable:
 				_campo_nome.text = str(antigo.get("nome", ""))
 			_campo_idade.text = str(int(antigo.get("idade", 0))) if int(antigo.get("idade", 0)) > 0 else ""
+			if str(antigo.get("cidade", "")) != "":
+				_lugar = [str(antigo.get("pais", "")), str(antigo.get("estado", "")), str(antigo.get("cidade", ""))]
+			_campo_tel.text = telefone_digitado(str(antigo.get("telefone", "")))
 			_atualizar_passos()
 			_dizer("BEM-VINDO DE VOLTA, %s!  Confira os dados e confirme." % str(antigo.get("nome", "")).get_slice(" ", 0).to_upper(), VERDE)
 			if _tudo_certo():
@@ -1555,8 +1887,7 @@ func _seguir(campo: LineEdit) -> void:
 
 
 func _tudo_certo() -> bool:
-	var idade := int(_campo_idade.text) if _campo_idade.text.is_valid_int() else 0
-	return email_valido(limpar_email(_campo_email.text)) and nome_valido(_campo_nome.text) and idade >= IDADE_MIN and idade <= IDADE_MAX
+	return not _certos().has(false)
 
 
 ## Abre o teclado no primeiro campo que falta; com tudo certo, marca o CONFIRMAR.
@@ -1577,6 +1908,15 @@ func _proximo_passo() -> void:
 		elif _reconhecido == "":
 			_dizer("E a sua IDADE", Color(0.80, 0.88, 0.98))
 		ControleTv.abrir_teclado(_campo_idade)
+	elif str(_lugar[2]) == "":
+		_dizer("De que CIDADE você é?", Color(0.80, 0.88, 0.98))
+		_abrir_seletor()
+	elif not telefone_valido(_telefone(), _ddi()):
+		if _telefone() != "":
+			_dizer("Confira o TELEFONE: DDD + número  (ex.: 11 91234-5678)" if _ddi() == "55" else "Confira o TELEFONE  (só os números, com o código da cidade)", VERMELHO)
+		else:
+			_dizer("Por último, o seu TELEFONE com DDD" if _ddi() == "55" else "Por último, o seu TELEFONE", Color(0.80, 0.88, 0.98))
+		ControleTv.abrir_teclado(_campo_tel)
 	else:
 		if _reconhecido == "":
 			_dizer("TUDO CERTO!  Aperte OK para confirmar", VERDE)
@@ -1593,11 +1933,17 @@ func _confirmar() -> void:
 			_dizer("Falta o E-MAIL  (ex.: maria@gmail.com)", VERMELHO)
 		elif not nome_valido(_campo_nome.text):
 			_dizer("Falta o NOME", VERMELHO)
-		else:
+		elif not bool(_certos()[2]):
 			_dizer("Falta a IDADE  (de %d a %d anos)" % [IDADE_MIN, IDADE_MAX], VERMELHO)
+		elif str(_lugar[2]) == "":
+			_dizer("Falta a CIDADE", VERMELHO)
+		else:
+			_dizer("Falta o TELEFONE com DDD", VERMELHO)
 		_proximo_passo.call_deferred()
 		return
-	var r := registrar(_campo_nome.text, _campo_email.text, int(_campo_idade.text), _modo)
+	var r := registrar(_campo_nome.text, _campo_email.text, int(_campo_idade.text), _modo,
+		telefone_guardar(_telefone(), _ddi()), str(_lugar[2]), str(_lugar[1]), str(_lugar[0]))
+	ultimo_lugar = _lugar.duplicate()
 	_fila[_indice]["cadastro"] = r
 	_indice += 1
 	if _indice >= _fila.size():
@@ -1612,7 +1958,13 @@ func _confirmar() -> void:
 
 ## VOLTAR do controle / botão SAIR: pede de novo para ter certeza.
 func voltar() -> void:
+	if _lobby != null and _ficha == null:
+		_lobby.call("voltar")
+		return
 	if _ficha == null:
+		return
+	if _seletor != null:
+		_seletor_voltar()
 		return
 	var agora := Time.get_ticks_msec()
 	if _voltar_em > 0 and agora - _voltar_em < 4000:
@@ -1629,3 +1981,200 @@ func _ficha_quadro(delta: float) -> void:
 		_terminou.emit(false)   # ninguém na máquina: o menu volta
 	elif _parado >= SEM_TOQUE_S - 20.0:
 		_dizer("ALGUÉM AÍ?  Voltando ao menu em %d s..." % int(ceil(SEM_TOQUE_S - _parado)), AMARELO)
+
+
+# =====================================================================
+# DE ONDE O JOGADOR É: país > estado > cidade, tudo em lista (scripts/lugares.gd)
+# Abre já no estado da última ficha, com a última cidade marcada: quem é
+# dali só aperta OK. "OUTRA CIDADE" deixa escrever a que não está na lista.
+# =====================================================================
+const Lugares := preload("res://scripts/lugares.gd")
+var _seletor: Panel
+var _campo_outra: LineEdit
+var _sel_fase := 0                 # 0 = país, 1 = estado, 2 = cidade
+var _sel_pais := "Brasil"
+var _sel_estado := ""              # o que vai para os arquivos (sigla no Brasil)
+
+
+func _pais_dados(nome: String) -> Dictionary:
+	for p in Lugares.PAISES:
+		if str(p["nome"]) == nome:
+			return p
+	return Lugares.PAISES[0]
+
+
+## [o que é guardado, o que aparece no botão, as cidades]
+func _estados_de(pais: String) -> Array:
+	var saida: Array = []
+	for e in _pais_dados(pais)["estados"]:
+		var sigla := str(e[0])
+		saida.append([sigla if sigla != "" else str(e[1]), (sigla + "   " + str(e[1])) if sigla != "" else str(e[1]), e[2]])
+	return saida
+
+
+func _abrir_seletor(fase: int = -1) -> void:
+	if _ficha == null:
+		return
+	ControleTv.fechar_teclado()
+	var base: Array = _lugar if str(_lugar[2]) != "" else ultimo_lugar
+	_sel_pais = str(_pais_dados(str(base[0]))["nome"])
+	_sel_estado = str(base[1])
+	if fase < 0:
+		fase = 1
+		for e in _estados_de(_sel_pais):
+			if str(e[0]) == _sel_estado:
+				fase = 2
+	_sel_fase = fase
+	_montar_seletor(str(base[2]))
+
+
+func _fechar_seletor() -> void:
+	if _seletor != null and is_instance_valid(_seletor):
+		_seletor.queue_free()
+	_seletor = null
+	_campo_outra = null
+
+
+func _montar_seletor(marcar_texto: String = "") -> void:
+	_fechar_seletor()
+	_parado = 0.0
+	_seletor = Panel.new()
+	_seletor.size = _cartao.size
+	_seletor.mouse_filter = Control.MOUSE_FILTER_STOP   # os campos da ficha ficam atrás
+	_seletor.add_theme_stylebox_override("panel", _caixa(Color(0.035, 0.065, 0.12, 1.0), AMARELO, 28, 3))
+	_cartao.add_child(_seletor)
+	var titulos := ["DE QUE PAÍS VOCÊ É?", "ESCOLHA O ESTADO", "ESCOLHA A CIDADE"]
+	_rotulo(_seletor, titulos[_sel_fase], 44, Color.WHITE, Vector2(30, 16), Vector2(760, 52), FONTE_TITULO)
+	var caminho := "América do Sul"
+	if _sel_fase >= 1:
+		caminho += "   ›   " + _sel_pais
+	if _sel_fase >= 2:
+		caminho += "   ›   " + _sel_estado
+	_rotulo(_seletor, caminho, 22, AMARELO, Vector2(30, 68), Vector2(1080, 30), FONTE_FORTE)
+
+	var rolo := ScrollContainer.new()
+	rolo.position = Vector2(30, 112)
+	rolo.size = Vector2(1080, 452)
+	rolo.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_seletor.add_child(rolo)
+	var grade := GridContainer.new()
+	grade.columns = 4
+	grade.add_theme_constant_override("h_separation", 10)
+	grade.add_theme_constant_override("v_separation", 10)
+	rolo.add_child(grade)
+	var itens: Array = []        # [o que guarda, o que aparece]
+	match _sel_fase:
+		0:
+			for p in Lugares.PAISES:
+				itens.append([str(p["nome"]), str(p["nome"])])
+		1:
+			for e in _estados_de(_sel_pais):
+				itens.append([str(e[0]), str(e[1])])
+		_:
+			for e in _estados_de(_sel_pais):
+				if str(e[0]) == _sel_estado:
+					for c in e[2]:
+						itens.append([str(c), str(c)])
+	var marcado: Button = null
+	for it in itens:
+		var b := Button.new()
+		b.text = str(it[1])
+		b.custom_minimum_size = Vector2(260, 58)
+		b.focus_mode = Control.FOCUS_NONE
+		b.clip_text = true
+		b.add_theme_font_size_override("font_size", 22 if str(it[1]).length() <= 19 else 18)
+		var e_este: bool = str(it[0]) == marcar_texto or (_sel_fase == 0 and str(it[0]) == _sel_pais) or (_sel_fase == 1 and str(it[0]) == _sel_estado)
+		b.add_theme_stylebox_override("normal", _caixa(Color(AMARELO.r, AMARELO.g, AMARELO.b, 0.16) if e_este else Color(0.08, 0.13, 0.22), AMARELO if e_este else Color(0.30, 0.48, 0.72), 14, 2 if e_este else 1))
+		b.add_theme_stylebox_override("hover", _caixa(Color(0.14, 0.24, 0.40), Color(0.55, 0.78, 1.0), 14))
+		b.add_theme_stylebox_override("pressed", _caixa(Color(0.14, 0.24, 0.40), Color(0.55, 0.78, 1.0), 14))
+		b.pressed.connect(_seletor_escolheu.bind(str(it[0])))
+		grade.add_child(b)
+		if e_este and marcado == null:
+			marcado = b
+	if marcado == null and grade.get_child_count() > 0:
+		marcado = grade.get_child(0)
+
+	var volta := _botao(_seletor, ["◀  VOLTAR PARA A FICHA", "◀  MUDAR O PAÍS", "◀  MUDAR O ESTADO"][_sel_fase], Vector2(30, 600), Vector2(330, 62), Color(0.75, 0.80, 0.88), false)
+	volta.pressed.connect(_seletor_voltar)
+	if _sel_fase == 2:
+		_rotulo(_seletor, "NÃO ESTÁ NA LISTA?", 18, Color(0.72, 0.84, 1.0), Vector2(390, 600), Vector2(200, 62), FONTE_FORTE)
+		_campo_outra = _campo(_seletor, Vector2(596, 606), Vector2(514, 50), "escreva o nome da sua cidade", "", "NOME DA CIDADE", 36)
+	else:
+		_rotulo(_seletor, "SETAS: escolher   •   OK: confirmar", 18, Color(0.60, 0.70, 0.82), Vector2(390, 600), Vector2(720, 62), "", HORIZONTAL_ALIGNMENT_RIGHT)
+	# a marca já vai para o lugar mais provável (a lista rola até ele)
+	var alvo := marcado
+	get_tree().create_timer(0.05, true, false, true).timeout.connect(func() -> void:
+		if _seletor != null and alvo != null and is_instance_valid(alvo):
+			rolo.ensure_control_visible(alvo)
+			ControleTv.marcar(alvo))
+
+
+func _seletor_escolheu(valor: String) -> void:
+	_parado = 0.0
+	match _sel_fase:
+		0:
+			_sel_pais = valor
+			_sel_estado = ""
+			_sel_fase = 1
+			_montar_seletor()
+		1:
+			_sel_estado = valor
+			_sel_fase = 2
+			_montar_seletor()
+		_:
+			_cidade_escolhida(valor)
+
+
+func _cidade_escrita() -> void:
+	if _campo_outra == null:
+		return
+	var nome := _uma_linha(_campo_outra.text).strip_edges().substr(0, 36)
+	if nome.length() < 2:
+		return
+	_cidade_escolhida(nome.capitalize() if nome == nome.to_upper() else nome)
+
+
+func _cidade_escolhida(cidade: String) -> void:
+	_lugar = [_sel_pais, _sel_estado, cidade]
+	_fechar_seletor()
+	_atualizar_passos()
+	_proximo_passo.call_deferred()
+
+
+func _seletor_voltar() -> void:
+	_parado = 0.0
+	if _sel_fase == 0:
+		_fechar_seletor()
+		ControleTv.marcar(_bt_cidade)
+		return
+	_sel_fase -= 1
+	_montar_seletor()
+
+
+# =====================================================================
+# A TELA "EVENTOS" (menu do jogo > EVENTO): scripts/evento_lobby.gd
+# =====================================================================
+var _lobby: Control
+var _cena_do_lobby: Node
+
+
+func lobby_aberto() -> bool:
+	return _lobby != null
+
+
+## Abre a tela dos eventos. true = JOGAR no evento escolhido (Leads.evento);
+## false = voltou para o menu.
+func abrir_lobby() -> bool:
+	if _lobby != null or _ficha != null:
+		return false
+	_cena_do_lobby = get_tree().current_scene
+	_lobby = Control.new()
+	_lobby.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_lobby.set_script(load("res://scripts/evento_lobby.gd"))
+	add_child(_lobby)
+	_olhar = OLHAR_PEN_S     # o pendrive é conferido já
+	var jogar: bool = await _lobby.terminou
+	ControleTv.fechar_teclado()
+	_lobby.queue_free()
+	_lobby = null
+	return jogar and get_tree().current_scene == _cena_do_lobby

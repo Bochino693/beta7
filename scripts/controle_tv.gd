@@ -687,19 +687,60 @@ func _abrir_teclado(campo: LineEdit) -> void:
 	_marcar(_teclas[10] if _teclas.size() > 20 else _teclas[0])   # começa no Q (números: no 1)
 
 
+## AS TECLAS QUE FAZEM ALGUMA COISA TÊM COR (aparecem de longe):
+##   PRONTO = verde cheio    APAGAR = vermelho    LIMPAR = laranja
+##   ESPAÇO = azul           atalhos (@gmail.com, .com...) = roxo
+const COR_TECLA_PRONTO := Color(0.16, 0.80, 0.36)
+const COR_TECLA_APAGAR := Color(0.92, 0.24, 0.22)
+const COR_TECLA_LIMPAR := Color(0.96, 0.56, 0.10)
+const COR_TECLA_ESPACO := Color(0.16, 0.50, 0.95)
+const COR_TECLA_ATALHO := Color(0.58, 0.38, 0.95)
+
+
+func _cor_da_tecla(texto: String) -> Variant:
+	if texto.contains("PRONTO"):
+		return COR_TECLA_PRONTO
+	if texto.contains("APAGAR"):
+		return COR_TECLA_APAGAR
+	if texto == "LIMPAR":
+		return COR_TECLA_LIMPAR
+	if texto == "ESPAÇO":
+		return COR_TECLA_ESPACO
+	if texto.length() > 1:
+		return COR_TECLA_ATALHO
+	return null
+
+
 func _tecla(texto: String, tam: Vector2, escala: float) -> Button:
 	var b := Button.new()
 	b.text = texto
 	b.size = tam
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override("font_size", int((26 if texto.length() == 1 else 17) * escala))
+	var cor: Variant = _cor_da_tecla(texto)
+	var cheia: bool = cor != null and (texto.contains("PRONTO") or texto.contains("APAGAR") or texto == "LIMPAR")
+	b.add_theme_font_size_override("font_size", int((26 if texto.length() == 1 else (19 if cheia else 17)) * escala))
 	for estado in ["normal", "hover", "pressed"]:
 		var st := StyleBoxFlat.new()
 		st.bg_color = Color(0.10, 0.14, 0.22) if estado == "normal" else Color(0.18, 0.30, 0.48)
 		st.border_color = Color(0.25, 0.55, 0.95, 0.8)
 		st.set_border_width_all(1)
+		if cor != null:
+			var c: Color = cor
+			var forte: float = 1.0 if estado == "normal" else 1.22
+			if cheia:
+				st.bg_color = Color(c.r * 0.82 * forte, c.g * 0.82 * forte, c.b * 0.82 * forte)
+				st.border_color = c.lightened(0.35)
+			else:
+				st.bg_color = Color(c.r * 0.30 * forte, c.g * 0.30 * forte, c.b * 0.30 * forte)
+				st.border_color = c
+			st.set_border_width_all(2)
 		st.set_corner_radius_all(int(10 * escala))
 		b.add_theme_stylebox_override(estado, st)
+	if cheia:
+		for nome_cor in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			b.add_theme_color_override(nome_cor, Color.WHITE)
+		b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.55))
+		b.add_theme_constant_override("outline_size", int(4 * escala))
 	_teclas.append(b)
 	return b
 

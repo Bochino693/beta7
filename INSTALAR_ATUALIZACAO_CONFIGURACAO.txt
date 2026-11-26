@@ -81,3 +81,22 @@ ATUALIZAÇÃO TV 23 — ARDUINO: AUTORIZA UMA VEZ, LIGA SEMPRE
   o app padrão e dá a permissão guardada antes de o auto start abrir o jogo.
 - Na 1ª vez: marque a caixinha "USAR POR PADRÃO" na janela do Android e OK.
   Depois disso não aparece mais.
+
+ATUALIZAÇÃO TV 24 — TELA DOS EVENTOS, TELEFONE E CIDADE, GOLS SEM TRAVAR
+- EVENTO no menu abre a tela EVENTOS: o nome do evento vem antes de tudo
+  (criar, escolher), "JOGAR NESTE EVENTO", "VER LEADS", "APAGAR EVENTO" e o
+  PENDRIVE - tudo ali. A Central ficou só com os contadores de partidas
+  ("ZERAR CONTADORES") e, nos ajustes avançados, "DATA E HORA".
+- Pendrive: o jogo confere o que já está nele e mostra a conta ("10 já estão
+  • 2 novos para gravar"); só o que falta é gravado, nada se repete.
+- Ficha: além de e-mail, nome e idade, pede CIDADE (lista país > estado >
+  cidade da América do Sul, já aberta na cidade do jogador anterior) e
+  TELEFONE com DDD. Vão para leads.csv, leads_excel.csv e visitas.csv.
+- Teclado da tela com as teclas PRONTO (verde), APAGAR (vermelha), LIMPAR
+  (laranja), ESPAÇO (azul) e os atalhos de e-mail (roxo) coloridos.
+- Gols em sequência não travam mais: em rajada sai só a bola na rede, o
+  placar, o som e o LED; um comando de LED por gol para o Arduino.
+- Alvos: sempre de 2 a 4 acesos no ARCADE / EVENTO, nunca um sozinho (nas
+  COPAS continua a dupla: acertou um, o outro espera até 3 s e vem a
+  próxima dupla).
+- O código do Arduino não mudou: não precisa regravar a placa.
