@@ -1,5 +1,9 @@
 extends Node
 
+## true = as mensagens de acompanhamento vão para o log (deixa o jogo mais
+## lento na TV Box: cada batida escrevia dezenas de linhas). Só para depurar.
+const DEPURAR := false
+
 const MOSTRAR_TECLAS_LED_HUD: bool = false
 const CORES_LED_ALEATORIAS_DOS_PLAYERS: bool = true
 
@@ -358,7 +362,7 @@ func _process(delta: float) -> void:
 		var acao: String = "input_led_" + LEDS_LETRAS[i].to_lower()
 
 		if Input.is_action_just_pressed(acao):
-			print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
+			if DEPURAR: print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
 			_processar_input_led(i)
 
 	if player_atual < 0 or player_atual >= total_players:
@@ -384,7 +388,7 @@ func _checar_timeout_alvo() -> void:
 	var agora := float(Time.get_ticks_msec())
 	if agora - _ultimo_acerto_ms >= ALVO_TIMEOUT_MS:
 		_ultimo_acerto_ms = agora
-		print("ALVO SEM ACERTO POR 15s -> TROCANDO GRUPO")
+		if DEPURAR: print("ALVO SEM ACERTO POR 15s -> TROCANDO GRUPO")
 		_sortear_novo_grupo_de_fileiras()
 
 
@@ -531,7 +535,7 @@ func _fechar_jogo_arcade() -> void:
 
 	fechando_jogo = true
 
-	print("FECHANDO PLAY SOMENTE COM CTRL + TAB...")
+	if DEPURAR: print("FECHANDO PLAY SOMENTE COM CTRL + TAB...")
 
 	_serial_write("OFF")
 
@@ -594,7 +598,7 @@ func _carregar_config_players() -> void:
 	# Primeiro tenta ler da metadata da SceneTree.
 	if get_tree().has_meta("fut_total_players"):
 		total_players = int(get_tree().get_meta("fut_total_players"))
-		print("PLAY LEU PLAYERS PELA META: ", total_players)
+		if DEPURAR: print("PLAY LEU PLAYERS PELA META: ", total_players)
 
 	if get_tree().has_meta("fut_cores_players"):
 		cores_recebidas = get_tree().get_meta("fut_cores_players")
@@ -625,10 +629,10 @@ func _carregar_config_players() -> void:
 		for i in range(min(cores_recebidas.size(), cores_players.size())):
 			cores_players[i] = cores_recebidas[i]
 
-	print("================================")
-	print("PLAY MONTOU COM PLAYERS: ", total_players)
-	print("PLAY CORES RECEBIDAS: ", cores_recebidas.size())
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("PLAY MONTOU COM PLAYERS: ", total_players)
+	if DEPURAR: print("PLAY CORES RECEBIDAS: ", cores_recebidas.size())
+	if DEPURAR: print("================================")
 
 
 
@@ -1444,12 +1448,12 @@ func _sortear_novo_grupo_de_fileiras() -> void:
 			leds_ativos.append(novo)
 			cores_leds_ativos[novo] = _rgb_aleatorio_alvo()
 
-	print("================================")
-	print("NOVO GRUPO SORTEADO PARA O PLAYER ", player_atual + 1)
-	print("QUANTIDADE: ", leds_ativos.size())
-	print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
-	print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("NOVO GRUPO SORTEADO PARA O PLAYER ", player_atual + 1)
+	if DEPURAR: print("QUANTIDADE: ", leds_ativos.size())
+	if DEPURAR: print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
+	if DEPURAR: print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
+	if DEPURAR: print("================================")
 
 	_atualizar_leds_hud()
 	_enviar_leds_para_arduino()
@@ -1652,6 +1656,22 @@ func _explosao_gol(index: int) -> void:
 		tr.tween_property(ring, "modulate", Color(1, 1, 1, 0), dur) \
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
 		tr.chain().tween_callback(ring.queue_free)
+
+	# as faíscas: no quadro seguinte (e dispensadas com gols em rajada)
+	if not Efeitos.fila_cheia():
+		Efeitos.depois(_faiscas_gol.bind(index))
+
+
+func _faiscas_gol(index: int) -> void:
+	if index < 0 or index >= player_panels.size():
+		return
+
+	var panel: Panel = player_panels[index]
+	var cor: Color = cores_players[index]
+	var W: float = float(panel.size.x)
+	var H: float = float(panel.size.y)
+	var centro: Vector2 = Vector2(W, H) * 0.5
+	var ref: float = minf(W, H)
 
 	# --- faíscas / confetes ---
 	var paleta: Array[Color] = [
@@ -1895,11 +1915,15 @@ func registrar_ponto(valor: int = 1) -> void:
 	_verificar_vitoria_antecipada()
 
 	# efeitos visuais
-	_animar_score(player_atual)
-	_efeito_gol_card(player_atual)
-	_explosao_gol(player_atual)
-	_mostrar_popup_ponto(player_atual, valor)
+	# NA HORA: o placar (o som do gol já tocou acima; o LED sai em seguida).
 	_atualizar_hud()
+	_animar_score(player_atual)
+	# ENFEITES: um por quadro, nos quadros seguintes (Efeitos.depois) - criar
+	# tudo junto com o gol é o que dava o tranco na imagem e no som.
+	var quem: int = player_atual
+	Efeitos.depois(_efeito_gol_card.bind(quem))
+	Efeitos.depois(_explosao_gol.bind(quem))
+	Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
 
 
 func _tocar_campeao_agora() -> void:
@@ -1921,7 +1945,7 @@ func _tocar_campeao_agora() -> void:
 	sfx_campeao.stop()
 	sfx_campeao.play()
 
-	print("SOM DE CAMPEÃO TOCANDO AGORA")
+	if DEPURAR: print("SOM DE CAMPEÃO TOCANDO AGORA")
 
 
 
@@ -1954,12 +1978,12 @@ func _verificar_vitoria_antecipada() -> void:
 	if sfx_reativo and sfx_reativo.playing:
 		_campeao_pendente = true
 		_reativo_bloqueado_por_campeao = true
-		print("CAMPEÃO ANTECIPADO PENDENTE: aguardando som reativo terminar.")
+		if DEPURAR: print("CAMPEÃO ANTECIPADO PENDENTE: aguardando som reativo terminar.")
 		return
 
 	_tocar_campeao_agora()
 
-	print("VITÓRIA ANTECIPADA: PLAYER ", player_atual + 1, " já garantiu o título!")
+	if DEPURAR: print("VITÓRIA ANTECIPADA: PLAYER ", player_atual + 1, " já garantiu o título!")
 
 
 func _mostrar_popup_ponto(index: int, valor: int) -> void:
@@ -2580,7 +2604,7 @@ func _sortear_musicas_players() -> void:
 		else:
 			musicas_por_player.append(null)  # fallback se faltar arquivo
 
-	print("MÚSICAS SORTEADAS: ", musicas_por_player.size(), " de ", disponiveis.size(), " disponíveis")
+	if DEPURAR: print("MÚSICAS SORTEADAS: ", musicas_por_player.size(), " de ", disponiveis.size(), " disponíveis")
 
 
 
@@ -2711,11 +2735,11 @@ func _completar_leds_ativos() -> void:
 			leds_ativos.append(novo)
 			cores_leds_ativos[novo] = _rgb_aleatorio_alvo()
 
-	print("================================")
-	print("GRUPO COMPLETADO")
-	print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
-	print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("GRUPO COMPLETADO")
+	if DEPURAR: print("SENSORES/FILEIRAS ATIVAS: ", _texto_fileiras_ativas())
+	if DEPURAR: print("CORES RGB DOS ALVOS: ", cores_leds_ativos)
+	if DEPURAR: print("================================")
 
 	_atualizar_leds_hud()
 	_enviar_leds_para_arduino()
@@ -2750,13 +2774,13 @@ func _processar_input_led(index_led: int) -> void:
 
 	var letra_sensor := LEDS_LETRAS[index_led]
 
-	print("================================")
-	print("SENSOR ATIVADO: ", letra_sensor)
-	print("FILEIRAS VÁLIDAS NO MOMENTO: ", _texto_fileiras_ativas())
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("SENSOR ATIVADO: ", letra_sensor)
+	if DEPURAR: print("FILEIRAS VÁLIDAS NO MOMENTO: ", _texto_fileiras_ativas())
+	if DEPURAR: print("================================")
 
 	if leds_ativos.has(index_led):
-		print("ACERTOU: ", letra_sensor, " / MARCOU 1 GOL")
+		if DEPURAR: print("ACERTOU: ", letra_sensor, " / MARCOU 1 GOL")
 
 		_ultimo_acerto_ms = float(Time.get_ticks_msec())   # zera o timeout de 15s
 
@@ -2775,7 +2799,7 @@ func _processar_input_led(index_led: int) -> void:
 		_completar_leds_ativos()
 
 	else:
-		print("ERROU: ", letra_sensor, " NÃO ESTAVA ACESO")
+		if DEPURAR: print("ERROU: ", letra_sensor, " NÃO ESTAVA ACESO")
 
 		_flash_led(index_led, false)
 		registrar_erro(0)
@@ -2791,7 +2815,7 @@ func _abrir_serial_arduino() -> void:
 		return
 
 	if not USAR_ARDUINO:
-		print("Arduino desativado por USAR_ARDUINO = false")
+		if DEPURAR: print("Arduino desativado por USAR_ARDUINO = false")
 		return
 
 	if USAR_PONTE_POWERSHELL:
@@ -2807,10 +2831,10 @@ func _abrir_serial_arduino() -> void:
 
 		await get_tree().create_timer(0.20).timeout
 
-		print("================================")
-		print("ARDUINO PRONTO PARA A LÓGICA ÚNICA DO JOGO")
-		print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
-		print("================================")
+		if DEPURAR: print("================================")
+		if DEPURAR: print("ARDUINO PRONTO PARA A LÓGICA ÚNICA DO JOGO")
+		if DEPURAR: print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
+		if DEPURAR: print("================================")
 		return
 
 	push_warning("SerialPort do Godot desativado. Usando somente ponte PowerShell.")
@@ -2843,7 +2867,7 @@ ForEach-Object {
 
 	OS.execute("powershell.exe", args, output, true, false)
 
-	print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
+	if DEPURAR: print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
 
 
 
@@ -2973,12 +2997,12 @@ catch {
 
 	ponte_ps_pid = OS.create_process("powershell.exe", args, false)
 
-	print("================================")
-	print("PONTE POWERSHELL INICIADA")
-	print("PID: ", ponte_ps_pid)
-	print("QUEUE: ", caminho_fila_arduino)
-	print("LOG FILE: ", caminho_log_arduino)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("PONTE POWERSHELL INICIADA")
+	if DEPURAR: print("PID: ", ponte_ps_pid)
+	if DEPURAR: print("QUEUE: ", caminho_fila_arduino)
+	if DEPURAR: print("LOG FILE: ", caminho_log_arduino)
+	if DEPURAR: print("================================")
 
 
 func _serial_write(texto: String) -> void:
@@ -2995,10 +3019,10 @@ func _serial_write(texto: String) -> void:
 	if cmd == "":
 		return
 
-	print("================================")
-	print("SERIAL/PONTE WRITE -> ", cmd)
-	print("FILA: ", caminho_fila_arduino)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("SERIAL/PONTE WRITE -> ", cmd)
+	if DEPURAR: print("FILA: ", caminho_fila_arduino)
+	if DEPURAR: print("================================")
 
 	if USAR_PONTE_POWERSHELL:
 		if caminho_fila_arduino == "":
@@ -3039,7 +3063,7 @@ func _serial_write(texto: String) -> void:
 func _processar_linha_arduino(linha: String) -> void:
 	linha = linha.strip_edges().to_upper()
 
-	print("ARDUINO:", linha)
+	if DEPURAR: print("ARDUINO:", linha)
 
 	if linha.begins_with("HIT:"):
 		var letra := linha.substr(4, 1)
@@ -3050,7 +3074,7 @@ func _processar_linha_arduino(linha: String) -> void:
 			_processar_input_led(index_led)
 
 	elif linha == "READY":
-		print("ARDUINO PRONTO")
+		if DEPURAR: print("ARDUINO PRONTO")
 
 	elif linha.begins_with("OK:"):
 		pass
@@ -3073,7 +3097,7 @@ func _enviar_leds_para_arduino() -> void:
 
 	if leds_ativos.is_empty():
 		_serial_write("OFF")
-		print("ENVIOU PARA ARDUINO: OFF")
+		if DEPURAR: print("ENVIOU PARA ARDUINO: OFF")
 		return
 
 	var partes: Array[String] = []
@@ -3104,13 +3128,13 @@ func _enviar_leds_para_arduino() -> void:
 
 	_serial_write(comando)
 
-	print("================================")
-	print("COMANDO FINAL PARA O NANO:")
-	print(comando)
-	print("PLAYER ATUAL: ", player_atual + 1)
-	print("FILEIRAS ACESAS: ", _texto_fileiras_ativas())
-	print("RGB SALVOS: ", cores_leds_ativos)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("COMANDO FINAL PARA O NANO:")
+	if DEPURAR: print(comando)
+	if DEPURAR: print("PLAYER ATUAL: ", player_atual + 1)
+	if DEPURAR: print("FILEIRAS ACESAS: ", _texto_fileiras_ativas())
+	if DEPURAR: print("RGB SALVOS: ", cores_leds_ativos)
+	if DEPURAR: print("================================")
 
 
 
@@ -3126,23 +3150,23 @@ func _texto_fileiras_ativas() -> String:
 
 
 func _teste_arduino_colunas() -> void:
-	print("TESTE ARDUINO: acendendo A / D2 azul")
+	if DEPURAR: print("TESTE ARDUINO: acendendo A / D2 azul")
 	_serial_write("SET:A=0,0,255")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: acendendo B / D3 verde")
+	if DEPURAR: print("TESTE ARDUINO: acendendo B / D3 verde")
 	_serial_write("SET:B=0,255,0")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: acendendo C / D4 vermelho")
+	if DEPURAR: print("TESTE ARDUINO: acendendo C / D4 vermelho")
 	_serial_write("SET:C=255,0,0")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: acendendo G / D8 amarelo")
+	if DEPURAR: print("TESTE ARDUINO: acendendo G / D8 amarelo")
 	_serial_write("SET:G=255,255,0")
 	await get_tree().create_timer(1.0).timeout
 
-	print("TESTE ARDUINO: apagando")
+	if DEPURAR: print("TESTE ARDUINO: apagando")
 	_serial_write("OFF")
 
 

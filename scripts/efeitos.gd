@@ -150,12 +150,57 @@ func _process(delta: float) -> void:
 	var cena := get_tree().current_scene
 	if cena != _cena:
 		_cena = cena
+		_fila.clear()   # (enfeites da tela anterior não valem mais)
 		_entrou_tela()
 	if not _lista_ondas.is_empty():
 		_ondas.queue_redraw()
 	if _borda_alfa > 0.0:
 		_borda_alfa = maxf(0.0, _borda_alfa - delta * 2.2)
 		_borda.queue_redraw()
+	_rodar_fila()
+
+
+# ------------------------------------------------- fila dos efeitos (sem engasgo)
+## NO GOL, O QUE IMPORTA SAI NA HORA: o placar, o som do gol e o LED do
+## próximo alvo. O que é enfeite (clarão do cartão, ondas, faíscas, o "+1"
+## subindo) entra nesta fila e é montado nos quadros seguintes, um pedaço por
+## quadro - criar tudo no mesmo quadro do gol é o que fazia a imagem e o som
+## darem um tranco na TV Box. Uso nas partidas:
+##     Efeitos.depois(_explosao_gol.bind(jogador))
+## Com gols em rajada a fila não cresce sem fim: passou de FILA_MAX, o
+## enfeite mais antigo é dispensado (o gol continua valendo e tocando).
+const FILA_MAX := 12
+const FILA_MS_POR_QUADRO := 1.5
+var _fila: Array[Callable] = []
+
+
+func depois(efeito: Callable) -> void:
+	if not is_processing():
+		if efeito.is_valid():
+			efeito.call()
+		return
+	while _fila.size() >= FILA_MAX:
+		_fila.pop_front()
+	_fila.append(efeito)
+
+
+## Quantos enfeites estão esperando (as partidas usam para pular as faíscas
+## quando os gols vêm em rajada).
+func fila_cheia() -> bool:
+	return _fila.size() > 5
+
+
+func _rodar_fila() -> void:
+	if _fila.is_empty():
+		return
+	var inicio := Time.get_ticks_usec()
+	# sempre um por quadro; mais de um só se sobrar tempo
+	while not _fila.is_empty():
+		var efeito: Callable = _fila.pop_front()
+		if efeito.is_valid():
+			efeito.call()
+		if (Time.get_ticks_usec() - inicio) / 1000.0 >= FILA_MS_POR_QUADRO:
+			break
 
 
 func _entrou_tela() -> void:

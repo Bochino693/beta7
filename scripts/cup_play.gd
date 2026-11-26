@@ -1,5 +1,9 @@
 extends Node2D
 
+## true = as mensagens de acompanhamento vão para o log (deixa o jogo mais
+## lento na TV Box: cada batida escrevia dezenas de linhas). Só para depurar.
+const DEPURAR := false
+
 
 # ============================================================
 # CUP PLAY — MODO COPA COM 4 JOGADORES
@@ -665,16 +669,16 @@ func _carregar_config_copa() -> void:
 		if j.has("cor") and j["cor"] is Color:
 			cores_players[i] = j["cor"]
 
-	print("================================")
-	print("CUP PLAY CONFIGURADO")
-	print("FASE: ", fase_copa)
-	print("PARTIDA: ", nome_partida_copa)
-	print("GRUPO: ", grupo_copa_nome)
-	print("RODADA: ", rodada_copa)
-	print("PARTIDA INDEX: ", partida_copa_index)
-	print("TOTAL PLAYERS: ", total_players)
-	print("NOMES: ", nomes_players_copa)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("CUP PLAY CONFIGURADO")
+	if DEPURAR: print("FASE: ", fase_copa)
+	if DEPURAR: print("PARTIDA: ", nome_partida_copa)
+	if DEPURAR: print("GRUPO: ", grupo_copa_nome)
+	if DEPURAR: print("RODADA: ", rodada_copa)
+	if DEPURAR: print("PARTIDA INDEX: ", partida_copa_index)
+	if DEPURAR: print("TOTAL PLAYERS: ", total_players)
+	if DEPURAR: print("NOMES: ", nomes_players_copa)
+	if DEPURAR: print("================================")
 
 
 func _criar_fallback_copa() -> void:
@@ -854,7 +858,7 @@ func _ler_inputs_leds() -> void:
 		var acao := "input_led_" + LEDS_LETRAS[i].to_lower()
 
 		if Input.is_action_just_pressed(acao):
-			print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
+			if DEPURAR: print("INPUT SENSOR PRESSIONADO: ", acao, " / LED INDEX: ", i)
 			_processar_input_led(i)
 
 
@@ -1814,7 +1818,7 @@ func _checar_ciclo_leds() -> void:
 	var tempo_onda := agora - _ciclo_inicio_ms
 
 	if tempo_onda >= CICLO_LEDS_MS:
-		print("TEMPO DA ONDA ESGOTADO EM %.1fs -> TROCOU LEDS" % (CICLO_LEDS_MS / 1000.0))
+		if DEPURAR: print("TEMPO DA ONDA ESGOTADO EM %.1fs -> TROCOU LEDS" % (CICLO_LEDS_MS / 1000.0))
 		_sortear_novo_grupo_de_fileiras()
 
 
@@ -1851,7 +1855,7 @@ func _sortear_novo_grupo_de_fileiras() -> void:
 	_ciclo_inicio_ms = float(Time.get_ticks_msec())
 	_ultimo_acerto_ms = _ciclo_inicio_ms
 
-	print("NOVA DUPLA: ", _texto_fileiras_ativas(), " (", _nome_player(player_atual), ")")
+	if DEPURAR: print("NOVA DUPLA: ", _texto_fileiras_ativas(), " (", _nome_player(player_atual), ")")
 
 	_atualizar_leds_hud()
 	_enviar_leds_para_arduino()
@@ -1898,7 +1902,7 @@ func _processar_input_led(index_led: int) -> void:
 		return
 
 	if leds_ativos.has(index_led):
-		print("ACERTOU: ", LEDS_LETRAS[index_led])
+		if DEPURAR: print("ACERTOU: ", LEDS_LETRAS[index_led])
 
 		_ultimo_acerto_ms = float(Time.get_ticks_msec())
 
@@ -1917,7 +1921,7 @@ func _processar_input_led(index_led: int) -> void:
 			_atualizar_leds_hud()
 			_enviar_leds_para_arduino()
 	else:
-		print("ERROU: ", LEDS_LETRAS[index_led])
+		if DEPURAR: print("ERROU: ", LEDS_LETRAS[index_led])
 
 		_flash_led(index_led, false)
 		registrar_erro(0)
@@ -2020,6 +2024,22 @@ func _explosao_gol(index: int) -> void:
 		tr.tween_property(ring, "modulate", Color(1, 1, 1, 0), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).set_delay(delay_k)
 		tr.chain().tween_callback(ring.queue_free)
 
+	# as faíscas: no quadro seguinte (e dispensadas com gols em rajada)
+	if not Efeitos.fila_cheia():
+		Efeitos.depois(_faiscas_gol.bind(index))
+
+
+func _faiscas_gol(index: int) -> void:
+	if index < 0 or index >= player_panels.size():
+		return
+
+	var panel: Panel = player_panels[index]
+	var cor: Color = cores_players[index]
+	var W: float = float(panel.size.x)
+	var H: float = float(panel.size.y)
+	var centro: Vector2 = Vector2(W, H) * 0.5
+	var ref: float = minf(W, H)
+
 	var paleta: Array[Color] = [
 		Color(1.0, 0.85, 0.08),
 		Color(1.0, 0.35, 0.25),
@@ -2104,12 +2124,15 @@ func registrar_ponto(valor: int = 1) -> void:
 		if fase_jogo == Fase.NORMAL:
 			_verificar_vitoria_antecipada()
 
-	_animar_score(player_atual)
-	_efeito_gol_card(player_atual)
-	_explosao_gol(player_atual)
-	_mostrar_popup_ponto(player_atual, valor)
-
+	# NA HORA: o placar (o som do gol já tocou acima; o LED sai em seguida).
 	_atualizar_hud()
+	_animar_score(player_atual)
+	# ENFEITES: um por quadro, nos quadros seguintes (Efeitos.depois) - criar
+	# tudo junto com o gol é o que dava o tranco na imagem e no som.
+	var quem: int = player_atual
+	Efeitos.depois(_efeito_gol_card.bind(quem))
+	Efeitos.depois(_explosao_gol.bind(quem))
+	Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
 
 
 
@@ -2526,13 +2549,13 @@ func _finalizar_partida_copa() -> void:
 		"ranking": ranking
 	})
 
-	print("================================")
-	print("RESULTADO DA COPA ENVIADO AO LOBBY")
-	print("GRUPO: ", grupo_copa_nome)
-	print("RODADA: ", rodada_copa)
-	print("PARTIDA INDEX: ", partida_copa_index)
-	print("RANKING: ", ranking)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("RESULTADO DA COPA ENVIADO AO LOBBY")
+	if DEPURAR: print("GRUPO: ", grupo_copa_nome)
+	if DEPURAR: print("RODADA: ", rodada_copa)
+	if DEPURAR: print("PARTIDA INDEX: ", partida_copa_index)
+	if DEPURAR: print("RANKING: ", ranking)
+	if DEPURAR: print("================================")
 
 	# Mostra o modal de resultado UMA única vez.
 	await _mostrar_modal_resultado_copa(ranking)
@@ -4413,7 +4436,7 @@ func _sortear_musicas_players() -> void:
 		else:
 			musicas_por_player.append(null)
 
-	print("MÚSICAS DA COPA SORTEADAS: ", musicas_por_player.size())
+	if DEPURAR: print("MÚSICAS DA COPA SORTEADAS: ", musicas_por_player.size())
 
 
 
@@ -4456,7 +4479,7 @@ func _abrir_serial_arduino() -> void:
 		return
 
 	if not USAR_ARDUINO:
-		print("Arduino desativado por USAR_ARDUINO = false")
+		if DEPURAR: print("Arduino desativado por USAR_ARDUINO = false")
 		return
 
 	if USAR_PONTE_POWERSHELL:
@@ -4472,10 +4495,10 @@ func _abrir_serial_arduino() -> void:
 
 		await get_tree().create_timer(0.20).timeout
 
-		print("================================")
-		print("ARDUINO PRONTO PARA CUP PLAY")
-		print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
-		print("================================")
+		if DEPURAR: print("================================")
+		if DEPURAR: print("ARDUINO PRONTO PARA CUP PLAY")
+		if DEPURAR: print("A=D2 | B=D3 | C=D4 | D=D5 | E=D6 | F=D7 | G=D8")
+		if DEPURAR: print("================================")
 
 
 func _matar_pontes_powershell_antigas() -> void:
@@ -4504,7 +4527,7 @@ ForEach-Object {
 
 	OS.execute("powershell.exe", args, output, true, false)
 
-	print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
+	if DEPURAR: print("PONTES POWERSHELL ANTIGAS FINALIZADAS")
 
 
 func _iniciar_ponte_powershell() -> void:
@@ -4634,12 +4657,12 @@ catch {
 
 	ponte_ps_pid = OS.create_process("powershell.exe", args, false)
 
-	print("================================")
-	print("PONTE POWERSHELL CUP INICIADA")
-	print("PID: ", ponte_ps_pid)
-	print("QUEUE: ", caminho_fila_arduino)
-	print("LOG FILE: ", caminho_log_arduino)
-	print("================================")
+	if DEPURAR: print("================================")
+	if DEPURAR: print("PONTE POWERSHELL CUP INICIADA")
+	if DEPURAR: print("PID: ", ponte_ps_pid)
+	if DEPURAR: print("QUEUE: ", caminho_fila_arduino)
+	if DEPURAR: print("LOG FILE: ", caminho_log_arduino)
+	if DEPURAR: print("================================")
 
 
 func _serial_write(texto: String) -> void:
@@ -4656,7 +4679,7 @@ func _serial_write(texto: String) -> void:
 	if cmd == "":
 		return
 
-	print("SERIAL/PONTE WRITE -> ", cmd)
+	if DEPURAR: print("SERIAL/PONTE WRITE -> ", cmd)
 
 	if USAR_PONTE_POWERSHELL:
 		if caminho_fila_arduino == "":
@@ -4730,7 +4753,7 @@ func _fechar_jogo_arcade() -> void:
 
 	fechando_jogo = true
 
-	print("FECHANDO CUP PLAY SOMENTE COM CTRL + TAB...")
+	if DEPURAR: print("FECHANDO CUP PLAY SOMENTE COM CTRL + TAB...")
 
 	_serial_write("OFF")
 	_parar_sons_reativos()
@@ -5308,7 +5331,7 @@ func _listar_imagens_patrocinadores() -> Array[String]:
 		else:
 			push_warning("Patrocinador da lista fixa não encontrado: " + caminho)
 
-	print("PATROCINADORES CUP PLAY (lista fixa): ", imagens.size(), " de ", PATROCINADORES_FIXOS.size())
+	if DEPURAR: print("PATROCINADORES CUP PLAY (lista fixa): ", imagens.size(), " de ", PATROCINADORES_FIXOS.size())
 	return imagens
 
 
