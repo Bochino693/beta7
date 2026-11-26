@@ -73,3 +73,11 @@ ATUALIZAÇÃO TV 22 — O ARDUINO SEMPRE LIGA (COM O AUTO START)
 - O código do Arduino não mudou: não precisa regravar a placa.
 - Cartões da partida com arte própria (estádio + alvo de LED), PRONTO?
   ilustrado, bola na rede a cada gol e resultado final animado.
+
+ATUALIZAÇÃO TV 23 — ARDUINO: AUTORIZA UMA VEZ, LIGA SEMPRE
+- Corrigida a causa de o Android "esquecer" o Arduino a cada vez que a caixa
+  ligava (caixas com Android 9 ou mais novo): a atividade que recebe o
+  Arduino agora existe desde o começo da inicialização, então o Android acha
+  o app padrão e dá a permissão guardada antes de o auto start abrir o jogo.
+- Na 1ª vez: marque a caixinha "USAR POR PADRÃO" na janela do Android e OK.
+  Depois disso não aparece mais.
