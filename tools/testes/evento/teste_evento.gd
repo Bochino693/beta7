@@ -136,6 +136,7 @@ func _initialize() -> void:
 	A.definir_modo("credito")
 	A.zerar_creditos()
 	A.zerar_estatisticas()
+	root.get_node("ChampionsDb").limpar_tudo()
 
 	print("1. CRIAR O EVENTO NA CENTRAL (EVENTOS E DADOS)")
 	change_scene_to_file("res://scenes/config.tscn")
@@ -211,6 +212,9 @@ func _initialize() -> void:
 	await espera(4.0)
 	await foto("v7_resultado_8")
 	confere("resultado com os 8", P.partida_finalizada)
+	var D := root.get_node("ChampionsDb")
+	var torneios: Array = D.listar_por_tipo("TORNEIO")
+	confere("a partida do evento entrou no Mural como TORNEIO, com o pódio", torneios.size() == 1 and str(torneios[0]["titulo"]) == "FEIRA TESTE" and str(torneios[0]["top3"][0]["nome"]) == "CAIO" and str(torneios[0]["top3"][1]["nome"]) == "EDUARDO" and str(torneios[0]["top3"][2]["nome"]) == "GUILHERME")
 
 	print("4. O OPERADOR ESPETA O PENDRIVE; PARTIDA 2: a Ana volta e o Ivo é novo")
 	root.set_meta("pular_patrocinadores_opening_uma_vez", true)

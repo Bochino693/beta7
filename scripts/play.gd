@@ -2168,10 +2168,59 @@ func _finalizar_partida() -> void:
 	partida_finalizada = true
 	partida_ativa = false
 	_atualizar_hud()
+	_salvar_evento_no_mural()
 
 	await get_tree().create_timer(0.25).timeout
 	_mostrar_modal_final()
 
+
+
+## A PARTIDA DO MODO EVENTO É UM TORNEIO: com 2 jogadores ou mais, o pódio
+## (até 3, com os nomes do cadastro) entra no Mural de Campeões como TORNEIO,
+## com o nome do evento. Aparece no filtro TORNEIOS do Mural e conta no Ranking.
+var _evento_salvo_no_mural: bool = false
+
+
+func _salvar_evento_no_mural() -> void:
+	if _evento_salvo_no_mural or not partida_evento or total_players < 2:
+		return
+	var db := get_node_or_null("/root/ChampionsDb")
+	if db == null or not db.has_method("registrar_copa"):
+		return
+	var ranking := _montar_ranking()
+	if ranking.is_empty() or int(ranking[0]["score"]) <= 0:
+		return   # (ninguém marcou: não há campeão para guardar)
+	_evento_salvo_no_mural = true
+	var top3: Array = []
+	for i in range(mini(ranking.size(), 3)):
+		var item := ranking[i]
+		top3.append({
+			"nome": _nome_player(int(item["player"]) - 1),
+			"gols_total": int(item["score"]),
+			"gols_normais": int(item["score"]),
+			"penaltis_total": 0,
+			"jogos_total": 1,
+			"vitorias_total": 1 if int(item["posicao"]) == 1 else 0,
+			"pontos_grupo": int(item["score"]),
+			"grupo": "-",
+			"fase_nome": "EVENTO"
+		})
+	var gols := 0
+	for g in scores:
+		gols += int(g)
+	var nome_evento: String = Leads.evento if Leads.evento != "" else "EVENTO"
+	db.registrar_copa({
+		"tipo": "TORNEIO",
+		"titulo": nome_evento,
+		"top3": top3,
+		"resumo": {
+			"fase_final": "Partida do evento",
+			"partidas_total": 1,
+			"grupos_total": 1,
+			"jogadores_reais": total_players,
+			"gols_total": gols
+		}
+	})
 
 
 func _montar_ranking() -> Array[Dictionary]:

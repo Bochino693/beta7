@@ -255,6 +255,9 @@ COPA. Aperte SELECT até "EVENTO" ficar no meio e aperte START.
   - Fechou a contagem, CADA jogador preenche o cadastro (e-mail, nome,
     idade) e só então a partida começa: um arcade com todos na tela, cada
     um com o NOME que escreveu, e o resultado com a classificação de todos.
+  - Com 2 jogadores ou mais, o pódio da partida entra no MURAL DE CAMPEÕES
+    como TORNEIO, com o nome do evento (filtro "TORNEIOS" do Mural; conta
+    no Ranking).
   - Terminou: o jogo volta para o menu, para os próximos.
 ANTES DO EVENTO, na Central da Máquina > "EVENTOS E DADOS":
   - "+ NOVO EVENTO": dê o nome (vai para as planilhas). Ele vira o evento
