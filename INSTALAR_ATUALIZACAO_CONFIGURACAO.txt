@@ -64,3 +64,12 @@ ATUALIZAÇÃO TV 21 — EVENTO NO MENU, DADOS NA CENTRAL, ARDUINO UMA VEZ
 - Mural e Ranking: START volta, SELECT troca filtro / aba, voltam sozinhos.
 - Gol sem tranco: placar, som e LED na hora; os enfeites nos quadros seguintes.
 - Controle remoto: ▲ ▼ trocam de fileira, ◀ ▶ andam na fileira.
+
+ATUALIZAÇÃO TV 22 — O ARDUINO SEMPRE LIGA (COM O AUTO START)
+- O jogo espera uns 12 segundos o Android liberar o Arduino sozinho; se não
+  liberar, ele mesmo abre a janela de permissão (não fica mais parado
+  "aguardando o Android"). Marque a caixinha "USAR POR PADRÃO" na janela:
+  com ela marcada o Android libera sozinho e o jogo não pergunta mais.
+- O código do Arduino não mudou: não precisa regravar a placa.
+- Cartões da partida com arte própria (estádio + alvo de LED), PRONTO?
+  ilustrado, bola na rede a cada gol e resultado final animado.
