@@ -678,6 +678,8 @@ func _procurar(agora: int) -> void:
 		if agora - int(_falhou.get(p[0], -100000)) < 10000:
 			continue
 		if p[3] == "1":
+			if _usb_aviso_aberto():
+				_fechar_aviso()
 			_aparelho = p[0]
 			chip = _nome_chip(p[2])
 			_fase = "abrindo"
@@ -689,14 +691,17 @@ func _procurar(agora: int) -> void:
 			sem_permissao = linha
 	if sem_permissao != "":
 		var p := sem_permissao.split("|")
-		# ACEITOU UMA VEZ, NUNCA MAIS PERGUNTA.
-		# 1o SEM JANELA: pelo root da caixa ou pelo adb da própria TV (Depuração
-		#    USB ligada) o jogo vira o app PADRÃO do Arduino - fica guardado
-		#    no Android para sempre (UsbPadrao.java). Nada aparece na tela.
-		# 2o Só se a caixa não der esse acesso: a janela do Android, UMA vez
-		#    por abertura do jogo (marcando "Usar por padrão", o Android
-		#    também guarda para sempre). Recusou / fechou: não insiste; a
-		#    Central da Máquina pede de novo.
+		# AUTORIZOU UMA VEZ, NUNCA MAIS PERGUNTA (como no Strike Kids).
+		# 1o SEM JANELA: pelo root da caixa (ou pelo adb da própria TV que já
+		#    aceitou o jogo) o jogo vira o app PADRÃO do Arduino - fica
+		#    guardado no Android para sempre (UsbPadrao.java). Nada aparece.
+		# 2o A JANELA DO ANDROID, com um aviso grande do jogo antes dizendo
+		#    para marcar "USAR POR PADRÃO": marcada, o Android guarda a
+		#    permissão para sempre (vale depois de desligar a caixa e com o
+		#    jogo aberto pelo auto start) e o jogo nunca mais pede.
+		#    Só aparece com o MENU parado (nunca por cima de uma partida) e no
+		#    máximo UMA vez por abertura do jogo. Recusou / fechou: não
+		#    insiste; a Central da Máquina pede de novo.
 		if not _usb_tentou and _plugin.has_method("usb_sem_janela"):
 			_usb_tentou = true
 			_plugin.call("usb_sem_janela")
@@ -704,16 +709,34 @@ func _procurar(agora: int) -> void:
 			return
 		if _plugin.has_method("usb_sem_janela_estado") and str(_plugin.call("usb_sem_janela_estado")) == "rodando":
 			return
-		if bool(_plugin.call("permissao_pendente")):
+		if bool(_plugin.call("permissao_pendente")) or _usb_avisando:
 			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
 			return
-		if _pedir_agora or _pedidos_usb == 0:
-			_pedir_agora = false
-			_pedidos_usb += 1
-			_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
-			_plugin.call("pedir_permissao", p[0])
-		else:
-			_set_status("Arduino no USB sem permissão: abra a Central da Máquina (ela pede de novo) ou tire e ponha o cabo USB")
+		var operador := _pedir_agora
+		if not operador:
+			if _pedidos_usb > 0:
+				_set_status("Arduino no USB sem permissão: abra a Central da Máquina (ela pede de novo) ou tire e ponha o cabo USB")
+				return
+			if aviso_aberto or agora - _abriu_em < 6000 or not _menu_livre(get_tree().current_scene):
+				_set_status("Arduino no USB: aguardando o menu para pedir a permissão")
+				return
+		_pedir_agora = false
+		_pedidos_usb += 1
+		var chave := "%s" % p[1]
+		var de_novo := _ja_pediu(chave)
+		_marcar_pedido(chave)
+		_set_status("Arduino no USB: na janela do Android marque \"Usar por padrão\" e aperte OK")
+		# a janela do Android congela a imagem do jogo: o aviso entra antes
+		_usb_avisando = true
+		_mostrar_aviso("AUTORIZE O ARDUINO" if not de_novo else "AUTORIZE O ARDUINO DE NOVO",
+			"Na janela do Android que vai abrir:\n\n1.  MARQUE  \"USAR POR PADRÃO\"  (ou \"SEMPRE ABRIR\")\n2.  aperte  OK\n\n" +
+			("É só esta vez: depois o jogo nunca mais pede." if not de_novo else "Sem marcar a caixinha o Android esquece ao desligar."),
+			"", 25000, false)
+		var nome := p[0]
+		get_tree().create_timer(1.4, true, false, true).timeout.connect(func() -> void:
+			_usb_avisando = false
+			if _plugin != null and not conectado:
+				_plugin.call("pedir_permissao", nome))
 		return
 	if lista.strip_edges() == "":
 		_set_status("Arduino não encontrado: confira o cabo USB")
@@ -721,6 +744,14 @@ func _procurar(agora: int) -> void:
 
 func _nome_chip(t: String) -> String:
 	return str({"ch34x": "CH340", "cdc": "USB original", "ftdi": "FTDI", "cp210x": "CP2102"}.get(t, t))
+
+
+var _usb_avisando := false
+
+
+## O aviso "AUTORIZE O ARDUINO" está na tela?
+func _usb_aviso_aberto() -> bool:
+	return aviso_aberto and not _aviso_pede and _aviso != null and _pedidos_usb > 0 and _fase == "procurando"
 
 
 ## A Central da Máquina pede a janela de permissão de novo.
