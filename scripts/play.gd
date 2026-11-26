@@ -830,6 +830,7 @@ func _reconstruir_paineis() -> void:
 			p.queue_free()
 
 	player_panels.clear()
+	fundos_cards.clear()
 	score_labels.clear()
 	tempo_labels.clear()
 	status_labels.clear()
@@ -903,13 +904,75 @@ func _get_rect_player_dinamico(index: int, qtd: int, tela: Vector2, ativo: int) 
 
 
 # ------------------------------------------------------- fundo dos cartões
-## CADA CARTÃO TEM A ARTE DO ESTÁDIO NA COR DO JOGADOR: holofotes, o gol, a
-## torcida e a bola em chamas - as mesmas artes da janela do "PRONTO?"
-## (FUNDOS_PREP / SHADER_FUNDO_PREP, mais abaixo), um pouco mais escuras no
-## meio para o placar e o tempo ficarem legíveis. Do 5o ao 8o jogador (MODO
-## EVENTO) a cor da arte é girada para a dele. Um desenho só por cartão: leve
-## para a TV Box. O cartão apagado / aceso continua valendo, porque o fundo é
-## filho do cartão.
+## O CARTÃO DO JOGADOR TEM A SUA PRÓPRIA ARTE, feita para este jogo:
+##   - o estádio (res://fundos/card_estadio.png, desenhado pelo
+##     tools/arte/gerar_card.py): holofotes com os fachos de luz, as luzes da
+##     arquibancada, a rede do gol nas laterais e o gramado em perspectiva;
+##   - O ALVO DE LED atrás do placar - o anel de luzes da máquina - desenhado
+##     aqui no shader, no lugar exato do placar. No cartão de quem está
+##     jogando as luzes do alvo CORREM em volta; nos outros ficam acesas.
+## A arte não tem cor: o shader pinta na cor de cada jogador (as 8 cores),
+## com uma segunda cor vizinha e o branco dos miolos de luz.
+## Um desenho só por cartão (sem nós a mais nem partículas): leve para a TV
+## Box. Nos níveis 4 e 5 de desempenho as luzes não correm.
+const ARTE_CARD: String = "res://fundos/card_estadio.png"
+const SHADER_CARD := """
+shader_type canvas_item;
+
+uniform vec2 tamanho = vec2(100.0, 100.0);
+uniform float raio = 20.0;
+uniform vec3 tinta = vec3(1.0);
+uniform vec2 centro = vec2(50.0, 44.0);
+uniform float anel = 30.0;
+uniform float vivo = 0.0;
+varying vec2 ponto;
+
+void vertex() {
+	ponto = VERTEX;
+}
+
+void fragment() {
+	// canto arredondado
+	vec2 p = ponto - tamanho * 0.5;
+	vec2 q = abs(p) - (tamanho * 0.5 - vec2(raio));
+	float fora = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - raio;
+	float alfa = 1.0 - smoothstep(-1.0, 1.0, fora);
+
+	// o estádio: vermelho = cor do jogador, azul = segunda cor, verde = branco
+	vec3 t = texture(TEXTURE, UV).rgb;
+	vec3 segunda = tinta.brg * 0.45 + tinta * 0.55;
+	vec3 cor = tinta * t.r * 1.05 + segunda * t.b * 0.60 + vec3(t.g) * 0.95;
+
+	// o alvo de LED em volta do placar
+	vec2 d = ponto - centro;
+	float dist = length(d);
+	// (por dentro do alvo fica mais escuro: é onde está o número)
+	cor *= mix(0.42, 1.0, smoothstep(anel * 0.50, anel * 1.02, dist));
+	float faixa = (dist - anel) / (anel * 0.075);
+	if (abs(faixa) < 4.0) {
+		float ang = atan(d.y, d.x);
+		float led = pow(0.5 + 0.5 * cos(ang * 28.0), 3.0);
+		float aro = exp(-faixa * faixa);
+		// as luzes correndo (só no cartão de quem está jogando)
+		float corre = pow(0.5 + 0.5 * cos(ang - TIME * 3.2), 5.0);
+		float forca = mix(0.50, 0.75 + 1.10 * corre, vivo);
+		cor += tinta * aro * (0.30 + 0.70 * led) * forca * 1.25;
+		cor += vec3(1.0) * aro * led * forca * 0.55;
+	}
+	// o aro fino de fora e o brilho em volta do alvo
+	float fino = (dist - anel * 1.23) / (anel * 0.014);
+	cor += tinta * exp(-fino * fino) * mix(0.30, 0.70, vivo);
+	float halo = (dist - anel) / (anel * 0.42);
+	cor += tinta * exp(-halo * halo) * mix(0.07, 0.20, vivo);
+
+	// (no Godot 4 o COLOR já chega multiplicado pela textura: vale só a conta acima)
+	COLOR = vec4(cor, alfa);
+}
+"""
+static var _shader_card: Shader
+var fundos_cards: Array[ShaderMaterial] = []
+
+
 ## O FUNDO DO RESULTADO FINAL: a arte res://fundos/fundo_result.png (a mesma
 ## do resultado da Copa) com dois efeitos vivos feitos no próprio desenho -
 ## raios de luz na cor do campeão girando devagar e um brilho que varre a
@@ -978,14 +1041,12 @@ func _adicionar_fundo_resultado(panel: Panel, cor: Color) -> void:
 	panel.add_child(img)
 
 
-func _adicionar_fundo_card(panel: Panel, index: int, _cor: Color) -> void:
-	var par: Array = FUNDOS_PREP[posmod(index, FUNDOS_PREP.size())]
-	var caminho := str(par[0])
-	if not ResourceLoader.exists(caminho):
+func _adicionar_fundo_card(panel: Panel, index: int, cor: Color) -> void:
+	if not ResourceLoader.exists(ARTE_CARD):
 		return
-	if _shader_fundo_prep == null:
-		_shader_fundo_prep = Shader.new()
-		_shader_fundo_prep.code = SHADER_FUNDO_PREP
+	if _shader_card == null:
+		_shader_card = Shader.new()
+		_shader_card.code = SHADER_CARD
 	var borda := 3.0
 	var tam: Vector2 = panel.size - Vector2(borda * 2.0, borda * 2.0)
 	if tam.x <= 0.0 or tam.y <= 0.0:
@@ -993,22 +1054,31 @@ func _adicionar_fundo_card(panel: Panel, index: int, _cor: Color) -> void:
 	var img := TextureRect.new()
 	img.position = Vector2(borda, borda)
 	img.size = tam
-	img.texture = load(caminho)
+	img.texture = load(ARTE_CARD)
 	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var mat := ShaderMaterial.new()
-	mat.shader = _shader_fundo_prep
+	mat.shader = _shader_card
 	mat.set_shader_parameter("tamanho", tam)
 	mat.set_shader_parameter("raio", 21.0)
-	mat.set_shader_parameter("giro", float(par[1]))
-	mat.set_shader_parameter("brilho", 0.70)
-	mat.set_shader_parameter("meio", 0.62)
-	mat.set_shader_parameter("aproxima", 1.26)
-	# (a coluna do meio, onde ficam GOL, o placar, TEMPO e o estado, mais escura)
-	mat.set_shader_parameter("forma", Vector2(1.25, 0.72))
+	mat.set_shader_parameter("tinta", Vector3(cor.r, cor.g, cor.b))
+	# o alvo fica atrás do placar (o placar está a 44% da altura do cartão)
+	mat.set_shader_parameter("centro", Vector2(panel.size.x * 0.5, panel.size.y * 0.44) - Vector2(borda, borda))
+	mat.set_shader_parameter("anel", minf(panel.size.x * 0.40, panel.size.y * 0.215))
+	mat.set_shader_parameter("vivo", 0.0)
 	img.material = mat
 	panel.add_child(img)
+	while fundos_cards.size() <= index:
+		fundos_cards.append(null)
+	fundos_cards[index] = mat
+
+
+## As luzes do alvo correm só no cartão de quem está jogando.
+func _acender_alvo_do_card(index: int, sim: bool) -> void:
+	if index < 0 or index >= fundos_cards.size() or fundos_cards[index] == null:
+		return
+	fundos_cards[index].set_shader_parameter("vivo", 1.0 if sim and Visual.nivel < 4 else 0.0)
 
 
 func _criar_painel_player(index: int, rect: Rect2) -> void:
@@ -1782,6 +1852,7 @@ func _atualizar_hud() -> void:
 			style.shadow_size = 6
 
 			player_panels[i].modulate = Color(0.72, 0.72, 0.72, 1.0)
+			_acender_alvo_do_card(i, false)
 
 		elif i == player_atual:
 			if partida_ativa:
@@ -1802,6 +1873,7 @@ func _atualizar_hud() -> void:
 			style.shadow_size = int(26.0 + pulso * 20.0)
 
 			player_panels[i].modulate = Color(1, 1, 1, 1)
+			_acender_alvo_do_card(i, true)
 
 		else:
 			status_labels[i].text = "AGUARDANDO"
@@ -1813,6 +1885,7 @@ func _atualizar_hud() -> void:
 			style.shadow_size = 8
 
 			player_panels[i].modulate = Color(0.66, 0.66, 0.66, 1.0)
+			_acender_alvo_do_card(i, false)
 	
 	_atualizar_medalhas_lider()
 
