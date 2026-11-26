@@ -495,6 +495,13 @@ public class StrikeSerial extends GodotPlugin {
 		} catch (Throwable t) {
 			anotar("inicio: acender a tela: " + t);
 		}
+		if (!InicioDaTv.ABRIR_SOZINHO) {
+			// Quem abre o jogo ao ligar é o app AUTO START: o jogo não se prepara
+			// sozinho, não liga o guarda e não pede nada (InicioDaTv.ABRIR_SOZINHO).
+			InicioDaTv.garantirTelaInicial(activity.getApplicationContext());
+			preparou = true;
+			return null;
+		}
 		try {
 			// a TV voltando da espera (ligada pelo controle) reinicia o jogo
 			InicioDaTv.ouvirTela(activity);
@@ -535,7 +542,7 @@ public class StrikeSerial extends GodotPlugin {
 	public void onMainResume() {
 		InicioDaTv.naFrente = true;
 		Activity a = getActivity();
-		if (a != null) {
+		if (a != null && InicioDaTv.ABRIR_SOZINHO) {
 			StrikeSempre.comecar(a.getApplicationContext());
 		}
 	}

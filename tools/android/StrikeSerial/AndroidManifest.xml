@@ -46,12 +46,16 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/strike_usb_arduino" />
         </activity>
-        <!-- O JOGO ABRE SOZINHO AO LIGAR (o metodo do Dragon Bowling / Strike
+        <!-- DESLIGADO (android:enabled="false" nos 3 abaixo): hoje quem abre o
+             jogo ao ligar a TV Box e o app AUTO START. Para voltar a abrir
+             sozinho: enabled="true" nos 3 e InicioDaTv.ABRIR_SOZINHO = true.
+             O JOGO ABRE SOZINHO AO LIGAR (o metodo do Dragon Bowling / Strike
              Kids): a tela inicial invisivel que traz o jogo, o aviso de
              "ligou" e o guarda que mantem o jogo na tela -->
         <activity
             android:name="com.lazersport.strikeserial.StrikeInicioAtivo"
             android:directBootAware="true"
+            android:enabled="false"
             android:exported="true"
             android:excludeFromRecents="true"
             android:stateNotNeeded="true"
@@ -71,7 +75,7 @@
         <receiver
             android:name="com.lazersport.strikeserial.StrikeLigou"
             android:directBootAware="true"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -87,6 +91,7 @@
         <service
             android:name="com.lazersport.strikeserial.StrikeSempre"
             android:directBootAware="true"
+            android:enabled="false"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property

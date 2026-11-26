@@ -52,6 +52,9 @@ public class StrikeSempre extends Service {
 
 	/** Liga o guarda (no "ligou" e quando o jogo abre). */
 	static void comecar(Context c) {
+		if (!InicioDaTv.ABRIR_SOZINHO) {
+			return;   // desligado: quem abre o jogo é o app auto start
+		}
 		try {
 			Intent i = new Intent(c, StrikeSempre.class);
 			if (Build.VERSION.SDK_INT >= 26) {
@@ -67,6 +70,11 @@ public class StrikeSempre extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		emPrimeiroPlano();
+		if (!InicioDaTv.ABRIR_SOZINHO) {
+			// (um guarda que ficou de uma versão anterior: encerra)
+			stopSelf();
+			return START_NOT_STICKY;
+		}
 		if (tela == null) {
 			tela = new BroadcastReceiver() {
 				@Override

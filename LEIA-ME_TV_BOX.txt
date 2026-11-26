@@ -33,8 +33,39 @@ DEPOIS DE INSTALAR, ABRA O JOGO UMA VEZ (botão "Abrir" no fim da
 instalação). O Android não entrega nada a um app que nunca foi aberto: essa
 primeira abertura é obrigatória em qualquer aparelho.
 
-A TV BOX SÓ DO JOGO (liga direto no jogo) - O CAMINHO CERTO
+HOJE: QUEM ABRE O JOGO AO LIGAR É O APP "AUTO START" (TV 20)
 ============================================================
+O "abrir sozinho" do próprio jogo está DESLIGADO (o código continua no
+projeto para voltar a usar depois). Na TV Box:
+  1. instale o jogo e o app de AUTO START (Launch on Boot) e, nele,
+     escolha OLHO NO LANCE para abrir ao ligar;
+  2. abra o jogo uma vez com o Arduino no USB. Se o Android perguntar do
+     USB, marque "USAR POR PADRÃO" e OK: a permissão fica guardada e ele
+     nunca mais pergunta (nem depois de desligar a caixa). Com root ou
+     Depuração USB ligada na caixa, o jogo resolve isso sozinho, sem janela.
+Daí em diante: ligou a caixa, o auto start abre o jogo e o Arduino já está
+funcionando. O jogo NÃO pede mais para ser a tela inicial nem "Sobrepor a
+outros apps", não mostra o aviso de "abrir sozinho" e a Central da Máquina
+não tem mais o botão "ABRIR O JOGO AO LIGAR A TV".
+O PREPARAR_TV.bat continua valendo (instala, dá as permissões e deixa o
+Arduino permitido para sempre), mas não mexe mais na tela inicial da TV.
+Caixa JÁ preparada por uma versão anterior (jogo como tela inicial, tela da
+ROM desligada): continua ligando direto no jogo, nada muda nela; para a
+caixa voltar a ter a tela da TV: PREPARAR_TV.bat -DevolverTv.
+PARA VOLTAR AO "ABRIR SOZINHO" DO JOGO (sem auto start), 3 chaves:
+  - scripts/arduino_bridge.gd ............ ABRIR_SOZINHO := true
+  - tools/android/StrikeSerial/src/.../InicioDaTv.java
+                                           ABRIR_SOZINHO = true
+  - tools/android/StrikeSerial/AndroidManifest.xml
+        android:enabled="true" em StrikeInicioAtivo, StrikeLigou, StrikeSempre
+  - PREPARAR_TV.ps1 ...................... $AbrirSozinho = $true
+  depois: sh tools/android/StrikeSerial/construir.sh e GERAR_APK.bat.
+Tudo o que está escrito abaixo sobre o jogo abrir sozinho vale só com essas
+chaves ligadas.
+
+
+A TV BOX SÓ DO JOGO (liga direto no jogo) - COM O "ABRIR SOZINHO" LIGADO
+=========================================================================
 Ligue a DEPURAÇÃO na TV Box, UMA VEZ:
   Configurações > Sobre > clique 7 vezes em "Número da versão" (ou "Build")
   > volte > Opções do desenvolvedor > DEPURAÇÃO USB: LIGADA
@@ -49,8 +80,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 19  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 19" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 20  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 20" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -164,7 +195,7 @@ JANELAS: a janela aberta é a única que recebe mouse, controle e teclas;
 VOLTAR / ESC fecha só a de cima. Nada do que ficou atrás é apertado.
 
 NO CANTO DE BAIXO DA TELA (pequeno):
-  TV 19 • Mali-G31 • 58 q/s • nível 3 • 720p • TV 1920x1080 • Arduino OK • Android 10...
+  TV 20 • Mali-G31 • 58 q/s • nível 3 • 720p • TV 1920x1080 • Arduino OK • Android 10...
   = versão do jogo, placa de vídeo da caixa, quadros por segundo, nível de
   desempenho, linhas pintadas, os pontos da TV e o estado do Arduino
   ("Arduino OK", "Arduino sem resposta" = grave o olho_no_lance.ino nele,
@@ -278,7 +309,8 @@ SE ALGO NÃO FUNCIONAR
   junto com o GND do Arduino, LEDS_POR_ALVO e TIPO_FITA no .ino.
 - Sensor não marca: Central da Máquina mostra cada batida; confira o fio
   no pino e o outro no GND.
-- O jogo não abre sozinho: veja a linha de baixo da Central da Máquina
+- O jogo não abre ao ligar: confira o app AUTO START da caixa (o jogo
+  escolhido nele). Com o "abrir sozinho" do jogo religado: veja a linha de baixo da Central da Máquina
   (TELA INICIAL / SOBREPOR / LIGOU) e use o botão "ABRIR SOZINHO AO LIGAR A
   TV"; ou rode o PREPARAR_TV.bat pelo PC. Se a TV Box tiver "auto start" /
   "gerenciador de inicialização" nos ajustes, libere o jogo nele.

@@ -80,12 +80,24 @@ func _ready() -> void:
 		status = "Arduino: este APK não tem o plugin USB — gere pelo GERAR_APK.bat"
 		# sem o plugin nada da máquina funciona (Arduino, abrir ao ligar): avisa na tela
 		get_tree().create_timer(10.0, true, false, true).timeout.connect(func() -> void:
-			_mostrar_aviso("ESTE APK ESTÁ INCOMPLETO", "Ele foi gerado sem o plugin da máquina (o Gradle falhou):\no Arduino não funciona e o jogo não abre sozinho ao ligar.\n\nGere de novo pelo GERAR_APK.bat e envie o arquivo\nbuild\\android\\GERACAO-COMPLETA.log se falhar.", "", 20000, false)
+			_mostrar_aviso("ESTE APK ESTÁ INCOMPLETO", "Ele foi gerado sem o plugin da máquina (o Gradle falhou):\no Arduino não funciona nesta TV Box.\n\nGere de novo pelo GERAR_APK.bat e envie o arquivo\nbuild\\android\\GERACAO-COMPLETA.log se falhar.", "", 20000, false)
 			get_tree().create_timer(20.0, true, false, true).timeout.connect(_fechar_aviso))
 		return
 	_plugin = Engine.get_singleton("StrikeSerial")
 	_abriu_em = Time.get_ticks_msec()
 
+
+## A CHAVE DO "ABRIR SOZINHO AO LIGAR".
+## false (hoje): quem abre o jogo quando a TV Box liga é o app AUTO START
+## instalado na caixa. O jogo não pede nada na tela (tela inicial, "Sobrepor
+## a outros apps"), não mostra aviso e a Central da Máquina não tem o botão.
+## TODO O CÓDIGO ABAIXO CONTINUA AQUI, só desligado.
+## Para voltar a abrir sozinho: true aqui, InicioDaTv.ABRIR_SOZINHO = true e
+## android:enabled="true" nos 3 componentes do AndroidManifest.xml do plugin
+## (tools/android/StrikeSerial), construir.sh e gerar o APK.
+## O ARDUINO NÃO DEPENDE DISTO: a permissão USB é pedida uma vez, fica
+## guardada no Android e vale com o jogo aberto pelo auto start.
+const ABRIR_SOZINHO := false
 
 ## ABRIR SOZINHO AO LIGAR A TV (a TV Box é só do jogo).
 ## Ao abrir, o plugin tenta se preparar em silêncio (root / adb da TV). Se a
@@ -174,6 +186,8 @@ func _cuidar_do_aviso(agora: int) -> void:
 
 
 func _olhar_inicio(agora: int) -> void:
+	if not ABRIR_SOZINHO:
+		return   # quem abre o jogo é o auto start: nada é pedido
 	var cena := get_tree().current_scene
 	if aviso_aberto:
 		return
@@ -498,7 +512,7 @@ func confirmar_aviso() -> void:
 
 ## A VERSÃO NA TELA (canto de baixo, discreta): para saber qual APK está na
 ## TV Box. Mude a cada APK entregue.
-const VERSAO := "TV 19"
+const VERSAO := "TV 20"
 var _carimbo_label: Label
 var _carimbo_inicio := ""
 var _carimbo_em := 0
@@ -860,7 +874,7 @@ func abre_sozinho() -> bool:
 
 ## Tenta de novo pelo root / adb da TV (sem nada na tela).
 func preparar_sozinho() -> void:
-	if _plugin != null:
+	if _plugin != null and ABRIR_SOZINHO:
 		_plugin.call("preparar_sozinho")
 
 

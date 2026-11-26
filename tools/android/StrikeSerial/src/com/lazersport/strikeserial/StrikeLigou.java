@@ -28,6 +28,10 @@ public class StrikeLigou extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context c, Intent i) {
 		final Context app = c.getApplicationContext();
+		if (!InicioDaTv.ABRIR_SOZINHO) {
+			// quem abre o jogo ao ligar é o app auto start (InicioDaTv.ABRIR_SOZINHO)
+			return;
+		}
 		try {
 			Log.i("StrikeSerial", "inicio: a TV ligou (" + i.getAction() + "): abrindo o jogo"
 					+ (InicioDaTv.podeAbrirDeFundo(app) ? "" : " (Android 10+ sem 'Sobrepor a outros apps': pode ser barrado)"));
