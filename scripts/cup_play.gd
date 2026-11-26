@@ -2131,9 +2131,12 @@ func registrar_ponto(valor: int = 1) -> void:
 	# ENFEITES: um por quadro, nos quadros seguintes (Efeitos.depois) - criar
 	# tudo junto com o gol é o que dava o tranco na imagem e no som.
 	var quem: int = player_atual
-	Efeitos.depois(_efeito_gol_card.bind(quem))
-	Efeitos.depois(_explosao_gol.bind(quem))
-	Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
+	# (quanto enfeite cabe neste gol: Efeitos.enfeite - gols em sequência não travam)
+	if Efeitos.enfeite >= 1:
+		Efeitos.depois(_efeito_gol_card.bind(quem))
+		Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
+	if Efeitos.enfeite >= 2:
+		Efeitos.depois(_explosao_gol.bind(quem))
 
 
 
@@ -2404,6 +2407,9 @@ func _criar_hud_leds() -> void:
 func _atualizar_leds_hud() -> void:
 	if leds_hud_layer:
 		leds_hud_layer.visible = MOSTRAR_TECLAS_LED_HUD
+	# (escondido: não monta os 7 estilos a cada gol)
+	if not MOSTRAR_TECLAS_LED_HUD:
+		return
 
 	if leds_botoes.is_empty():
 		return

@@ -53,6 +53,7 @@ var _desde := 0
 var _ultimo_rx := 0
 var _ultimo_tx := 0
 var _ultimo_ping := 0
+var _ultimo_estado := 0
 var _ultimo_led := 0
 var fita := ""                    # resposta do CFG? ("ORDEM=0;LEDS=64")
 var _ultima_procura := -100000
@@ -634,9 +635,12 @@ func _process(_delta: float) -> void:
 			elif e == "erro" or e == "fechada" or agora - _desde > 8000:
 				_falha(str(_plugin.call("erro")) if e == "erro" else "a porta USB não abriu")
 		"aquecendo", "conectado":
-			if str(_plugin.call("estado")) != "aberta":
-				_perdeu(str(_plugin.call("erro")))
-				return
+			# (o estado da porta 4 vezes por segundo; as batidas - ler() - a cada quadro)
+			if agora - _ultimo_estado >= 250:
+				_ultimo_estado = agora
+				if str(_plugin.call("estado")) != "aberta":
+					_perdeu(str(_plugin.call("erro")))
+					return
 			var texto := str(_plugin.call("ler"))
 			if texto != "":
 				for linha in texto.split("\n", false):
