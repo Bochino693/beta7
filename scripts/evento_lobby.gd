@@ -59,7 +59,7 @@ func _ready() -> void:
 	var k: float = minf(tela.x / 1280.0, tela.y / 720.0)
 	var fundo := ColorRect.new()
 	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fundo.color = Color(0.01, 0.04, 0.10, 0.86)
+	fundo.color = Color(0.01, 0.04, 0.10, 0.94)      # (o menu atrás quase não aparece)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(fundo)
 	var palco := Control.new()
@@ -73,7 +73,7 @@ func _ready() -> void:
 	_cartao.position = Vector2(40, 12)
 	_cartao.size = Vector2(1200, 696)
 	_cartao.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_cartao.add_theme_stylebox_override("panel", Leads._caixa(Color(0.035, 0.065, 0.12, 0.985), AZUL, 28, 3))
+	_cartao.add_theme_stylebox_override("panel", Leads._caixa(Color(0.035, 0.065, 0.12, 1.0), AZUL, 28, 3))
 	palco.add_child(_cartao)
 
 	# ---- cabeçalho
@@ -147,8 +147,6 @@ func _ready() -> void:
 	_pen.clip_text = false
 	var voltar_bt := Leads._botao(_cartao, "✕  VOLTAR AO MENU", Vector2(30, 628), Vector2(280, 54), CINZA, false)
 	voltar_bt.pressed.connect(func() -> void: _fechar(false))
-	_rot(_cartao, "SETAS + OK   •   START: jogar   •   SELECT: próximo evento   •   VOLTAR: menu", 16, Color(0.50, 0.60, 0.72),
-		Vector2(320, 628), Vector2(490, 54), "", HORIZONTAL_ALIGNMENT_CENTER)
 	_bt_pen = Leads._botao(_cartao, "DESCARREGAR NO PENDRIVE", Vector2(820, 628), Vector2(350, 54), AZUL, true)
 	_bt_pen.add_theme_font_size_override("font_size", 24)
 	_bt_pen.pressed.connect(_descarregar)
@@ -234,8 +232,11 @@ func _linha(ev: Dictionary) -> Button:
 	b.set_meta("evento", nome)
 	var cor := AMARELO if este else Color(0.30, 0.48, 0.72)
 	b.add_theme_stylebox_override("normal", Leads._caixa(Color(AMARELO.r, AMARELO.g, AMARELO.b, 0.13) if este else Color(0.08, 0.13, 0.22), cor, 14, 2 if este else 1))
-	b.add_theme_stylebox_override("hover", Leads._caixa(Color(0.14, 0.24, 0.40), Color(0.55, 0.78, 1.0), 14))
-	b.add_theme_stylebox_override("pressed", Leads._caixa(Color(0.14, 0.24, 0.40), Color(0.55, 0.78, 1.0), 14))
+	var aceso := Leads._caixa(Color(0.12, 0.22, 0.38), Color(0.62, 0.84, 1.0), 14, 2)
+	aceso.shadow_color = Color(0.30, 0.65, 1.0, 0.50)
+	aceso.shadow_size = 12
+	b.add_theme_stylebox_override("hover", aceso)
+	b.add_theme_stylebox_override("pressed", aceso)
 	b.pressed.connect(_escolher.bind(nome, true))
 	var t := _rot(b, ("●  " if este else "") + nome, 25, AMARELO if este else Color.WHITE, Vector2(16, 4), Vector2(474, 32), Leads.FONTE_TITULO)
 	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

@@ -100,3 +100,14 @@ ATUALIZAÇÃO TV 24 — TELA DOS EVENTOS, TELEFONE E CIDADE, GOLS SEM TRAVAR
   COPAS continua a dupla: acertou um, o outro espera até 3 s e vem a
   próxima dupla).
 - O código do Arduino não mudou: não precisa regravar a placa.
+
+ATUALIZAÇÃO TV 25 — SETAS DO MENU, BOTÃO QUE ACENDE, RODAPÉ LIMPO
+- Menu: a seta ◀ do controle vai para a opção da ESQUERDA e a ▶ para a da
+  DIREITA (as duas iam para a direita). O botão SELECT da máquina continua
+  indo para a direita.
+- A marca do controle deixou de ser um retângulo amarelo: o botão marcado
+  acende (contorno claro no formato dele e brilho na cor do botão). Com o
+  mouse por cima os botões da ficha e dos eventos também acendem.
+- Tela dos EVENTOS e ficha: saiu a linha de dicas do rodapé (ficava por
+  baixo do botão do pendrive) e o rodapé do menu (ARCADE / COPA / EVENTO e os
+  atalhos) fica escondido enquanto elas estão abertas.

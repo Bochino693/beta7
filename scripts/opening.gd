@@ -433,6 +433,7 @@ func _process(delta: float) -> void:
 	if fundo_video != null:
 		_enquadrar_video_cover()
 	_atualizar_botao_central()
+	_esconder_rodape_atras_do_evento()
 
 	# Menu travado: durante loading/boot, patrocinadores, iniciando modo, ou indo pro Mural.
 	var menu_bloqueado: bool = patro_replay_ativo or (opening_loading_layer != null) or iniciando_jogo or combo_indo_mural or ranking_indo \
@@ -761,6 +762,25 @@ func _criar_botao_central() -> void:
 		botao_central.add_theme_stylebox_override(estado, st)
 	botao_central.pressed.connect(_abrir_tela_configuracoes)
 	root.add_child(botao_central)
+
+
+## Com a tela dos EVENTOS ou a ficha de cadastro na frente, o rodapé do menu
+## (as opções ARCADE / COPA / EVENTO e os atalhos) some: os textos dele
+## apareciam por baixo dos textos e dos campos do evento.
+var _rodape_escondido: bool = false
+
+
+func _esconder_rodape_atras_do_evento() -> void:
+	var esconde: bool = Leads.ficha_aberta()
+	if esconde == _rodape_escondido:
+		return
+	_rodape_escondido = esconde
+	if carrossel_root != null and is_instance_valid(carrossel_root):
+		carrossel_root.visible = not esconde
+	if root != null and is_instance_valid(root):
+		var atalhos := root.get_node_or_null("PainelMuralRanking") as Control
+		if atalhos != null:
+			atalhos.visible = not esconde
 
 
 func _atualizar_botao_central() -> void:
@@ -4035,7 +4055,7 @@ func _offsets_carrossel(size: int) -> Array:
 
 
 
-func _montar_carrossel(animar: bool = false) -> void:
+func _montar_carrossel(animar: bool = false, passo: int = 1) -> void:
 	if carrossel_root == null or not is_instance_valid(carrossel_root):
 		return
 
@@ -4062,7 +4082,7 @@ func _montar_carrossel(animar: bool = false) -> void:
 	_criar_dots_carrossel(cx, vp.y - 36.0)
 
 	if animar:
-		carrossel_root.position.x = 54.0
+		carrossel_root.position.x = 54.0 * float(signi(passo) if passo != 0 else 1)
 
 		var t := create_tween()
 		t.tween_property(carrossel_root, "position:x", 0.0, 0.20) \
@@ -4241,11 +4261,14 @@ func _avancar_carrossel() -> void:
 	if modos_jogo.size() <= 1:
 		return
 
-	modo_focado = (modo_focado + 1) % modos_jogo.size()
+	# ◀ do controle = a opção que está à ESQUERDA; ▶ (e o botão SELECT da
+	# máquina) = a que está à DIREITA. As opções entram pelo lado certo.
+	var passo: int = ControleTv.sentido_do_select()
+	modo_focado = ((modo_focado + passo) % modos_jogo.size() + modos_jogo.size()) % modos_jogo.size()
 
 	_tocar_som_navegacao_modo()
 
-	_montar_carrossel(true)
+	_montar_carrossel(true, passo)
 
 
 func _confirmar_modo_focado() -> void:

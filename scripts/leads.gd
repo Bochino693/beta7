@@ -1626,8 +1626,12 @@ func _botao(pai: Control, texto: String, pos: Vector2, tamanho: Vector2, cor: Co
 		b.add_theme_font_override("font", f)
 	for estado in ["normal", "hover", "pressed"]:
 		var forte: float = 1.0 if estado == "normal" else 1.18
-		var st := _caixa(Color(cor.r * forte, cor.g * forte, cor.b * forte, 1.0) if cheio else Color(cor.r, cor.g, cor.b, 0.10 if estado == "normal" else 0.22),
-			cor, int(tamanho.y * 0.5))
+		var st := _caixa(Color(cor.r * forte, cor.g * forte, cor.b * forte, 1.0) if cheio else Color(cor.r, cor.g, cor.b, 0.10 if estado == "normal" else 0.26),
+			cor if estado == "normal" else cor.lightened(0.35), int(tamanho.y * 0.5))
+		if estado != "normal":
+			# (o mouse por cima: o botão acende)
+			st.shadow_color = Color(cor.r, cor.g, cor.b, 0.55)
+			st.shadow_size = 14
 		b.add_theme_stylebox_override(estado, st)
 	var tinta := Color(0.02, 0.10, 0.04) if cheio else cor
 	for nome_cor in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
@@ -1646,7 +1650,7 @@ func _montar_ficha() -> void:
 	add_child(_ficha)
 	var fundo := ColorRect.new()
 	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fundo.color = Color(0.01, 0.04, 0.10, 0.80)
+	fundo.color = Color(0.01, 0.04, 0.10, 0.92)
 	fundo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ficha.add_child(fundo)
 	_palco = Control.new()
@@ -1660,7 +1664,7 @@ func _montar_ficha() -> void:
 	_cartao.position = Vector2(70, 12)
 	_cartao.size = Vector2(1140, 696)
 	_cartao.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_estilo_cartao = _caixa(Color(0.035, 0.065, 0.12, 0.985), VERDE, 28, 3)
+	_estilo_cartao = _caixa(Color(0.035, 0.065, 0.12, 1.0), VERDE, 28, 3)
 	_cartao.add_theme_stylebox_override("panel", _estilo_cartao)
 	_palco.add_child(_cartao)
 
