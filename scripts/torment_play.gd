@@ -1840,6 +1840,9 @@ func _rgb_player_para_led(index: int) -> Array[int]:
 func _atualizar_leds_hud() -> void:
 	if leds_hud_layer:
 		leds_hud_layer.visible = MOSTRAR_TECLAS_LED_HUD
+	# (escondido: não monta os 7 estilos a cada gol)
+	if not MOSTRAR_TECLAS_LED_HUD:
+		return
 
 	if leds_botoes.is_empty():
 		return
@@ -4447,9 +4450,12 @@ func _aplicar_destaque_painel_player(index: int, ativo: bool) -> void:
 
 func _efeito_gol_player(index: int) -> void:
 	# enfeites: um por quadro, depois do placar / som / LED (Efeitos.depois)
-	Efeitos.depois(_efeito_gol_card.bind(index))
-	Efeitos.depois(_explosao_gol.bind(index))
-	Efeitos.depois(_mostrar_popup_ponto.bind(index, 1))
+	# (quanto enfeite cabe neste gol: Efeitos.enfeite - gols em sequência não travam)
+	if Efeitos.enfeite >= 1:
+		Efeitos.depois(_efeito_gol_card.bind(index))
+		Efeitos.depois(_mostrar_popup_ponto.bind(index, 1))
+	if Efeitos.enfeite >= 2:
+		Efeitos.depois(_explosao_gol.bind(index))
 
 
 func _efeito_gol_card(index: int) -> void:

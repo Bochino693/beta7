@@ -48,8 +48,6 @@ var inicio_label: Label
 var palco: Control
 var botoes_modo := {}             # "livre" | "credito" -> Button
 var numeros_dados := {}           # "arcade" | "copa" | "evento" | "cadastros" -> Label
-var _selecionados := {}           # eventos marcados na janela dos dados (nome -> true)
-var _bt_apagar_sel: Button
 var _dados_aberto := false
 var faixas_modo := {}             # o que cada modo tem para ajustar
 var creditos_label: Label
@@ -196,8 +194,9 @@ func _criar_interface() -> void:
 	zerar_c.pressed.connect(_zerar_creditos)
 	f_credito.add_child(zerar_c)
 
-	# ---- 2. DADOS DA MÁQUINA: quantas vezes jogou e os eventos criados
-	var box_dados := _painel("2   DADOS DA MÁQUINA", "Quantas vezes foi jogado e os eventos criados. Tudo isto desce para o pendrive.", app, AZUL)
+	# ---- 2. PARTIDAS JOGADAS (os eventos, os leads e o pendrive ficam no jogo:
+	# menu > EVENTO - scripts/evento_lobby.gd)
+	var box_dados := _painel("2   PARTIDAS JOGADAS", "Quantas vezes cada modo foi jogado nesta máquina.", app, AZUL)
 	var linha_dados := HBoxContainer.new()
 	linha_dados.add_theme_constant_override("separation", 10)
 	box_dados.add_child(linha_dados)
@@ -227,14 +226,11 @@ func _criar_interface() -> void:
 	var col_botoes := VBoxContainer.new()
 	col_botoes.add_theme_constant_override("separation", 8)
 	linha_dados.add_child(col_botoes)
-	var gerenciar := _botao("EVENTOS E DADOS  ▸", AZUL, true)
-	gerenciar.custom_minimum_size = Vector2(300, 46)
+	col_botoes.alignment = BoxContainer.ALIGNMENT_CENTER
+	var gerenciar := _botao("ZERAR CONTADORES  ▸", AZUL, true)
+	gerenciar.custom_minimum_size = Vector2(300, 52)
 	gerenciar.pressed.connect(_abrir_dados)
 	col_botoes.add_child(gerenciar)
-	var descarregar := _botao("DESCARREGAR NO PENDRIVE", CINZA)
-	descarregar.custom_minimum_size = Vector2(300, 38)
-	descarregar.pressed.connect(_gravar_pendrive)
-	col_botoes.add_child(descarregar)
 	evento_pen = _label("", 14, Color.WHITE)
 	evento_pen.clip_text = true
 	box_dados.add_child(evento_pen)
@@ -519,30 +515,21 @@ func _atualizar_dados() -> void:
 	else:
 		creditos_label.text = "%d CRÉDITO%s" % [ArcadeData.creditos, "" if ArcadeData.creditos == 1 else "S"]
 		creditos_label.add_theme_color_override("font_color", AMARELO)
-	var pen := Leads.texto_pendrive()
 	if Leads.relogio_suspeito():
-		pen = "⚠ O RELÓGIO DESTA TV ESTÁ ERRADO: acerte a data em EVENTOS E DADOS > DATA E PENDRIVE"
-	evento_pen.text = "EVENTO ATUAL:  %s      •      %s" % [Leads.evento if Leads.evento != "" else "nenhum (crie em EVENTOS E DADOS)", pen]
-	evento_pen.add_theme_color_override("font_color", VERDE if pen.begins_with("GRAVADO") else (AMARELO if (pen.begins_with("SEM") or pen.begins_with("⚠")) else Color.WHITE))
-	partidas_label.text = "TOTAL DE PARTIDAS: %d      •      O MODO EVENTO é uma opção do jogo, ao lado de ARCADE e COPA" % ArcadeData.partidas_total
+		evento_pen.text = "⚠ O RELÓGIO DESTA TV ESTÁ ERRADO: acerte em AJUSTES AVANÇADOS > DATA E HORA  (é a data que entra nos cadastros)"
+		evento_pen.add_theme_color_override("font_color", AMARELO)
+	else:
+		evento_pen.text = "EVENTOS, LEADS E PENDRIVE:  no jogo, escolha EVENTO no menu (ao lado de ARCADE e COPA)  -  está tudo lá."
+		evento_pen.add_theme_color_override("font_color", Color(0.62, 0.72, 0.84))
+	partidas_label.text = "TOTAL DE PARTIDAS: %d" % ArcadeData.partidas_total
 	if data_label != null and is_instance_valid(data_label):
 		data_label.text = Leads.data_na_tela() + ("   ⚠" if Leads.relogio_suspeito() else "")
 	_atualizar_inicio()
 
 
 # ------------------------------------------------------------------- evento
-func _gravar_pendrive() -> void:
-	if not Leads.tem_pendrive():
-		_mensagem("●  NÃO ACHEI PENDRIVE: espete um na USB e aperte de novo  (os dados continuam guardados na máquina)")
-	elif Leads.gravar_no_pendrive():
-		_mensagem("●  GRAVADO E CONFERIDO: PODE TIRAR O PENDRIVE")
-	else:
-		_mensagem("●  O PENDRIVE NÃO ACEITOU: tente outro (formatado em FAT32 ou exFAT)")
-	_atualizar_dados()
-
-
 func _abrir_opcoes_evento() -> void:
-	var box := _abrir_modal("DATA E PENDRIVE", "Os dados ficam sempre guardados na máquina e descem para o pendrive quando ele está espetado.", 900, AZUL)
+	var box := _abrir_modal("DATA E HORA", "É a data que entra em cada cadastro do MODO EVENTO. Caixa sem internet costuma ligar com a data errada.", 900, AZUL)
 	# a data que entra em cada cadastro
 	var linha := HBoxContainer.new()
 	linha.add_theme_constant_override("separation", 8)
@@ -569,8 +556,6 @@ func _abrir_opcoes_evento() -> void:
 			b.add_theme_font_size_override("font_size", 24)
 			b.pressed.connect(_acertar_data.bind(str(par[1]), quanto))
 			pm.add_child(b)
-	if OS.get_name() == "Android":
-		_linha_ajuste(box, "ESCOLHER A PASTA DO PENDRIVE", "Só se a TV não achar o pendrive sozinha: abre o seletor do Android.", AZUL, _escolher_pasta_pendrive)
 	_fim_do_modal(box)
 
 
@@ -579,21 +564,12 @@ func _acertar_data(campo: String, quanto: int) -> void:
 	_mensagem("●  DATA DOS CADASTROS ACERTADA")
 
 
-func _escolher_pasta_pendrive() -> void:
-	if Leads.escolher_pendrive():
-		_mensagem("●  Na tela do Android: entre no PENDRIVE e aperte \"USAR ESTA PASTA\" / \"PERMITIR\"")
-	else:
-		_mensagem("●  Esta TV não tem o seletor de pastas: os arquivos vão para a pasta Android/data/.../files do pendrive")
-
-
-# ------------------------------------------------------------ eventos e dados
-## A JANELA DOS DADOS (estilo aplicativo): as partidas por tipo, com ZERAR em
-## cada uma; a lista dos EVENTOS CRIADOS (partidas, jogadores, cadastros), com
-## USAR, APAGAR um, marcar vários e APAGAR OS MARCADOS; NOVO EVENTO; APAGAR
-## TUDO; e DESCARREGAR NO PENDRIVE. Apagar sempre pede confirmação.
+# ------------------------------------------------------------ contadores
+## ZERAR CONTADORES: as partidas de cada modo, uma por uma (pede confirmação).
+## (os eventos, os leads e o pendrive ficam no jogo: menu > EVENTO)
 func _abrir_dados() -> void:
 	_dados_aberto = true
-	var box := _abrir_modal("EVENTOS E DADOS", "O evento marcado ATUAL recebe as próximas partidas do MODO EVENTO. Apagar tira da máquina e, na próxima descarga, do pendrive.", 1200, AZUL)
+	var box := _abrir_modal("CONTADORES DE PARTIDAS", "Zerar um contador não mexe nos eventos nem nos cadastros.", 1100, AZUL)
 
 	# --- as partidas, por tipo
 	var linha_p := HBoxContainer.new()
@@ -635,179 +611,13 @@ func _abrir_dados() -> void:
 				_refazer_dados()))
 		h.add_child(zerar)
 
-	# --- os eventos criados
-	var eventos: Array = Leads.eventos_resumo()
-	for n in _selecionados.keys():
-		var existe := false
-		for ev in eventos:
-			if str(ev["nome"]) == str(n):
-				existe = true
-		if not existe:
-			_selecionados.erase(n)
-	var cab := HBoxContainer.new()
-	cab.add_theme_constant_override("separation", 10)
-	box.add_child(cab)
-	var t_ev := _label("EVENTOS CRIADOS  (%d)" % eventos.size(), 19, AZUL.lightened(0.35))
-	t_ev.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t_ev.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cab.add_child(t_ev)
-	for par in [["PARTIDAS", 90], ["JOGADORES", 100], ["CADASTROS", 100], ["", 250]]:
-		var c := _label(str(par[0]), 12, CINZA)
-		c.custom_minimum_size.x = float(par[1])
-		c.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		c.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-		cab.add_child(c)
-	var rolo := ScrollContainer.new()
-	rolo.custom_minimum_size.y = 268   # (4 eventos à vista; com mais, a lista rola)
-	rolo.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	box.add_child(rolo)
-	var lista := VBoxContainer.new()
-	lista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lista.add_theme_constant_override("separation", 6)
-	rolo.add_child(lista)
-	if eventos.is_empty():
-		var vazio := _label("Nenhum evento ainda.  Aperte  + NOVO EVENTO  para criar o primeiro.", 18, Color(0.66, 0.75, 0.86))
-		vazio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vazio.custom_minimum_size.y = 120
-		vazio.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lista.add_child(vazio)
-	for ev in eventos:
-		lista.add_child(_linha_evento(ev))
-
-	# --- as ações
-	var acoes := HBoxContainer.new()
-	acoes.add_theme_constant_override("separation", 10)
-	box.add_child(acoes)
-	var novo := _botao("+  NOVO EVENTO", VERDE, true)
-	novo.custom_minimum_size = Vector2(210, 50)
-	novo.pressed.connect(_novo_evento)
-	acoes.add_child(novo)
-	_bt_apagar_sel = _botao("", VERMELHO)
-	_bt_apagar_sel.custom_minimum_size = Vector2(270, 50)
-	_bt_apagar_sel.pressed.connect(_apagar_selecionados)
-	acoes.add_child(_bt_apagar_sel)
-	_atualizar_selecao()
-	var tudo := _botao("APAGAR TUDO", VERMELHO)
-	tudo.custom_minimum_size = Vector2(160, 50)
-	tudo.pressed.connect(func() -> void:
-		_confirmar("APAGAR TODOS OS DADOS?", "Saem TODOS os eventos, os %d jogadores cadastrados e os contadores de partidas (arcade, copa e evento). Descarregue no pendrive antes: depois da próxima descarga o pendrive também fica vazio." % Leads.total(), "SIM, APAGAR TUDO", func() -> void:
-			Leads.apagar_tudo()
-			Leads.definir_evento("")
-			ArcadeData.zerar_estatisticas()
-			_selecionados.clear()
-			_mensagem("●  TODOS OS DADOS FORAM APAGADOS")
-			_refazer_dados()))
-	acoes.add_child(tudo)
-	var folga := Control.new()
-	folga.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	acoes.add_child(folga)
-	var data := _botao("DATA E PENDRIVE  ▸", CINZA)
-	data.custom_minimum_size = Vector2(210, 50)
-	data.pressed.connect(_abrir_opcoes_evento)
-	acoes.add_child(data)
-	var desc := _botao("DESCARREGAR NO PENDRIVE", AZUL, true)
-	desc.custom_minimum_size = Vector2(280, 50)
-	desc.pressed.connect(_gravar_pendrive)
-	acoes.add_child(desc)
 	_fim_do_modal(box)
-	_mensagem("●  " + Leads.texto_pendrive())
 
 
-## Uma linha da lista: marcar, nome (+ ATUAL), números, USAR e APAGAR.
-func _linha_evento(ev: Dictionary) -> Control:
-	var nome := str(ev["nome"])
-	var atual: bool = bool(ev["atual"])
-	var linha := PanelContainer.new()
-	var st := _estilo_card(AZUL if atual else Color.WHITE, Color(0.05, 0.10, 0.17) if atual else Color(1, 1, 1, 0.035), 12, 1)
-	st.shadow_size = 0
-	st.content_margin_top = 6
-	st.content_margin_bottom = 6
-	st.content_margin_left = 10
-	st.content_margin_right = 10
-	linha.add_theme_stylebox_override("panel", st)
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 10)
-	linha.add_child(h)
-	var marca := _botao("", CINZA)
-	marca.custom_minimum_size = Vector2(44, 44)
-	marca.add_theme_font_size_override("font_size", 24)
-	var pintar_marca := func() -> void:
-		marca.text = "✔" if _selecionados.has(nome) else ""
-		_pintar(marca, VERMELHO if _selecionados.has(nome) else CINZA, _selecionados.has(nome))
-	pintar_marca.call()
-	marca.pressed.connect(func() -> void:
-		if _selecionados.has(nome):
-			_selecionados.erase(nome)
-		else:
-			_selecionados[nome] = true
-		pintar_marca.call()
-		_atualizar_selecao())
-	h.add_child(marca)
-	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 0)
-	h.add_child(col)
-	var titulo := _label(str(ev["mostrar"]) + ("     ● ATUAL" if atual else ""), 20, Color.WHITE if not atual else AZUL.lightened(0.5))
-	titulo.clip_text = true
-	col.add_child(titulo)
-	var quando := "criado em " + _data_curta(str(ev["criado"]))
-	if str(ev["ultimo"]) != "":
-		quando += "   •   último cadastro em " + _data_curta(str(ev["ultimo"]))
-	col.add_child(_label(quando, 13, Color(0.56, 0.66, 0.78)))
-	for par in [[int(ev["partidas"]), 90], [int(ev["jogadores"]), 100], [int(ev["cadastros"]), 100]]:
-		var n := _label(str(par[0]), 24, Color.WHITE)
-		n.custom_minimum_size.x = float(par[1])
-		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		n.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		h.add_child(n)
-	var usar := _botao("EM USO" if atual else "USAR", VERDE, atual)
-	usar.custom_minimum_size = Vector2(120, 44)
-	usar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	usar.disabled = atual
-	usar.pressed.connect(func() -> void:
-		Leads.criar_evento(nome)
-		_mensagem("●  EVENTO ATUAL: %s" % str(ev["mostrar"]))
-		_refazer_dados())
-	h.add_child(usar)
-	var apagar := _botao("APAGAR", VERMELHO)
-	apagar.custom_minimum_size = Vector2(120, 44)
-	apagar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	apagar.pressed.connect(func() -> void:
-		_confirmar("APAGAR O EVENTO \"%s\"?" % str(ev["mostrar"]), "Saem as %d partidas e os %d cadastros deste evento (quem só jogou nele sai da lista de jogadores). Descarregue no pendrive antes, se quiser guardar." % [int(ev["partidas"]), int(ev["cadastros"])], "SIM, APAGAR", func() -> void:
-			var n := Leads.apagar_eventos([nome])
-			_selecionados.erase(nome)
-			_mensagem("●  EVENTO APAGADO  (%d cadastros)" % n)
-			_refazer_dados()))
-	h.add_child(apagar)
-	return linha
-
-
-## "2026-11-26 17:21:28" -> "26/11/2026 17:21"
 func _data_curta(t: String) -> String:
 	if t.length() < 16:
 		return t if t != "" else "-"
 	return "%s/%s/%s %s" % [t.substr(8, 2), t.substr(5, 2), t.substr(0, 4), t.substr(11, 5)]
-
-
-func _atualizar_selecao() -> void:
-	if _bt_apagar_sel == null or not is_instance_valid(_bt_apagar_sel):
-		return
-	var n := _selecionados.size()
-	_bt_apagar_sel.text = "APAGAR OS MARCADOS  (%d)" % n
-	_bt_apagar_sel.disabled = n == 0
-	_bt_apagar_sel.modulate.a = 0.35 if n == 0 else 1.0
-	_pintar(_bt_apagar_sel, VERMELHO, n > 0)
-
-
-func _apagar_selecionados() -> void:
-	var nomes: Array = _selecionados.keys()
-	if nomes.is_empty():
-		return
-	_confirmar("APAGAR OS %d EVENTOS MARCADOS?" % nomes.size(), "Saem as partidas e os cadastros desses eventos. Descarregue no pendrive antes, se quiser guardar.", "SIM, APAGAR", func() -> void:
-		var n := Leads.apagar_eventos(nomes)
-		_selecionados.clear()
-		_mensagem("●  %d EVENTOS APAGADOS  (%d cadastros)" % [nomes.size(), n])
-		_refazer_dados())
 
 
 ## A janela dos dados é montada de novo com os números de agora.
@@ -822,51 +632,12 @@ func _refazer_dados() -> void:
 	_mensagem(recado)
 
 
-## NOVO EVENTO: o nome (teclado da tela) e CRIAR. Ele passa a ser o atual.
-func _novo_evento() -> void:
-	var box := _abrir_modal("NOVO EVENTO", "Dê um nome ao evento (ex.: FEIRA DE BRINQUEDOS 2026). Ele vai para as planilhas e passa a receber as próximas partidas do MODO EVENTO.", 820, VERDE)
-	var campo := LineEdit.new()
-	campo.custom_minimum_size = Vector2(700, 54)
-	campo.max_length = 40
-	campo.placeholder_text = "clique para escrever o nome do evento"
-	campo.context_menu_enabled = false
-	campo.virtual_keyboard_enabled = false
-	campo.focus_mode = Control.FOCUS_NONE   # quem escreve é o teclado da tela (ControleTv)
-	campo.set_meta("titulo", "NOME DO EVENTO")
-	campo.add_theme_font_size_override("font_size", 22)
-	var st := _estilo_card(VERDE, Color(0.02, 0.04, 0.08), 10, 1)
-	st.shadow_size = 0
-	campo.add_theme_stylebox_override("normal", st)
-	campo.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	box.add_child(campo)
-	var linha := HBoxContainer.new()
-	linha.alignment = BoxContainer.ALIGNMENT_END
-	linha.add_theme_constant_override("separation", 14)
-	box.add_child(linha)
-	var nao := _botao("CANCELAR", CINZA)
-	nao.custom_minimum_size = Vector2(200, 54)
-	nao.pressed.connect(_fechar_modal)
-	linha.add_child(nao)
-	var criar := _botao("CRIAR E USAR  ✔", VERDE, true)
-	criar.custom_minimum_size = Vector2(280, 54)
-	criar.pressed.connect(func() -> void:
-		var nome := campo.text.strip_edges()
-		if nome.length() < 2:
-			_mensagem("●  ESCREVA O NOME DO EVENTO (clique no campo)")
-			return
-		var criado := Leads.criar_evento(nome)
-		_mensagem("●  EVENTO CRIADO E EM USO: %s" % criado)
-		_refazer_dados())
-	linha.add_child(criar)
-	box.add_child(_recados[-1])
-	ControleTv.abrir_teclado.call_deferred(campo)
-
-
 # ----------------------------------------------------------------- avançado
 func _abrir_avancado() -> void:
 	var box := _abrir_modal("AJUSTES AVANÇADOS", "Coisas que se faz uma vez, na instalação da máquina.", 980, CINZA)
 	_linha_ajuste(box, "ORDEM DAS CORES DOS LEDS", "Pediu vermelho e acendeu outra cor? Aperte até os alvos ficarem VERMELHOS.", VERMELHO, _trocar_ordem_das_cores)
 	_linha_ajuste(box, "ENSINAR SENSORES E BOTÕES", "Para a placa Zero Delay: a tela pede cada alvo e botão, um por vez.", AMARELO, _ensinar_entradas)
+	_linha_ajuste(box, "DATA E HORA", "A data que entra nos cadastros do MODO EVENTO. Agora: %s" % Leads.data_na_tela(), AZUL, _abrir_opcoes_evento)
 	if ArduinoBridge.tem_plugin() or OS.get_environment("OLHO_TESTE_TV") != "":
 		# TV Box / TV Android: o jogo abre sozinho depois que a TV liga.
 		# (desligado - ArduinoBridge.ABRIR_SOZINHO: quem abre é o app auto start)
@@ -876,7 +647,7 @@ func _abrir_avancado() -> void:
 			inicio_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			box.add_child(inicio_label)
 		_linha_ajuste(box, "SAIR PARA A TV", "Fecha o jogo e volta para a tela do Android.", CINZA, _sair_para_tv)
-	var bt_menu := _linha_ajuste(box, "", "A opção EVENTO fica no menu do jogo, ao lado de ARCADE e COPA: partida de até 8 jogadores, sem ficha, com cadastro. Esconda se esta máquina não vai a eventos.", AZUL, func() -> void: pass)
+	var bt_menu := _linha_ajuste(box, "", "A opção EVENTO fica no menu do jogo, ao lado de ARCADE e COPA: abre a tela dos EVENTOS (criar, jogar, leads, pendrive). Esconda se esta máquina não vai a eventos.", AZUL, func() -> void: pass)
 	var texto_menu := func() -> void:
 		bt_menu.text = "EVENTO NO MENU:  SIM  ✔" if Leads.ligado else "EVENTO NO MENU:  NÃO"
 		_pintar(bt_menu, AZUL if Leads.ligado else CINZA, Leads.ligado)

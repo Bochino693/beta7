@@ -33,19 +33,32 @@ DEPOIS DE INSTALAR, ABRA O JOGO UMA VEZ (botão "Abrir" no fim da
 instalação). O Android não entrega nada a um app que nunca foi aberto: essa
 primeira abertura é obrigatória em qualquer aparelho.
 
-HOJE: QUEM ABRE O JOGO AO LIGAR É O APP "AUTO START" (TV 20)
+HOJE: QUEM ABRE O JOGO AO LIGAR É O APP "AUTO START"
 ============================================================
 O "abrir sozinho" do próprio jogo está DESLIGADO (o código continua no
 projeto para voltar a usar depois). Na TV Box:
   1. instale o jogo e o app de AUTO START (Launch on Boot) e, nele,
      escolha OLHO NO LANCE para abrir ao ligar;
-  2. abra o jogo uma vez com o Arduino no USB (igual ao Strike Kids): com
-     o menu na tela o jogo mostra "AUTORIZE O ARDUINO" e abre a janela do
-     Android. MARQUE "USAR POR PADRÃO" (ou "SEMPRE ABRIR") e OK: a
-     permissão fica guardada no Android e o jogo nunca mais pede, nem
-     depois de desligar a caixa. (Em caixa com root o jogo resolve sozinho,
-     sem janela.) Se alguém apertar OK SEM marcar a caixinha, o Android
-     esquece ao desligar e o jogo pede de novo na próxima vez que abrir.
+  2. abra o jogo com o Arduino no USB. Com o menu na tela o jogo mostra
+     "AUTORIZE O ARDUINO" e abre a janela do Android: MARQUE A CAIXINHA
+     "USAR POR PADRÃO" (ou "SEMPRE") e OK. É o ANDROID que guarda a
+     permissão, e só com a caixinha marcada: aí ele libera sozinho toda
+     vez que a caixa liga e o jogo não pergunta mais nada.
+     Sem a caixinha marcada o Android esquece ao desligar. O jogo não fica
+     parado: espera uns 12 segundos e pede a janela de novo (com o aviso
+     "O ANDROID ESQUECEU O ARDUINO") - marque a caixinha dessa vez.
+     (Em caixa com root o jogo resolve sozinho, sem janela.)
+     DOIS JOGOS NA MESMA CAIXA com o mesmo Arduino: o Android guarda UM
+     jogo "padrão" por Arduino - o último em que a caixinha foi marcada.
+     O outro jogo pede a janela ao abrir.
+     O CÓDIGO DO ARDUINO NÃO MUDOU: não precisa regravar a placa.
+     POR QUE PEDIA DE NOVO A CADA VEZ QUE LIGAVA (corrigido no TV 23): nas
+     caixas com Android 9 ou mais novo o Android procura o app padrão do
+     Arduino bem no começo da inicialização, com o armazenamento ainda
+     travado. A atividade do jogo que recebe o Arduino não existia nessa
+     hora, o Android não achava o app padrão e não dava a permissão
+     guardada. Agora ela existe desde o começo (directBootAware): marcou a
+     caixinha uma vez, o Android libera sozinho toda vez que a caixa liga.
 Daí em diante: ligou a caixa, o auto start abre o jogo e o Arduino já está
 funcionando. O jogo NÃO pede mais para ser a tela inicial nem "Sobrepor a
 outros apps", não mostra o aviso de "abrir sozinho" e a Central da Máquina
@@ -83,8 +96,8 @@ O jogo mostra "PRONTO!". Tire a caixa da tomada, espere 10 s e ligue: abre
 o jogo.
 
 No canto de baixo da tela fica escrito, bem pequeno:
-    TV 20  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
-"TV 20" é a versão deste APK: se aparecer outro número (ou nada), o APK na
+    TV 25  •  Android 10  •  abrir ao ligar: PRONTO   (ou PENDENTE)
+"TV 25" é a versão deste APK: se aparecer outro número (ou nada), o APK na
 caixa é antigo. PENDENTE = ainda falta; PRONTO = liga no jogo.
 
 PELO PC (faz o mesmo, sem depender do jogo): PREPARAR_TV.bat, com a
@@ -180,9 +193,10 @@ MENU -> Central da Máquina. A tela tem só o que se usa no dia a dia:
        LIVRE ..... joga sem ficha
        CRÉDITO ... 1 ficha por partida (mostra os créditos, "+ 1 CRÉDITO"
                    e "ZERAR")
-  2. DADOS DA MÁQUINA - quantas partidas de ARCADE, de COPA e de EVENTO
-     e quantos jogadores cadastrados; "EVENTOS E DADOS" (item 6) e
-     "DESCARREGAR NO PENDRIVE".
+  2. PARTIDAS JOGADAS - quantas partidas de ARCADE, de COPA e de EVENTO
+     e quantos jogadores cadastrados; "ZERAR CONTADORES" zera um por um.
+     (eventos, leads e pendrive NÃO ficam mais aqui: ficam no jogo, na
+     opção EVENTO do menu - item 6)
   3. TESTE DOS ALVOS - marque a letra e OK (ou clique) = o LED acende;
      bata no alvo = a letra dele acende na tela. "ACENDER TODOS".
   embaixo: "AJUSTES AVANÇADOS" e "VOLTAR AO JOGO".
@@ -248,41 +262,60 @@ O AVISO DE "ABRIR SOZINHO AO LIGAR":
 6. MODO EVENTO (FEIRAS: PARTIDA DE ATÉ 8, SEM FICHA, COM CADASTRO)
 ----------------------------------------------------------------
 COMO ENTRAR: no menu do jogo, EVENTO é a 3ª opção, ao lado de ARCADE e
-COPA. Aperte SELECT até "EVENTO" ficar no meio e aperte START.
+COPA. Aperte SELECT até "EVENTO" ficar no meio e aperte START: abre a
+tela EVENTOS (abaixo); escolha o evento e "JOGAR NESTE EVENTO".
   - NÃO PEDE FICHA (mesmo com a máquina no CRÉDITO; ARCADE e COPA
     continuam pedindo).
   - START acrescenta jogadores: de 1 a 8.
   - Fechou a contagem, CADA jogador preenche o cadastro (e-mail, nome,
-    idade) e só então a partida começa: um arcade com todos na tela, cada
+    idade, cidade e telefone) e só então a partida começa: um arcade com todos na tela, cada
     um com o NOME que escreveu, e o resultado com a classificação de todos.
   - Com 2 jogadores ou mais, o pódio da partida entra no MURAL DE CAMPEÕES
     como TORNEIO, com o nome do evento (filtro "TORNEIOS" do Mural; conta
     no Ranking).
   - Terminou: o jogo volta para o menu, para os próximos.
-ANTES DO EVENTO, na Central da Máquina > "EVENTOS E DADOS":
-  - "+ NOVO EVENTO": dê o nome (vai para as planilhas). Ele vira o evento
-    ATUAL, o que recebe as próximas partidas.
-  - a lista mostra cada evento criado com PARTIDAS, JOGADORES e CADASTROS;
-    "USAR" troca o evento atual.
-  - em cima, as partidas de ARCADE, COPA e EVENTO, cada uma com "ZERAR".
-  - APAGAR: o botão "APAGAR" da linha (um evento), marcar vários e
-    "APAGAR OS MARCADOS", ou "APAGAR TUDO". Sempre pede confirmação.
-    Apagar tira da máquina e, na próxima descarga, do pendrive (a versão
-    anterior fica em copia_de_seguranca no pendrive).
-  - "DESCARREGAR NO PENDRIVE": grava tudo agora.
-  - "DATA E PENDRIVE": acertar a DATA E HORA DOS CADASTROS (caixa sem
-    internet abre com o relógio errado: botões - e +) e "ESCOLHER A PASTA
-    DO PENDRIVE" (TV Box que não acha o pendrive sozinha).
+A TELA "EVENTOS" (abre sempre que se escolhe EVENTO no menu). Tudo do
+modo evento está nela - o nome do evento vem ANTES de tudo:
+  - "+ NOVO EVENTO": escreva o nome (vai para as planilhas). Ele já fica
+    escolhido. Sem nenhum evento, o teclado abre sozinho pedindo o nome.
+  - a lista mostra os eventos salvos (partidas, jogadores, data); clicar
+    (ou OK) escolhe; o escolhido fica guardado para as próximas partidas.
+  - "JOGAR NESTE EVENTO" (ou START na máquina): segue para a escolha dos
+    jogadores e as fichas. SELECT passa para o próximo evento.
+  - "VER LEADS": quem se cadastrou no evento (na tela, telefone e e-mail
+    aparecem pela metade; os completos vão para o pendrive).
+  - "APAGAR EVENTO": aperte duas vezes. Apagar tira da máquina e, na
+    próxima descarga, do pendrive (a versão anterior fica em
+    copia_de_seguranca no pendrive).
+  - PENDRIVE: a linha de baixo diz o que JÁ ESTÁ nele e o que FALTA
+    ("10 cadastros já estão nele • 2 NOVOS para gravar"), e
+    "DESCARREGAR NO PENDRIVE" grava só o que falta - nada se repete.
+    "PENDRIVE EM DIA • PODE TIRAR" = pode tirar.
+    (TV Box que não acha o pendrive: aperte DESCARREGAR 2 vezes para
+    escolher a pasta no Android.)
+  - "VOLTAR AO MENU" (ou VOLTAR / ESC): sai sem contar partida.
+A DATA E HORA DOS CADASTROS (caixa sem internet abre com o relógio
+errado): Central da Máquina > "AJUSTES AVANÇADOS" > "DATA E HORA".
 OS DADOS FICAM NA MÁQUINA: com ou sem pendrive, tudo é guardado nela.
-Espetou o pendrive (FAT32 ou exFAT), os dados descem sozinhos (ou pelo
-botão "DESCARREGAR NO PENDRIVE").
-Com o modo ligado, antes de cada partida cada jogador preenche a ficha:
-E-MAIL, NOME e IDADE (a data entra sozinha). Pelo controle ou mouse: o
+Espetou o pendrive (FAT32 ou exFAT), o jogo confere o que já está nele e
+os dados que faltam descem sozinhos (ou pelo botão "DESCARREGAR NO
+PENDRIVE").
+A FICHA, antes de cada partida, para cada jogador: E-MAIL, NOME, IDADE,
+CIDADE e TELEFONE (a data entra sozinha). Pelo controle ou mouse: o
 teclado da tela abre sozinho em cada campo (tem @, os finais @gmail.com,
-@hotmail.com... e números para a idade); PRONTO passa para o próximo. Um
-teclado USB na caixa também escreve (ENTER = pronto).
-  - QUEM JÁ JOGOU digita o mesmo e-mail: os dados voltam prontos, a ficha é
-    atualizada (não duplica) e a visita é somada.
+@hotmail.com... e números para idade e telefone); as teclas PRONTO
+(verde), APAGAR (vermelha) e LIMPAR (laranja) são coloridas. Um teclado
+USB na caixa também escreve (ENTER = pronto).
+  - CIDADE: é escolhida em lista - país (América do Sul) > estado >
+    cidade. A lista já abre no estado do jogador anterior, com a cidade
+    dele marcada: quem é dali só aperta OK. "MUDAR O ESTADO" / "MUDAR O
+    PAÍS" voltam; "NÃO ESTÁ NA LISTA?" deixa escrever a cidade.
+    (para acrescentar cidades na lista: scripts/lugares.gd)
+  - TELEFONE: só os números, com DDD. Vai para os arquivos como
+    "55 11 91234-5678" (sem os espaços e o traço = número do WhatsApp).
+  - QUEM JÁ JOGOU digita o mesmo e-mail: os dados voltam prontos (cidade
+    e telefone também), a ficha é atualizada (não duplica) e a visita é
+    somada.
   - "SAIR SEM JOGAR" (ou VOLTAR 2 vezes): a partida não começa.
     Ficha parada 2,5 minutos: volta sozinha para o menu.
 NO PENDRIVE, pasta OlhoNoLance_Leads:
@@ -301,15 +334,15 @@ NO PENDRIVE, pasta OlhoNoLance_Leads:
   pendrive ou faltar luz no meio não deixa arquivo pela metade. Os
   cadastros também ficam guardados DENTRO da máquina: sem pendrive nada se
   perde, e vai tudo para ele quando voltar (o menu avisa "SEM PENDRIVE").
-  ANTES DE TIRAR O PENDRIVE: espere "GRAVADO - PODE TIRAR O PENDRIVE".
+  ANTES DE TIRAR O PENDRIVE: espere "PENDRIVE EM DIA • PODE TIRAR" na
+  tela EVENTOS.
   O mesmo pendrive em outra máquina / outra feira: o jogo lê o que já está
   nele, reconhece aqueles jogadores e grava tudo junto.
   Em caixa que só deixa escrever na pasta do próprio jogo, os arquivos
   ficam em  Android\data\com.lazersport.golflasharena\files\OlhoNoLance_Leads
-  dentro do pendrive (a Central da Máquina mostra onde gravou).
+  dentro do pendrive.
   LGPD: a ficha avisa o jogador do uso dos dados; guarde o pendrive em
-  lugar seguro e apague os dados de quem pedir (Central > "EVENTOS
-  E DADOS").
+  lugar seguro e apague os dados de quem pedir.
 
 
 SE ALGO NÃO FUNCIONAR

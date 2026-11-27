@@ -218,6 +218,8 @@ func _input(event: InputEvent) -> void:
 			if lista.is_empty() or (sem_marca and tecla in ["esq", "dir"]):
 				if tecla in ["esq", "dir"] and not eco and not _select_pela_seta:
 					_select_pela_seta = true
+					_sentido = -1 if tecla == "esq" else 1
+					_sentido_ms = Time.get_ticks_msec()
 					_acao("input_cup", true)
 				return
 			_consumir()
@@ -238,6 +240,17 @@ func _input(event: InputEvent) -> void:
 
 
 var _voltar_tecla_ms := -100000
+var _sentido := 1
+var _sentido_ms := -100000
+
+
+## PARA QUE LADO VAI O "SELECT" QUE ACABOU DE CHEGAR: -1 se veio da seta ◀
+## do controle (a opção da ESQUERDA), +1 se veio da seta ▶ ou do botão SELECT
+## da máquina (a da DIREITA). Vale uma vez só (quem pergunta, gasta).
+func sentido_do_select() -> int:
+	var s := _sentido if Time.get_ticks_msec() - _sentido_ms < 2500 else 1
+	_sentido = 1
+	return s
 
 
 func _voltar() -> void:
@@ -522,13 +535,51 @@ func _apertar(c: Control) -> void:
 		b.pressed.emit()
 
 
+## O BOTÃO MARCADO "ACENDE" (estilo aplicativo): um clarão por cima dele, um
+## contorno claro que segue o formato do botão (os cantos redondos dele) e um
+## brilho em volta, na cor do próprio botão, que respira devagar.
+var _estilo_marca := StyleBoxFlat.new()
+
+
 func _desenhar_moldura() -> void:
 	if _alvo == null or not _vale(_alvo):
 		return
-	var r := _retangulo(_alvo).grow(5.0)
-	var pulso := 0.75 + 0.25 * sin(Time.get_ticks_msec() / 160.0)
-	_moldura.draw_rect(r.grow(3.0), Color(0, 0, 0, 0.55), false, 3.0)
-	_moldura.draw_rect(r, Color(COR_MARCA, pulso), false, 4.0)
+	var r := _retangulo(_alvo)
+	var k: float = r.size.x / maxf(_alvo.size.x, 1.0)      # o quanto a tela aumentou o botão
+	var raio: float = 10.0 * k
+	var cor := COR_MARCA
+	var caixa: StyleBox = _alvo.get_theme_stylebox("normal")
+	if caixa is StyleBoxFlat:
+		var f := caixa as StyleBoxFlat
+		raio = float(f.corner_radius_top_left) * k
+		var b: Color = f.border_color if f.border_width_left > 0 and f.border_color.a > 0.3 else f.bg_color
+		if b.a > 0.3 and b.r + b.g + b.b > 0.9:
+			cor = Color(b.r, b.g, b.b).lightened(0.20)
+	var pulso: float = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 260.0)
+	var folga: float = (3.0 + 1.5 * pulso) * k
+	var st := _estilo_marca
+	st.anti_aliasing = true
+	st.shadow_size = 0
+	# 1. o clarão por cima do botão (leve: o texto continua nítido)
+	st.draw_center = true
+	st.bg_color = Color(1, 1, 1, 0.07 + 0.05 * pulso)
+	st.set_border_width_all(0)
+	st.set_corner_radius_all(int(minf(raio, r.size.y * 0.5)))
+	_moldura.draw_style_box(st, r)
+	# 2. o brilho em volta: anéis na cor do botão, cada um mais fraco
+	st.draw_center = false
+	var grosso: float = maxf(2.0, 3.0 * k)
+	for i in range(4, 0, -1):
+		var fora: float = folga + grosso * float(i)
+		st.border_color = Color(cor.r, cor.g, cor.b, (0.42 + 0.26 * pulso) / float(i * i) * 1.6)
+		st.set_border_width_all(int(ceil(grosso)))
+		st.set_corner_radius_all(int(minf(raio + fora, (r.size.y + fora * 2.0) * 0.5)))
+		_moldura.draw_style_box(st, r.grow(fora))
+	# 3. o contorno claro, no formato do botão
+	st.border_color = Color(1, 1, 1, 0.95)
+	st.set_border_width_all(maxi(2, int(round(2.6 * k))))
+	st.set_corner_radius_all(int(minf(raio + folga, (r.size.y + folga * 2.0) * 0.5)))
+	_moldura.draw_style_box(st, r.grow(folga))
 
 
 # -------------------------------------------------------- teclado na tela
@@ -687,19 +738,60 @@ func _abrir_teclado(campo: LineEdit) -> void:
 	_marcar(_teclas[10] if _teclas.size() > 20 else _teclas[0])   # começa no Q (números: no 1)
 
 
+## AS TECLAS QUE FAZEM ALGUMA COISA TÊM COR (aparecem de longe):
+##   PRONTO = verde cheio    APAGAR = vermelho    LIMPAR = laranja
+##   ESPAÇO = azul           atalhos (@gmail.com, .com...) = roxo
+const COR_TECLA_PRONTO := Color(0.16, 0.80, 0.36)
+const COR_TECLA_APAGAR := Color(0.92, 0.24, 0.22)
+const COR_TECLA_LIMPAR := Color(0.96, 0.56, 0.10)
+const COR_TECLA_ESPACO := Color(0.16, 0.50, 0.95)
+const COR_TECLA_ATALHO := Color(0.58, 0.38, 0.95)
+
+
+func _cor_da_tecla(texto: String) -> Variant:
+	if texto.contains("PRONTO"):
+		return COR_TECLA_PRONTO
+	if texto.contains("APAGAR"):
+		return COR_TECLA_APAGAR
+	if texto == "LIMPAR":
+		return COR_TECLA_LIMPAR
+	if texto == "ESPAÇO":
+		return COR_TECLA_ESPACO
+	if texto.length() > 1:
+		return COR_TECLA_ATALHO
+	return null
+
+
 func _tecla(texto: String, tam: Vector2, escala: float) -> Button:
 	var b := Button.new()
 	b.text = texto
 	b.size = tam
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override("font_size", int((26 if texto.length() == 1 else 17) * escala))
+	var cor: Variant = _cor_da_tecla(texto)
+	var cheia: bool = cor != null and (texto.contains("PRONTO") or texto.contains("APAGAR") or texto == "LIMPAR")
+	b.add_theme_font_size_override("font_size", int((26 if texto.length() == 1 else (19 if cheia else 17)) * escala))
 	for estado in ["normal", "hover", "pressed"]:
 		var st := StyleBoxFlat.new()
 		st.bg_color = Color(0.10, 0.14, 0.22) if estado == "normal" else Color(0.18, 0.30, 0.48)
 		st.border_color = Color(0.25, 0.55, 0.95, 0.8)
 		st.set_border_width_all(1)
+		if cor != null:
+			var c: Color = cor
+			var forte: float = 1.0 if estado == "normal" else 1.22
+			if cheia:
+				st.bg_color = Color(c.r * 0.82 * forte, c.g * 0.82 * forte, c.b * 0.82 * forte)
+				st.border_color = c.lightened(0.35)
+			else:
+				st.bg_color = Color(c.r * 0.30 * forte, c.g * 0.30 * forte, c.b * 0.30 * forte)
+				st.border_color = c
+			st.set_border_width_all(2)
 		st.set_corner_radius_all(int(10 * escala))
 		b.add_theme_stylebox_override(estado, st)
+	if cheia:
+		for nome_cor in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			b.add_theme_color_override(nome_cor, Color.WHITE)
+		b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.55))
+		b.add_theme_constant_override("outline_size", int(4 * escala))
 	_teclas.append(b)
 	return b
 

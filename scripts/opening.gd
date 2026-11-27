@@ -149,6 +149,7 @@ var max_players: int = MAX_PLAYERS_ARCADE
 ## A partida que está sendo montada é a do MODO EVENTO (sem ficha, até 8
 ## jogadores, com o cadastro de cada um)?
 var evento_em_curso: bool = false
+var _entrando_no_evento: bool = false      # a tela dos EVENTOS está aberta (ou abrindo)
 const COOLDOWN_START_MS: int = 320
 
 
@@ -432,9 +433,11 @@ func _process(delta: float) -> void:
 	if fundo_video != null:
 		_enquadrar_video_cover()
 	_atualizar_botao_central()
+	_esconder_rodape_atras_do_evento()
 
 	# Menu travado: durante loading/boot, patrocinadores, iniciando modo, ou indo pro Mural.
-	var menu_bloqueado: bool = patro_replay_ativo or (opening_loading_layer != null) or iniciando_jogo or combo_indo_mural or ranking_indo
+	var menu_bloqueado: bool = patro_replay_ativo or (opening_loading_layer != null) or iniciando_jogo or combo_indo_mural or ranking_indo \
+		or Leads.lobby_aberto() or _entrando_no_evento
 	# (nenhum aviso segura o menu: se alguém apertar START com um aviso na
 	# tela, o aviso some e o jogo segue - ArduinoBridge._olhar_inicio)
 
@@ -617,6 +620,10 @@ func _abrir_tela_configuracoes() -> void:
 	if iniciando_jogo:
 		return
 
+	# (a tela dos EVENTOS está na frente: o menu espera)
+	if Leads.lobby_aberto() or _entrando_no_evento:
+		return
+
 	if escolhendo_players:
 		return
 
@@ -757,6 +764,25 @@ func _criar_botao_central() -> void:
 	root.add_child(botao_central)
 
 
+## Com a tela dos EVENTOS ou a ficha de cadastro na frente, o rodapé do menu
+## (as opções ARCADE / COPA / EVENTO e os atalhos) some: os textos dele
+## apareciam por baixo dos textos e dos campos do evento.
+var _rodape_escondido: bool = false
+
+
+func _esconder_rodape_atras_do_evento() -> void:
+	var esconde: bool = Leads.ficha_aberta()
+	if esconde == _rodape_escondido:
+		return
+	_rodape_escondido = esconde
+	if carrossel_root != null and is_instance_valid(carrossel_root):
+		carrossel_root.visible = not esconde
+	if root != null and is_instance_valid(root):
+		var atalhos := root.get_node_or_null("PainelMuralRanking") as Control
+		if atalhos != null:
+			atalhos.visible = not esconde
+
+
 func _atualizar_botao_central() -> void:
 	if botao_central == null or not is_instance_valid(botao_central):
 		return
@@ -770,6 +796,7 @@ func _atualizar_botao_central() -> void:
 func _atualizar_combo_mural(delta: float) -> void:
 	# O combo só vale no menu de modos: sem modais, sem loading, sem patrocinadores.
 	var pode_combo: bool = InputMap.has_action("input_cup") \
+		and not Leads.lobby_aberto() and not _entrando_no_evento \
 		and not escolhendo_players \
 		and not iniciando_jogo \
 		and not copa_modal_aberto \
@@ -3188,6 +3215,10 @@ func _on_timer_patrocinadores_automatico() -> void:
 	if patro_replay_ativo:
 		return
 
+	# (a tela dos EVENTOS está na frente: o menu espera)
+	if Leads.lobby_aberto() or _entrando_no_evento:
+		return
+
 	if opening_loading_layer != null:
 		return
 
@@ -4024,7 +4055,7 @@ func _offsets_carrossel(size: int) -> Array:
 
 
 
-func _montar_carrossel(animar: bool = false) -> void:
+func _montar_carrossel(animar: bool = false, passo: int = 1) -> void:
 	if carrossel_root == null or not is_instance_valid(carrossel_root):
 		return
 
@@ -4051,7 +4082,7 @@ func _montar_carrossel(animar: bool = false) -> void:
 	_criar_dots_carrossel(cx, vp.y - 36.0)
 
 	if animar:
-		carrossel_root.position.x = 54.0
+		carrossel_root.position.x = 54.0 * float(signi(passo) if passo != 0 else 1)
 
 		var t := create_tween()
 		t.tween_property(carrossel_root, "position:x", 0.0, 0.20) \
@@ -4230,11 +4261,14 @@ func _avancar_carrossel() -> void:
 	if modos_jogo.size() <= 1:
 		return
 
-	modo_focado = (modo_focado + 1) % modos_jogo.size()
+	# ◀ do controle = a opção que está à ESQUERDA; ▶ (e o botão SELECT da
+	# máquina) = a que está à DIREITA. As opções entram pelo lado certo.
+	var passo: int = ControleTv.sentido_do_select()
+	modo_focado = ((modo_focado + passo) % modos_jogo.size() + modos_jogo.size()) % modos_jogo.size()
 
 	_tocar_som_navegacao_modo()
 
-	_montar_carrossel(true)
+	_montar_carrossel(true, passo)
 
 
 func _confirmar_modo_focado() -> void:
@@ -4245,8 +4279,28 @@ func _confirmar_modo_focado() -> void:
 	if modos_jogo.is_empty():
 		return
 
+	if Leads.lobby_aberto() or _entrando_no_evento:
+		return
+
 	var modo: Dictionary = modos_jogo[modo_focado]
 	var acao: String = str(modo.get("acao", ""))
+
+	# EVENTO: primeiro a tela dos EVENTOS (o nome do evento vem antes de tudo;
+	# lá também ficam os leads e o pendrive). Só com um evento escolhido é que
+	# a partida segue para os jogadores e as fichas.
+	if acao == "evento":
+		_entrando_no_evento = true
+		_serial_write_opening("OFF")
+		var jogar: bool = await Leads.abrir_lobby()
+		_entrando_no_evento = false
+		if not is_inside_tree():
+			return
+		bloquear_start_ate_ms = Time.get_ticks_msec() + COOLDOWN_START_MS
+		confirmar_pendente = false
+		avancar_pendente = false
+		if not jogar:
+			_reiniciar_led_atrativo(0.4)
+			return
 
 	# A partida do EVENTO não pede ficha; ARCADE e COPA seguem o modo da máquina.
 	evento_em_curso = acao == "evento"
@@ -4821,6 +4875,10 @@ func _abrir_mural_campeoes() -> void:
 	if iniciando_jogo:
 		return
 
+	# (a tela dos EVENTOS está na frente: o menu espera)
+	if Leads.lobby_aberto() or _entrando_no_evento:
+		return
+
 	if opening_loading_layer != null:
 		return
 
@@ -5211,6 +5269,10 @@ func _ir_para_ranking_por_hold() -> void:
 	if ranking_indo:
 		return
 
+	# (a tela dos EVENTOS está na frente: o menu espera)
+	if Leads.lobby_aberto() or _entrando_no_evento:
+		return
+
 	if not ResourceLoader.exists(CENA_RANKING):
 		push_warning("Cena do Ranking ainda não existe: " + CENA_RANKING)
 		ranking_hold_ativo = false
@@ -5279,6 +5341,10 @@ func _style_botao_mural_ranking(cor: Color, intensidade: float) -> StyleBoxFlat:
 
 func _abrir_ranking() -> void:
 	if iniciando_jogo:
+		return
+
+	# (a tela dos EVENTOS está na frente: o menu espera)
+	if Leads.lobby_aberto() or _entrando_no_evento:
 		return
 
 	if opening_loading_layer != null:

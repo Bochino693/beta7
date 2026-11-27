@@ -32,9 +32,17 @@
     </queries>
 
     <application android:banner="@drawable/gol_flash_banner">
-        <!-- encaixe do Arduino: "Usar por padrão" guarda a permissão USB -->
+        <!-- encaixe do Arduino: "Usar por padrão" guarda a permissão USB.
+             directBootAware: AO LIGAR A CAIXA o Android procura o app padrão
+             do Arduino JA NO COMECO da inicializacao, antes de "destravar" o
+             armazenamento (caixas com Android 9 ou mais novo). Sem isto esta
+             atividade fica invisivel nessa hora, o Android nao acha o app
+             padrao, NAO da a permissao guardada e o jogo tinha de pedir a
+             janela de novo a cada vez que a caixa ligava. (Nas caixas antigas,
+             Android 7, nao ha essa etapa: por isso la sempre funcionou.) -->
         <activity
             android:name="com.lazersport.strikeserial.StrikeArduinoAtivo"
+            android:directBootAware="true"
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"

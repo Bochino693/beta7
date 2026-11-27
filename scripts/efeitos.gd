@@ -221,20 +221,21 @@ func _desenhar_rede() -> void:
 	var colunas := 9
 	var linhas := 6
 	var passos := 6 if _leve else 10
+	var liso: bool = not _leve      # (linha suavizada custa caro na caixa)
 	for c in range(colunas + 1):
 		var pts := PackedVector2Array()
 		for k in range(passos + 1):
 			pts.append(_ponto_da_rede(rede, Vector2(float(c) / colunas, float(k) / passos), centro, estufa, alcance))
-		_rede.draw_polyline(pts, fio, grosso, true)
+		_rede.draw_polyline(pts, fio, grosso, liso)
 	for l in range(linhas + 1):
 		var pts := PackedVector2Array()
 		for k in range(passos + 1):
 			pts.append(_ponto_da_rede(rede, Vector2(float(k) / passos, float(l) / linhas), centro, estufa, alcance))
-		_rede.draw_polyline(pts, fio, grosso, true)
+		_rede.draw_polyline(pts, fio, grosso, liso)
 	# a trave (na cor do jogador por fora, branca por dentro)
 	var trave := PackedVector2Array([rede.position + Vector2(0, rede.size.y), rede.position, rede.position + Vector2(rede.size.x, 0), rede.end])
-	_rede.draw_polyline(trave, Color(_rede_cor, 0.55 * visivel), grosso * 5.0, true)
-	_rede.draw_polyline(trave, Color(1, 1, 1, 0.95 * visivel), grosso * 2.2, true)
+	_rede.draw_polyline(trave, Color(_rede_cor, 0.55 * visivel), grosso * 5.0, liso)
+	_rede.draw_polyline(trave, Color(1, 1, 1, 0.95 * visivel), grosso * 2.2, liso)
 
 	# a bola: vem de baixo, grande, e diminui até bater; depois cai
 	var raio_perto := menor * 0.17
@@ -475,7 +476,23 @@ var _borda_cor := Color(1.0, 0.12, 0.12)
 
 ## onde = o retângulo do cartão de quem fez o gol (na tela): é ali que a bola
 ## entra na rede. Sem ele, a rede aparece no meio da tela.
+##
+## GOLS EM SEQUÊNCIA NÃO PODEM TRAVAR. Depois de cada gol() a partida lê
+## Efeitos.enfeite para saber quanto enfeite cabe:
+##   2 = tudo (clarão do cartão, "+1", ondas e faíscas)
+##   1 = leve (clarão do cartão e "+1"): caixas fracas - Visual.nivel 3 ou mais
+##   0 = só a bola na rede: este gol veio menos de RAJADA_MS depois do anterior
+## A bola na rede, a moldura acesa, o placar, o som e o LED saem SEMPRE.
+const RAJADA_MS := 650
+var enfeite := 2
+var _ultimo_gol_ms := -100000
+
+
 func gol(jogador: int = 0, cor_do_jogador: Variant = null, onde: Rect2 = Rect2()) -> void:
+	var agora_ms := Time.get_ticks_msec()
+	var rajada: bool = agora_ms - _ultimo_gol_ms < RAJADA_MS
+	_ultimo_gol_ms = agora_ms
+	enfeite = 0 if rajada else (1 if Visual.nivel >= 3 else 2)
 	if not LIGADO:
 		return
 	var cor: Color = CORES_JOGADOR[posmod(jogador, CORES_JOGADOR.size())]
@@ -487,7 +504,8 @@ func gol(jogador: int = 0, cor_do_jogador: Variant = null, onde: Rect2 = Rect2()
 	_borda_cor = cor
 	_borda_alfa = 0.85
 	_borda.queue_redraw()
-	_confete(cor)
+	if enfeite > 0:
+		_confete(cor)
 	_bola_na_rede(cor, onde)
 
 

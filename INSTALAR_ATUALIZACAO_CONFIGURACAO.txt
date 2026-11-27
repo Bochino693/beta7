@@ -64,3 +64,50 @@ ATUALIZAÇÃO TV 21 — EVENTO NO MENU, DADOS NA CENTRAL, ARDUINO UMA VEZ
 - Mural e Ranking: START volta, SELECT troca filtro / aba, voltam sozinhos.
 - Gol sem tranco: placar, som e LED na hora; os enfeites nos quadros seguintes.
 - Controle remoto: ▲ ▼ trocam de fileira, ◀ ▶ andam na fileira.
+
+ATUALIZAÇÃO TV 22 — O ARDUINO SEMPRE LIGA (COM O AUTO START)
+- O jogo espera uns 12 segundos o Android liberar o Arduino sozinho; se não
+  liberar, ele mesmo abre a janela de permissão (não fica mais parado
+  "aguardando o Android"). Marque a caixinha "USAR POR PADRÃO" na janela:
+  com ela marcada o Android libera sozinho e o jogo não pergunta mais.
+- O código do Arduino não mudou: não precisa regravar a placa.
+- Cartões da partida com arte própria (estádio + alvo de LED), PRONTO?
+  ilustrado, bola na rede a cada gol e resultado final animado.
+
+ATUALIZAÇÃO TV 23 — ARDUINO: AUTORIZA UMA VEZ, LIGA SEMPRE
+- Corrigida a causa de o Android "esquecer" o Arduino a cada vez que a caixa
+  ligava (caixas com Android 9 ou mais novo): a atividade que recebe o
+  Arduino agora existe desde o começo da inicialização, então o Android acha
+  o app padrão e dá a permissão guardada antes de o auto start abrir o jogo.
+- Na 1ª vez: marque a caixinha "USAR POR PADRÃO" na janela do Android e OK.
+  Depois disso não aparece mais.
+
+ATUALIZAÇÃO TV 24 — TELA DOS EVENTOS, TELEFONE E CIDADE, GOLS SEM TRAVAR
+- EVENTO no menu abre a tela EVENTOS: o nome do evento vem antes de tudo
+  (criar, escolher), "JOGAR NESTE EVENTO", "VER LEADS", "APAGAR EVENTO" e o
+  PENDRIVE - tudo ali. A Central ficou só com os contadores de partidas
+  ("ZERAR CONTADORES") e, nos ajustes avançados, "DATA E HORA".
+- Pendrive: o jogo confere o que já está nele e mostra a conta ("10 já estão
+  • 2 novos para gravar"); só o que falta é gravado, nada se repete.
+- Ficha: além de e-mail, nome e idade, pede CIDADE (lista país > estado >
+  cidade da América do Sul, já aberta na cidade do jogador anterior) e
+  TELEFONE com DDD. Vão para leads.csv, leads_excel.csv e visitas.csv.
+- Teclado da tela com as teclas PRONTO (verde), APAGAR (vermelha), LIMPAR
+  (laranja), ESPAÇO (azul) e os atalhos de e-mail (roxo) coloridos.
+- Gols em sequência não travam mais: em rajada sai só a bola na rede, o
+  placar, o som e o LED; um comando de LED por gol para o Arduino.
+- Alvos: sempre de 2 a 4 acesos no ARCADE / EVENTO, nunca um sozinho (nas
+  COPAS continua a dupla: acertou um, o outro espera até 3 s e vem a
+  próxima dupla).
+- O código do Arduino não mudou: não precisa regravar a placa.
+
+ATUALIZAÇÃO TV 25 — SETAS DO MENU, BOTÃO QUE ACENDE, RODAPÉ LIMPO
+- Menu: a seta ◀ do controle vai para a opção da ESQUERDA e a ▶ para a da
+  DIREITA (as duas iam para a direita). O botão SELECT da máquina continua
+  indo para a direita.
+- A marca do controle deixou de ser um retângulo amarelo: o botão marcado
+  acende (contorno claro no formato dele e brilho na cor do botão). Com o
+  mouse por cima os botões da ficha e dos eventos também acendem.
+- Tela dos EVENTOS e ficha: saiu a linha de dicas do rodapé (ficava por
+  baixo do botão do pendrive) e o rodapé do menu (ARCADE / COPA / EVENTO e os
+  atalhos) fica escondido enquanto elas estão abertas.

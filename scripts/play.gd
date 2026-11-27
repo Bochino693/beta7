@@ -80,10 +80,15 @@ const SFX_APITO_FIM: String = "res://songs/apito_fim.mp3"
 
 
 const LEDS_TOTAL: int = 7
-const LEDS_ATIVOS_MAX: int = 3
+## QUANTOS ALVOS FICAM ACESOS: sempre de 2 a 4, NUNCA um só.
+## A mesa "respira": a cada gol um alvo apaga (4 > 3 > 2) e, quando sobraria
+## um sozinho, acende de uma vez uma leva nova (de 2 a 4, diferente da
+## anterior). Se o jogador para de acertar, depois de ALVO_TIMEOUT_MS troca o
+## grupo inteiro - também de 2 a 4.
+const LEDS_ATIVOS_MAX: int = 4
 const LEDS_LETRAS: Array[String] = ["A", "B", "C", "D", "E", "F", "G"]
 
-const LEDS_ATIVOS_MIN: int = 1
+const LEDS_ATIVOS_MIN: int = 2
 
 
 var qtd_leds_alvo_atual: int = 3
@@ -397,7 +402,7 @@ func _process(delta: float) -> void:
 		_finalizar_turno_player()
 
 	_avaliar_motivacao()
-	_atualizar_hud()
+	_atualizar_hud(false)
 
 
 
@@ -1078,7 +1083,12 @@ func _adicionar_fundo_card(panel: Panel, index: int, cor: Color) -> void:
 func _acender_alvo_do_card(index: int, sim: bool) -> void:
 	if index < 0 or index >= fundos_cards.size() or fundos_cards[index] == null:
 		return
-	fundos_cards[index].set_shader_parameter("vivo", 1.0 if sim and Visual.nivel < 4 else 0.0)
+	var valor: float = 1.0 if sim and Visual.nivel < 4 else 0.0
+	# (só quando muda: é chamado para todos os cartões várias vezes por segundo)
+	if float(fundos_cards[index].get_meta("vivo", -1.0)) == valor:
+		return
+	fundos_cards[index].set_meta("vivo", valor)
+	fundos_cards[index].set_shader_parameter("vivo", valor)
 
 
 func _criar_painel_player(index: int, rect: Rect2) -> void:
@@ -1657,8 +1667,7 @@ func _sortear_novo_grupo_de_fileiras() -> void:
 	leds_ativos.clear()
 	cores_leds_ativos.clear()
 
-	qtd_leds_alvo_atual = randi_range(LEDS_ATIVOS_MIN, LEDS_ATIVOS_MAX)
-	qtd_leds_alvo_atual = clamp(qtd_leds_alvo_atual, 1, LEDS_TOTAL)
+	qtd_leds_alvo_atual = _nova_quantidade_de_alvos()
 
 	while leds_ativos.size() < qtd_leds_alvo_atual:
 		var novo: int = _sortear_led_disponivel()
@@ -1798,9 +1807,20 @@ func _animar_painel_atual() -> void:
 	t.tween_property(panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-func _atualizar_hud() -> void:
+## O PLACAR E O TEMPO mudam na hora. O resto do cartão (cores, pulso da
+## borda, medalhas, o alvo aceso) é refeito no máximo 8 vezes por segundo
+## quando a chamada vem de todo quadro (tudo = false): refazer os estilos de
+## todos os cartões a cada quadro era o que mais pesava na caixa.
+var _hud_estilos_ms: int = -100000
+
+
+func _atualizar_hud(tudo: bool = true) -> void:
 	if total_players <= 0:
 		return
+	var agora_hud := Time.get_ticks_msec()
+	var estilos: bool = tudo or agora_hud - _hud_estilos_ms >= 125
+	if estilos:
+		_hud_estilos_ms = agora_hud
 
 	if player_panels.size() < total_players:
 		return
@@ -1834,7 +1854,8 @@ func _atualizar_hud() -> void:
 
 		score_labels[i].text = str(scores[i])
 		tempo_labels[i].text = str(int(ceil(tempos[i])))
-		rodada_labels[i].text = ""
+		if not estilos:
+			continue
 
 		var style := player_panels[i].get_theme_stylebox("panel") as StyleBoxFlat
 		if style == null:
@@ -1886,8 +1907,9 @@ func _atualizar_hud() -> void:
 
 			player_panels[i].modulate = Color(0.66, 0.66, 0.66, 1.0)
 			_acender_alvo_do_card(i, false)
-	
-	_atualizar_medalhas_lider()
+
+	if estilos:
+		_atualizar_medalhas_lider()
 
 
 func _explosao_gol(index: int) -> void:
@@ -2226,9 +2248,12 @@ func registrar_ponto(valor: int = 1) -> void:
 	# ENFEITES: um por quadro, nos quadros seguintes (Efeitos.depois) - criar
 	# tudo junto com o gol é o que dava o tranco na imagem e no som.
 	var quem: int = player_atual
-	Efeitos.depois(_efeito_gol_card.bind(quem))
-	Efeitos.depois(_explosao_gol.bind(quem))
-	Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
+	# (quanto enfeite cabe neste gol: Efeitos.enfeite - gols em sequência não travam)
+	if Efeitos.enfeite >= 1:
+		Efeitos.depois(_efeito_gol_card.bind(quem))
+		Efeitos.depois(_mostrar_popup_ponto.bind(quem, valor))
+	if Efeitos.enfeite >= 2:
+		Efeitos.depois(_explosao_gol.bind(quem))
 
 
 func _tocar_campeao_agora() -> void:
@@ -2802,7 +2827,8 @@ func _mostrar_modal_final() -> void:
 func _iniciar_chuva_confetes(root: Control, cor: Color) -> void:
 	var meu_token := _final_token
 
-	while is_instance_valid(root) and partida_finalizada and meu_token == _final_token:
+	# (is_inside_tree: a tela pode ter sido trocada com a chuva ainda caindo)
+	while is_inside_tree() and is_instance_valid(root) and partida_finalizada and meu_token == _final_token:
 		_spawn_lote_confetes(root, cor)
 		await get_tree().create_timer(0.35).timeout
 
@@ -3031,6 +3057,9 @@ func _criar_hud_leds() -> void:
 func _atualizar_leds_hud() -> void:
 	if leds_hud_layer:
 		leds_hud_layer.visible = MOSTRAR_TECLAS_LED_HUD
+	# (escondido: não monta os 7 estilos a cada gol)
+	if not MOSTRAR_TECLAS_LED_HUD:
+		return
 
 	if leds_botoes.is_empty():
 		return
@@ -3080,8 +3109,24 @@ func _sortear_led_disponivel() -> int:
 
 
 
+## De 2 a 4, e nunca a mesma quantidade duas vezes seguidas.
+func _nova_quantidade_de_alvos() -> int:
+	var opcoes: Array[int] = []
+	for q in range(LEDS_ATIVOS_MIN, LEDS_ATIVOS_MAX + 1):
+		if q != qtd_leds_alvo_atual:
+			opcoes.append(q)
+	if opcoes.is_empty():
+		return LEDS_ATIVOS_MIN
+	return clampi(opcoes[randi() % opcoes.size()], LEDS_ATIVOS_MIN, LEDS_TOTAL)
+
+
+## Depois de um gol: os que sobraram continuam acesos. Só quando sobraria UM
+## sozinho (ou nenhum) é que entra a leva nova, completando até 2, 3 ou 4.
 func _completar_leds_ativos() -> void:
-	qtd_leds_alvo_atual = clamp(qtd_leds_alvo_atual, LEDS_ATIVOS_MIN, LEDS_ATIVOS_MAX)
+	if leds_ativos.size() >= LEDS_ATIVOS_MIN:
+		qtd_leds_alvo_atual = leds_ativos.size()
+	else:
+		qtd_leds_alvo_atual = _nova_quantidade_de_alvos()
 
 	while leds_ativos.size() < qtd_leds_alvo_atual:
 		var novo: int = _sortear_led_disponivel()
@@ -3150,10 +3195,10 @@ func _processar_input_led(index_led: int) -> void:
 		registrar_ponto(1)
 
 		_atualizar_leds_hud()
-		_enviar_leds_para_arduino()
-
-		await get_tree().create_timer(0.08).timeout
-
+		# UM comando de LED por gol: o Arduino fica "surdo" enquanto acende a
+		# fita, então mandar "apaga este" e, 80 ms depois, "acende o novo"
+		# fazia ele perder batidas com gols em sequência. O alvo novo já vai
+		# no mesmo comando (_completar_leds_ativos manda os LEDs).
 		_completar_leds_ativos()
 
 	else:
